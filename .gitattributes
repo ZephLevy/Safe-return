@@ -1,0 +1,4 @@
+# So that github knows it's dart
+
+* linguist-vendored
+*.dart linguist-vendored=false
