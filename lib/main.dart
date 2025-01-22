@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:safe_return/pages/home_page.dart';
+import 'package:safe_return/pages/map_page.dart';
+import 'package:safe_return/pages/settings_page.dart';
 import 'package:safe_return/palette.dart';
 
 void main() {
@@ -12,11 +14,9 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: HomeScreen()
-    );
+    return MaterialApp(home: HomeScreen());
   }
-} 
+}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,10 +26,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-    final List<Widget> _pages = [ //TODO: Make other pages
-    Placeholder(),
+  final List<Widget> _pages = [
+    MapPage(),
     HomePage(),
-    Placeholder()
+    SettingsPage(),
   ];
 
   int _selectedIndex = 1;
@@ -80,19 +80,19 @@ class _HomeScreenState extends State<HomeScreen> {
             IconButtons(
               path: 'assets/locationArrow.png',
               index: 0,
-              isSelected: _selectedIndex == 0, 
+              isSelected: _selectedIndex == 0,
               onSelected: _onButtonSelected,
             ),
             IconButtons(
               path: 'assets/home.png',
               index: 1,
-              isSelected: _selectedIndex == 1, 
+              isSelected: _selectedIndex == 1,
               onSelected: _onButtonSelected,
             ),
             IconButtons(
               path: 'assets/settings.png',
               index: 2,
-              isSelected: _selectedIndex == 2, 
+              isSelected: _selectedIndex == 2,
               onSelected: _onButtonSelected,
             ),
           ],
@@ -100,7 +100,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
 }
 
 class IconButtons extends StatelessWidget {
@@ -139,8 +138,10 @@ class IconButtons extends StatelessWidget {
             border: Border(
               left: BorderSide(color: Palette.blue1, width: 1.5),
               right: BorderSide(color: Palette.blue1, width: 1.5),
-              top: BorderSide(color: Palette.blue1, width: isSelected ? 4 : 1.5),
-              bottom: BorderSide(color: Palette.blue1, width: !isSelected ? 4 : 1.5),
+              top:
+                  BorderSide(color: Palette.blue1, width: isSelected ? 4 : 1.5),
+              bottom: BorderSide(
+                  color: Palette.blue1, width: !isSelected ? 4 : 1.5),
             ),
           ),
           child: Container(
