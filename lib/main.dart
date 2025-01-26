@@ -13,10 +13,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: HomeScreen()
+      home: HomeScreen(),
     );
   }
-} 
+}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,10 +26,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-    final List<Widget> _pages = [ //TODO: Make other pages
+  final List<Widget> _pages = [
     Placeholder(),
     HomePage(),
-    Placeholder()
+    Placeholder(),
   ];
 
   int _selectedIndex = 1;
@@ -80,19 +80,19 @@ class _HomeScreenState extends State<HomeScreen> {
             IconButtons(
               path: 'assets/locationArrow.png',
               index: 0,
-              isSelected: _selectedIndex == 0, 
+              isSelected: _selectedIndex == 0,
               onSelected: _onButtonSelected,
             ),
             IconButtons(
               path: 'assets/home.png',
               index: 1,
-              isSelected: _selectedIndex == 1, 
+              isSelected: _selectedIndex == 1,
               onSelected: _onButtonSelected,
             ),
             IconButtons(
               path: 'assets/settings.png',
               index: 2,
-              isSelected: _selectedIndex == 2, 
+              isSelected: _selectedIndex == 2,
               onSelected: _onButtonSelected,
             ),
           ],
@@ -100,7 +100,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
 }
 
 class IconButtons extends StatelessWidget {
@@ -139,8 +138,10 @@ class IconButtons extends StatelessWidget {
             border: Border(
               left: BorderSide(color: Palette.blue1, width: 1.5),
               right: BorderSide(color: Palette.blue1, width: 1.5),
-              top: BorderSide(color: Palette.blue1, width: isSelected ? 4 : 1.5),
-              bottom: BorderSide(color: Palette.blue1, width: !isSelected ? 4 : 1.5),
+              top:
+                  BorderSide(color: Palette.blue1, width: isSelected ? 4 : 1.5),
+              bottom: BorderSide(
+                  color: Palette.blue1, width: !isSelected ? 4 : 1.5),
             ),
           ),
           child: Container(
