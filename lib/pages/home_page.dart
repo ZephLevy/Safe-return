@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:safe_return/palette.dart';
+import 'package:flutter/cupertino.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -55,8 +56,19 @@ class HomePage extends StatelessWidget {
           child: SizedBox(
             width: double.infinity,
             height: 200,
-            child: Center(
-              child: Scaffold(),
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: SizedBox(
+                width: double.infinity,
+                height: 150,
+                child: CupertinoDatePicker(
+                  onDateTimeChanged: (value) {
+                    print(value);
+                  },
+                  mode: CupertinoDatePickerMode.time,
+                  use24hFormat: true,
+                ),
+              ),
             ),
           ),
         )
