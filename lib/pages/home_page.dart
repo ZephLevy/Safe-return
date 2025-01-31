@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:safe_return/pages/time_manager.dart';
 import 'package:safe_return/palette.dart';
 import 'package:flutter/cupertino.dart';
@@ -112,6 +113,7 @@ class _TimeSetButtonState extends State<TimeSetButton> {
             setState(() {
               date = TimeManager().selectedTime;
               isSelected = false;
+              HapticFeedback.mediumImpact();
             });
             print(date);
           },
