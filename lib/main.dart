@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:safe_return/pages/home_page.dart';
+import 'package:safe_return/pages/map_page.dart';
+import 'package:safe_return/pages/settings_page.dart';
 import 'package:safe_return/palette.dart';
 
 void main() {
@@ -27,9 +29,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _pages = [
-    Placeholder(),
+    MapPage(),
     HomePage(),
-    Placeholder(),
+    SettingsPage(),
   ];
 
   int _selectedIndex = 1;
