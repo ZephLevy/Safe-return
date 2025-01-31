@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:safe_return/palette.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -7,14 +8,13 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(title: Text("Example")),
-        body: Center(
-            child: Container(
-                width: 100,
-                height: 100,
-                margin: EdgeInsets.all(20),
-                color: const Color.fromARGB(255, 42, 77, 255))),
-      ),
+          appBar: AppBar(title: Text("Example")),
+          body: Center(
+              child: Container(
+                  width: 100,
+                  height: 100,
+                  margin: EdgeInsets.all(20),
+                  color: Palette.blue3))),
     );
   }
 }
