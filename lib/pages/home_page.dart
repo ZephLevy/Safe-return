@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:safe_return/palette.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -84,23 +83,6 @@ class HomePage extends StatelessWidget {
         Icons.sos,
         size: 55,
         color: Palette.blue1,
-      ),
-    );
-  }
-}
-
-class Time extends StatelessWidget {
-  final int index;
-  const Time({required this.index, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        padding: EdgeInsets.all(1),
-        child: Text(
-          index.toString(),
-        ),
       ),
     );
   }
