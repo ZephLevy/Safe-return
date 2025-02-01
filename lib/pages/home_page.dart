@@ -80,7 +80,9 @@ class HomePage extends StatelessWidget {
 
   FloatingActionButton _sosButton() {
     return FloatingActionButton.large(
-      onPressed: () {},
+      onPressed: () {
+        HapticFeedback.heavyImpact();
+      },
       backgroundColor: Color(0xffB20000),
       child: Icon(
         Icons.sos,
