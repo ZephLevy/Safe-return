@@ -83,11 +83,17 @@ class HomePage extends StatelessWidget {
       onPressed: () {
         HapticFeedback.heavyImpact();
       },
-      backgroundColor: Color(0xffB20000),
+      backgroundColor: Color(0xffde001a),
+      shape: CircleBorder(
+        side: BorderSide(
+          width: 2,
+          color: Palette.blue2,
+        ),
+      ),
       child: Icon(
         Icons.sos,
         size: 55,
-        color: Palette.blue1,
+        color: Color(0xfffef5ff),
       ),
     );
   }
