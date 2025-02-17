@@ -97,6 +97,8 @@ class SettingsPage extends StatelessWidget {
 }
 
 class Menus extends StatefulWidget {
+  const Menus({super.key});
+
   @override
   MenusState createState() => MenusState();
 }
