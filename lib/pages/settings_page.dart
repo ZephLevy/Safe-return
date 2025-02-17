@@ -29,7 +29,6 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  //other non-relative code.
   Widget _sosConfig() {
     return Stack(
       children: [
@@ -51,7 +50,6 @@ class SettingsPage extends StatelessWidget {
         //big box
         Container(
           margin: EdgeInsets.symmetric(horizontal: 25, vertical: 65),
-          ////    padding: EdgeInsets.all(40),
           decoration: BoxDecoration(
             border: Border(
               top: BorderSide(
@@ -99,6 +97,8 @@ class SettingsPage extends StatelessWidget {
 }
 
 class Menus extends StatefulWidget {
+  const Menus({super.key});
+
   @override
   MenusState createState() => MenusState();
 }
@@ -124,7 +124,6 @@ class MenusState extends State<Menus> {
             },
             enableFeedback: true,
             borderRadius: BorderRadius.circular(8),
-            // underline: ,
             iconSize: 25,
             menuWidth: 160,
             value: value,
