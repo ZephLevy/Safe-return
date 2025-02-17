@@ -99,6 +99,12 @@ class SettingsPage extends StatelessWidget {
 class Menus extends StatefulWidget {
   const Menus({super.key});
 
+  static Map<String, int> sospref = {
+    "Single Click": 1,
+    "Double Click": 2,
+    "Triple Click": 3,
+  };
+
   @override
   MenusState createState() => MenusState();
 }
@@ -131,7 +137,8 @@ class MenusState extends State<Menus> {
             items: items.map(buildMenuItem).toList(),
             onChanged: (value) {
               setState(() => this.value = value);
-              print(value);
+              int? Nclicks = Menus.sospref[value];
+              print(Nclicks);
             },
           ),
         ),
