@@ -29,11 +29,10 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  //other non-relative code.
   Widget _sosConfig() {
     return Stack(
       children: [
-        //sos title box
+        //Settings box
         Container(
           margin: EdgeInsets.symmetric(horizontal: 70, vertical: 20),
           padding: EdgeInsets.all(6),
@@ -48,10 +47,9 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
         ),
-        //big box
+        //Opening box under settings box
         Container(
-          margin: EdgeInsets.symmetric(horizontal: 25, vertical: 65),
-          ////    padding: EdgeInsets.all(40),
+          margin: EdgeInsets.symmetric(horizontal: 15, vertical: 65),
           decoration: BoxDecoration(
             border: Border(
               top: BorderSide(
@@ -62,7 +60,7 @@ class SettingsPage extends StatelessWidget {
           width: double.infinity,
           height: 300,
           child: Container(
-            margin: EdgeInsets.only(left: 10, top: 54),
+            margin: EdgeInsets.only(left: 35, top: 54),
             child: Text(
               'How many times you click the "SOS" button to activate it',
               style: TextStyle(
@@ -80,9 +78,9 @@ class SettingsPage extends StatelessWidget {
             style: TextStyle(fontSize: 20),
           ),
         ),
-        //inner line separator
+        //inner line separator (gray)
         Container(
-          margin: EdgeInsets.only(left: 60, right: 20, top: 140),
+          margin: EdgeInsets.only(left: 52, right: 20, top: 140),
           decoration: BoxDecoration(
             border: Border.all(
                 color: const Color.fromARGB(81, 0, 0, 0), width: 1.25),
@@ -124,13 +122,15 @@ class MenusState extends State<Menus> {
             },
             enableFeedback: true,
             borderRadius: BorderRadius.circular(8),
-            // underline: ,
             iconSize: 25,
             menuWidth: 160,
             value: value,
             isExpanded: false,
             items: items.map(buildMenuItem).toList(),
-            onChanged: (value) => setState(() => this.value = value),
+            onChanged: (value) {
+              setState(() => this.value = value);
+              print(value);
+            },
           ),
         ),
       );
