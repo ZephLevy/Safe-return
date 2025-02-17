@@ -129,7 +129,10 @@ class MenusState extends State<Menus> {
             value: value,
             isExpanded: false,
             items: items.map(buildMenuItem).toList(),
-            onChanged: (value) => setState(() => this.value = value),
+            onChanged: (value) {
+              print(value);
+              setState(() => this.value = value);
+            },
           ),
         ),
       );

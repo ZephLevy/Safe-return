@@ -8,4 +8,3 @@ class Palette {
   static const Color yellow = Color(0xfff9e79f);
   static const colorList = [blue1, blue2, blue3, blue4, yellow];
 }
-

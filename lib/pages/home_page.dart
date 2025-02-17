@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:safe_return/logic/location.dart';
-import 'package:safe_return/pages/time_manager.dart';
+import 'package:safe_return/logic/singletons/sos_manager.dart';
+import 'package:safe_return/logic/singletons/time_manager.dart';
 import 'package:safe_return/palette.dart';
 import 'package:flutter/cupertino.dart';
+import 'dart:async';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -11,7 +13,9 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: _sosButton(),
+      floatingActionButton: SosButton(
+        onTap: () => sosClicked(),
+      ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -79,22 +83,76 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  FloatingActionButton _sosButton() {
-    return FloatingActionButton.large(
-      onPressed: () {
-        HapticFeedback.heavyImpact();
-      },
-      backgroundColor: Color(0xffde001a),
-      shape: CircleBorder(
-        side: BorderSide(
-          width: 2,
-          color: Palette.blue2,
+  void sosClicked() {
+    HapticFeedback.heavyImpact();
+    print("Sos button registered a click!");
+  }
+}
+
+class SosButton extends StatefulWidget {
+  final Function onTap;
+  final Duration tapTimeThreshold;
+
+  const SosButton({
+    required this.onTap,
+    this.tapTimeThreshold = const Duration(milliseconds: 500),
+    super.key,
+  });
+
+  @override
+  State<SosButton> createState() => _SosButtonState();
+}
+
+class _SosButtonState extends State<SosButton> {
+  Timer? _tapTimer;
+  int _tapCount = 0;
+
+  void _handleTapUp(TapUpDetails details) {
+    int tapN = SosManager().clickN;
+    if (_tapTimer != null && _tapTimer!.isActive) {
+      _tapCount++;
+    } else {
+      _tapCount = 1;
+    }
+
+    _tapTimer?.cancel();
+
+    _tapTimer = Timer(widget.tapTimeThreshold, () {
+      if (_tapCount >= tapN) {
+        widget.onTap();
+      }
+      _tapCount;
+    });
+  }
+
+  @override
+  void dispose() {
+    _tapTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 96,
+      height: 96,
+      child: Material(
+        color: Color(0xffde001a),
+        shape: CircleBorder(
+          side: BorderSide(
+            color: Palette.blue2,
+            width: 2,
+          ),
         ),
-      ),
-      child: Icon(
-        Icons.sos,
-        size: 55,
-        color: Color(0xfffef5ff),
+        child: InkWell(
+          customBorder: CircleBorder(),
+          onTapUp: (details) => _handleTapUp(details),
+          child: Icon(
+            Icons.sos,
+            size: 55,
+            color: Color(0xfffef5ff),
+          ),
+        ),
       ),
     );
   }
@@ -124,7 +182,6 @@ class _TimeSetButtonState extends State<TimeSetButton> {
               isSelected = false;
               HapticFeedback.mediumImpact();
             });
-            print(date);
           },
           onTapDown: (details) {
             setState(() {
