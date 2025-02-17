@@ -5,5 +5,5 @@ class SosManager {
     return _instance;
   }
   SosManager._internal();
-  int clickN = 3;
+  int clickN = 1;
 }

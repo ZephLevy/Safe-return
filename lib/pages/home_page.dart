@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:safe_return/logic/location.dart';
 import 'package:safe_return/logic/singletons/sos_manager.dart';
 import 'package:safe_return/logic/singletons/time_manager.dart';
 import 'package:safe_return/palette.dart';

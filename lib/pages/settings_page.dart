@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:safe_return/palette.dart';
+import 'package:safe_return/logic/singletons/sos_manager.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -131,7 +131,7 @@ class MenusState extends State<Menus> {
             items: items.map(buildMenuItem).toList(),
             onChanged: (value) {
               setState(() => this.value = value);
-              print(value);
+              SosManager().clickN = items.indexOf(value ?? "Single Click") + 1;
             },
           ),
         ),
