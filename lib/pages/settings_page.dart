@@ -12,15 +12,11 @@ class SettingsPage extends StatelessWidget {
         children: [
           Stack(
             children: [
-              _sosConfig(),
-              Container(
-                alignment: Alignment.centerRight,
-                margin: EdgeInsets.symmetric(horizontal: 40, vertical: 78),
-                child: SizedBox(
-                  width: 134,
-                  height: 35,
-                  child: Menus(),
-                ),
+              _sosUi(),
+              SizedBox(
+                width: double.infinity,
+                height: 500,
+                child: Menus(),
               ),
             ],
           ),
@@ -29,12 +25,12 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _sosConfig() {
+  Widget _sosUi() {
     return Stack(
       children: [
         //Settings box
         Container(
-          margin: EdgeInsets.symmetric(horizontal: 70, vertical: 20),
+          margin: EdgeInsets.symmetric(horizontal: 70, vertical: 7),
           padding: EdgeInsets.all(6),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
@@ -45,50 +41,6 @@ class SettingsPage extends StatelessWidget {
               "Settings",
               style: TextStyle(color: Colors.black, fontSize: 21),
             ),
-          ),
-        ),
-        //Opening box under settings box
-        Container(
-          margin: EdgeInsets.symmetric(horizontal: 15, vertical: 65),
-          decoration: BoxDecoration(
-            border: Border(
-              top: BorderSide(
-                  color: const Color.fromARGB(201, 0, 0, 0), width: 2),
-            ),
-            borderRadius: BorderRadius.circular(40),
-          ),
-          width: double.infinity,
-          height: 300,
-          child: Container(
-            margin: EdgeInsets.only(left: 35, top: 54),
-            child: Text(
-              'How many times you click the "SOS" button to activate it',
-              style: TextStyle(
-                  color: const Color.fromARGB(255, 72, 72, 72),
-                  fontSize: 11.5,
-                  height: 1),
-            ),
-          ),
-        ),
-        Container(
-          alignment: Alignment.centerLeft,
-          margin: EdgeInsets.symmetric(horizontal: 55, vertical: 81),
-          child: Text(
-            "SOS Activation",
-            style: TextStyle(fontSize: 20),
-          ),
-        ),
-        //inner line separator (gray)
-        Container(
-          margin: EdgeInsets.only(left: 52, right: 20, top: 140),
-          decoration: BoxDecoration(
-            border: Border.all(
-                color: const Color.fromARGB(81, 0, 0, 0), width: 1.25),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: SizedBox(
-            height: 0,
-            width: double.infinity,
           ),
         ),
       ],
@@ -104,7 +56,12 @@ class Menus extends StatefulWidget {
 }
 
 class MenusState extends State<Menus> {
-  final items = ['Single Click', 'Double Click', 'Triple Click'];
+  final items = [
+    'Single Click',
+    'Double Click',
+    'Triple Click',
+    'Quad-Click',
+  ];
   String? value;
 
   @override
@@ -114,28 +71,116 @@ class MenusState extends State<Menus> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        body: Container(
-          alignment: Alignment.center,
-          child: DropdownButton<String>(
-            padding: EdgeInsets.only(left: 8, right: 1),
-            onTap: () {
-              HapticFeedback.selectionClick();
-            },
-            enableFeedback: true,
-            borderRadius: BorderRadius.circular(8),
-            iconSize: 25,
-            menuWidth: 160,
-            value: value,
-            isExpanded: false,
-            items: items.map(buildMenuItem).toList(),
-            onChanged: (value) {
-              setState(() => this.value = value);
-              SosManager().clickN = items.indexOf(value ?? "Single Click") + 1;
-            },
-          ),
+  Widget build(BuildContext context) {
+    return //Opening box under settings box
+        Container(
+      clipBehavior: Clip.antiAlias,
+      margin: EdgeInsets.symmetric(horizontal: 15, vertical: 51.5),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: const Color.fromARGB(201, 0, 0, 0), width: 2),
         ),
-      );
+        borderRadius: BorderRadius.circular(40),
+      ),
+      child: ListView(
+        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        scrollDirection: Axis.vertical,
+        children: [
+          //child 1 - sos activation
+          SizedBox(
+            height: 200,
+            child: Container(
+              decoration: BoxDecoration(
+                  border:
+                      Border.all(color: const Color.fromARGB(255, 227, 0, 0))),
+              child: Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                        border: Border.all(
+                            color: const Color.fromARGB(0, 11, 233, 66))),
+                    margin: EdgeInsets.only(left: 35),
+                    child: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 12,
+                      children: [
+                        //SOS activation text
+                        Container(
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: const Color.fromARGB(0, 0, 0, 0))),
+                          child: Text(
+                            "SOS Activation",
+                            style: TextStyle(fontSize: 20),
+                          ),
+                        ),
+
+                        // dropdown button
+                        Container(
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: const Color.fromARGB(0, 0, 0, 0))),
+                          child: DropdownButton<String>(
+                            padding: EdgeInsets.only(left: 8, right: 1),
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                            },
+                            enableFeedback: true,
+                            borderRadius: BorderRadius.circular(8),
+                            iconSize: 25,
+                            menuWidth: 160,
+                            value: value,
+                            isExpanded: false,
+                            items: items.map(buildMenuItem).toList(),
+                            onChanged: (value) {
+                              setState(() => this.value = value);
+                              SosManager().clickN =
+                                  items.indexOf(value ?? "Single Click") + 1;
+                            },
+                          ),
+                        ),
+                        //desc. text
+                        Container(
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: const Color.fromARGB(0, 0, 0, 0))),
+                          margin: EdgeInsets.only(bottom: 0, right: 30),
+                          child: Text(
+                            'How many times you click the "SOS" button to activate it',
+                            style: TextStyle(
+                                color: const Color.fromARGB(255, 72, 72, 72),
+                                fontSize: 12,
+                                height: 1),
+                          ),
+                        ),
+
+                        //inner line separator (gray)
+                        Container(
+                          // height: 1,
+                          margin: EdgeInsets.only(top: 6),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                                color: const Color.fromARGB(81, 0, 0, 0),
+                                width: 1.25),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          /* child: SizedBox(
+                            height: 0,
+                            width: double.infinity,
+                          ), */
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   DropdownMenuItem<String> buildMenuItem(String item) => DropdownMenuItem(
         value: item,
         child: Text(
