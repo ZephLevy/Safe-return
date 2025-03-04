@@ -71,10 +71,12 @@ class MenusState extends State<Menus> {
 
   List<Map<String, dynamic>> entlist = [
     {
+      "value": 0,
       "title": "SOS Activation",
       "info": 'Required number of clicks to activate SOS button',
     },
     {
+      "value": 1,
       "title": "Placeholder",
       "info": "",
     },
@@ -138,7 +140,7 @@ class MenusState extends State<Menus> {
                           border: Border.all(
                               color: const Color.fromARGB(0, 255, 18, 18))),
                       child: Wrap(
-                        spacing: entlist[index]["spacing"],
+                        spacing: 0,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         alignment: WrapAlignment.spaceBetween,
                         children: [
@@ -184,11 +186,11 @@ class MenusState extends State<Menus> {
     );
   }
 
-  Widget _buildItem(int item) {
-    switch (item) {
+  Widget _buildItem(int index) {
+    switch (index) {
       case 0:
         return _sosActButton();
-      case 1:
+      case 2:
         return SizedBox(
             height: 20,
             child: Placeholder(color: const Color.fromARGB(255, 53, 1, 242)));
@@ -199,8 +201,8 @@ class MenusState extends State<Menus> {
     }
   }
 
-  Widget _scrollIcon(int item) {
-    switch (item) {
+  Widget _scrollIcon(int index) {
+    switch (index) {
       case 0:
         return Container(
           clipBehavior: Clip.antiAlias,
@@ -218,82 +220,6 @@ class MenusState extends State<Menus> {
         return Placeholder();
     }
   }
-
-/* ListView(
-        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        scrollDirection: Axis.vertical,
-        children: [
-          //child 1 - sos activation
-          SizedBox(
-            height: 100,
-            child:
-                //list view container
-                Container(
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border:
-                      Border.all(color: const Color.fromARGB(255, 0, 0, 0))),
-              child: Stack(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                        border: Border.all(
-                            color: const Color.fromARGB(0, 11, 233, 66))),
-                    margin: EdgeInsets.only(left: 35),
-                    child: Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 12,
-                      children: [
-                        //SOS activation text
-                        Container(
-                          decoration: BoxDecoration(
-                              border: Border.all(
-                                  color: const Color.fromARGB(0, 0, 0, 0))),
-                          child: Text(
-                            "SOS Activation",
-                            style: TextStyle(fontSize: 20),
-                          ),
-                        ),
-
-                        //desc. text
-                        Container(
-                          decoration: BoxDecoration(
-                              border: Border.all(
-                                  color: const Color.fromARGB(0, 0, 0, 0))),
-                          margin: EdgeInsets.only(bottom: 0, right: 30),
-                          child: Text(
-                            'How many times you click the "SOS" button to activate it',
-                            style: TextStyle(
-                                color: const Color.fromARGB(255, 72, 72, 72),
-                                fontSize: 12,
-                                height: 1),
-                          ),
-                        ),
-
-                        //inner line separator (gray)
-                        Container(
-                          margin: EdgeInsets.only(top: 6),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                                color: const Color.fromARGB(81, 0, 0, 0),
-                                width: 1.25),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: SizedBox(
-                            height: 0,
-                            width: double.infinity,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ), 
-}*/
 
   Widget _sosActButton() {
     return // dropdown button
