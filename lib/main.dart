@@ -37,35 +37,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int _selectedIndex = 1;
 
-  void _onButtonSelected(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _appBar(),
-      bottomNavigationBar: NavigationBar(
-        destinations: [
-          NavigationDestination(
-              icon: Icon(Icons.location_on, size: iconSize), label: "Map"),
-          NavigationDestination(
-              icon: Icon(Icons.home_filled, size: iconSize), label: "Home"),
-          NavigationDestination(
-              icon: Icon(Icons.settings, size: iconSize), label: "Settings"),
-        ],
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (value) => setState(() {
-          _selectedIndex = value;
-        }),
-        indicatorColor: Palette.blue4,
-      ),
+      bottomNavigationBar: _bottomBar(),
       body: IndexedStack(
         index: _selectedIndex,
         children: _pages,
       ),
+    );
+  }
+
+  NavigationBar _bottomBar() {
+    return NavigationBar(
+      destinations: [
+        NavigationDestination(
+            icon: Icon(Icons.location_on, size: iconSize), label: "Map"),
+        NavigationDestination(
+            icon: Icon(Icons.home_filled, size: iconSize), label: "Home"),
+        NavigationDestination(
+            icon: Icon(Icons.settings, size: iconSize), label: "Settings"),
+      ],
+      selectedIndex: _selectedIndex,
+      onDestinationSelected: (value) => setState(() {
+        _selectedIndex = value;
+      }),
+      indicatorColor: Palette.blue4,
     );
   }
 
