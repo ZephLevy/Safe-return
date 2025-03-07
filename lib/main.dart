@@ -30,12 +30,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   static const double iconSize = 28.0;
   final List<Widget> _pages = [
-    MapPage(),
     HomePage(),
+    MapPage(),
     SettingsPage(),
   ];
 
-  int _selectedIndex = 1;
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -53,9 +53,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return NavigationBar(
       destinations: [
         NavigationDestination(
-            icon: Icon(Icons.location_on, size: iconSize), label: "Map"),
-        NavigationDestination(
             icon: Icon(Icons.home_filled, size: iconSize), label: "Home"),
+        NavigationDestination(
+            icon: Icon(Icons.location_on, size: iconSize), label: "Map"),
         NavigationDestination(
             icon: Icon(Icons.settings, size: iconSize), label: "Settings"),
       ],
