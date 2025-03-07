@@ -66,20 +66,19 @@ class MenusState extends State<Menus> {
   String? value;
   double listIndent = 45;
 
-  List<double> itemSize = [55, 55];
-  List<double> infoRIndent = [5, 5];
+  List<double> itemSize = [55, 55, 55];
+  List<double> infoRIndent = [5, 5, 5];
 
-  List<Map<String, dynamic>> entlist = [
+  List entlist = [
     {
-      "value": 0,
       "title": "SOS Activation",
       "info": 'Required number of clicks to activate SOS button',
     },
     {
-      "value": 1,
-      "title": "Placeholder",
+      "title": "Emergency Contacts",
       "info": "",
     },
+    {"title": "Home Location", "info": ""},
   ];
 
   @override
@@ -195,8 +194,11 @@ class MenusState extends State<Menus> {
             height: 20,
             child: Placeholder(color: const Color.fromARGB(255, 53, 1, 242)));
       default:
-        return Placeholder(
-          color: Colors.red,
+        return SizedBox(
+          height: 20,
+          child: Placeholder(
+            color: Colors.red,
+          ),
         );
     }
   }
