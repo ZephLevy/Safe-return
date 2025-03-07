@@ -28,6 +28,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const double iconSize = 28.0;
   final List<Widget> _pages = [
     MapPage(),
     HomePage(),
@@ -35,12 +36,6 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   int _selectedIndex = 1;
-
-  void _onButtonSelected(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +49,24 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  NavigationBar _bottomBar() {
+    return NavigationBar(
+      destinations: [
+        NavigationDestination(
+            icon: Icon(Icons.location_on, size: iconSize), label: "Map"),
+        NavigationDestination(
+            icon: Icon(Icons.home_filled, size: iconSize), label: "Home"),
+        NavigationDestination(
+            icon: Icon(Icons.settings, size: iconSize), label: "Settings"),
+      ],
+      selectedIndex: _selectedIndex,
+      onDestinationSelected: (value) => setState(() {
+        _selectedIndex = value;
+      }),
+      indicatorColor: Palette.blue4,
+    );
+  }
+
   AppBar _appBar() {
     return AppBar(
       title: Text(
@@ -62,42 +75,6 @@ class _HomeScreenState extends State<HomeScreen> {
           fontWeight: FontWeight.w700,
           fontSize: 25,
           color: Palette.blue1,
-        ),
-      ),
-      backgroundColor: Palette.blue4,
-    );
-  }
-
-  BottomAppBar _bottomBar() {
-    return BottomAppBar(
-      shape: CircularNotchedRectangle(),
-      notchMargin: 6.0,
-      color: Palette.blue4,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            IconButtons(
-              path: 'assets/locationArrow.png',
-              index: 0,
-              isSelected: _selectedIndex == 0,
-              onSelected: _onButtonSelected,
-            ),
-            IconButtons(
-              path: 'assets/home.png',
-              index: 1,
-              isSelected: _selectedIndex == 1,
-              onSelected: _onButtonSelected,
-            ),
-            IconButtons(
-              path: 'assets/settings.png',
-              index: 2,
-              isSelected: _selectedIndex == 2,
-              onSelected: _onButtonSelected,
-            ),
-          ],
         ),
       ),
     );
