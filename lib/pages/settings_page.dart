@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:safe_return/logic/singletons/sos_manager.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:safe_return/palette.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -69,7 +71,7 @@ class MenusState extends State<Menus> {
   List<double> itemSize = [55, 55, 55];
   List<double> infoRIndent = [5, 5, 5];
 
-  List entlist = [
+  List<Map<String, dynamic>> entlist = [
     {
       "title": "SOS Activation",
       "info": 'Required number of clicks to activate SOS button',
@@ -78,7 +80,7 @@ class MenusState extends State<Menus> {
       "title": "Emergency Contacts",
       "info": "",
     },
-    {"title": "Home Location", "info": ""},
+    {"title": "Home Location", "info": ""}
   ];
 
   @override
@@ -189,6 +191,8 @@ class MenusState extends State<Menus> {
     switch (index) {
       case 0:
         return _sosActButton();
+      case 1:
+        return _contactPicker();
       case 2:
         return SizedBox(
             height: 20,
@@ -221,6 +225,27 @@ class MenusState extends State<Menus> {
       default:
         return Placeholder();
     }
+  }
+
+  Widget _contactPicker() {
+    return ElevatedButton(
+      style: ButtonStyle(
+        foregroundColor: WidgetStatePropertyAll(Palette.purple),
+        backgroundColor:
+            WidgetStatePropertyAll(const Color.fromARGB(255, 253, 246, 255)),
+        //  shadowColor:
+        //     WidgetStatePropertyAll(const Color.fromARGB(255, 211, 26, 26)),
+      ),
+      onPressed: () async {
+        if (await FlutterContacts.requestPermission()) {
+          final contact = await FlutterContacts.openExternalPick();
+          if (contact != null) {
+            print(contact.phones);
+          }
+        }
+      },
+      child: Text("Pick"),
+    );
   }
 
   Widget _sosActButton() {
