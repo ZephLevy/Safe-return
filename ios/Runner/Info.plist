@@ -50,5 +50,8 @@
 
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This app needs access to location to make sure you get home safe!</string>
+
+	<key>NSContactsUsageDescription</key>
+<string>We need access to your contacts to select a recipient.</string>
 </dict>
 </plist>
