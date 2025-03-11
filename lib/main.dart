@@ -35,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
     SettingsPage(),
   ];
 
+  final PageController pageController = PageController();
   int _selectedIndex = 0;
 
   @override
@@ -42,9 +43,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: _appBar(),
       bottomNavigationBar: _bottomBar(),
-      body: IndexedStack(
-        index: _selectedIndex,
+      body: PageView(
+        controller: pageController,
         children: _pages,
+        onPageChanged: (index) => setState(() {
+          _selectedIndex = index;
+        }),
       ),
     );
   }
@@ -60,9 +64,17 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.settings, size: iconSize), label: "Settings"),
       ],
       selectedIndex: _selectedIndex,
-      onDestinationSelected: (value) => setState(() {
-        _selectedIndex = value;
-      }),
+      onDestinationSelected: (value) {
+        setState(() {
+          _selectedIndex = value;
+        });
+
+        pageController.animateToPage(
+          _selectedIndex,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      },
       indicatorColor: Palette.blue4,
     );
   }
