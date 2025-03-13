@@ -45,10 +45,11 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: _bottomBar(),
       body: PageView(
         controller: pageController,
-        children: _pages,
         onPageChanged: (index) => setState(() {
           _selectedIndex = index;
         }),
+        physics: NeverScrollableScrollPhysics(),
+        children: _pages,
       ),
     );
   }
