@@ -35,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
     SettingsPage(),
   ];
 
+  final PageController pageController = PageController();
   int _selectedIndex = 0;
 
   @override
@@ -42,9 +43,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: _appBar(),
       bottomNavigationBar: _bottomBar(),
-      body: IndexedStack(
-        index: _selectedIndex,
+      body: PageView(
+        controller: pageController,
         children: _pages,
+        onPageChanged: (index) => setState(() {
+          _selectedIndex = index;
+        }),
       ),
     );
   }
@@ -60,82 +64,30 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.settings, size: iconSize), label: "Settings"),
       ],
       selectedIndex: _selectedIndex,
-      onDestinationSelected: (value) => setState(() {
-        _selectedIndex = value;
-      }),
+      onDestinationSelected: (value) {
+        setState(() {
+          _selectedIndex = value;
+        });
+        pageController.animateToPage(
+          _selectedIndex,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      },
       indicatorColor: Palette.blue4,
     );
   }
 
   AppBar _appBar() {
+    const List<String> titles = ["Home", "Map", "Settings"];
+
     return AppBar(
       title: Text(
-        'Safe Return',
+        titles[_selectedIndex],
         style: TextStyle(
           fontWeight: FontWeight.w700,
           fontSize: 25,
           color: Palette.blue1,
-        ),
-      ),
-    );
-  }
-}
-
-class IconButtons extends StatelessWidget {
-  final String path;
-  final int index;
-  final bool isSelected;
-  final Function(int) onSelected;
-
-  const IconButtons({
-    required this.path,
-    required this.index,
-    required this.isSelected,
-    required this.onSelected,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 55,
-      height: 55,
-      child: GestureDetector(
-        onTap: () => onSelected(index), // Notify parent when tapped
-        child: AnimatedContainer(
-          duration: Duration(milliseconds: 100),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: isSelected ? Palette.blue3 : Palette.blue4,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black26,
-                offset: isSelected ? Offset(0, 0) : Offset(4, 4),
-                blurRadius: 10,
-              ),
-            ],
-            border: Border(
-              left: BorderSide(color: Palette.blue1, width: 1.5),
-              right: BorderSide(color: Palette.blue1, width: 1.5),
-              top:
-                  BorderSide(color: Palette.blue1, width: isSelected ? 4 : 1.5),
-              bottom: BorderSide(
-                  color: Palette.blue1, width: !isSelected ? 4 : 1.5),
-            ),
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Palette.blue2, width: 1.5),
-              borderRadius: BorderRadius.circular(7.5),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Image(
-                image: AssetImage(path),
-                fit: BoxFit.contain,
-              ),
-            ),
-          ),
         ),
       ),
     );
