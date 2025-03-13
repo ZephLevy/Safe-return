@@ -54,16 +54,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   NavigationBar _bottomBar() {
-    var destinations = [
-      NavigationDestination(
-          icon: Icon(Icons.home_filled, size: iconSize), label: "Home"),
-      NavigationDestination(
-          icon: Icon(Icons.location_on, size: iconSize), label: "Map"),
-      NavigationDestination(
-          icon: Icon(Icons.settings, size: iconSize), label: "Settings"),
-    ];
     return NavigationBar(
-      destinations: destinations,
+      destinations: [
+        NavigationDestination(
+            icon: Icon(Icons.home_filled, size: iconSize), label: "Home"),
+        NavigationDestination(
+            icon: Icon(Icons.location_on, size: iconSize), label: "Map"),
+        NavigationDestination(
+            icon: Icon(Icons.settings, size: iconSize), label: "Settings"),
+      ],
       selectedIndex: _selectedIndex,
       onDestinationSelected: (value) {
         setState(() {
