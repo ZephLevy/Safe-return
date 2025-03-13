@@ -79,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   AppBar _appBar() {
-    const List<String> titles = ["Home", "Map", "Settings"];
+    const List<String> titles = ["Safe Return", "Map", "Settings"];
 
     return AppBar(
       title: Text(
