@@ -1,3 +1,10 @@
+//! Not goooood
+//? Crappppp code
+// Overused comment
+//todo I have way to much uncompleted code
+//* This is okkkk
+//. I WILL KILL MYSELF
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,7 +26,7 @@ class SettingsPage extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 height: 600,
-                child: Menus(),
+                child: Options(),
               ),
             ],
           ),
@@ -51,14 +58,47 @@ class SettingsPage extends StatelessWidget {
   }
 }
 
-class Menus extends StatefulWidget {
-  const Menus({super.key});
+class Options extends StatefulWidget {
+  final String? title;
+  final String? info;
+  final Widget? leading;
+  final Widget? trailing;
+
+  const Options(
+      {this.title, this.info, this.leading, this.trailing, super.key});
 
   @override
-  MenusState createState() => MenusState();
+  OptionsState createState() => OptionsState();
 }
 
-class MenusState extends State<Menus> {
+class OptionsState extends State<Options> {
+  Options getOption(int index) {
+    switch (index) {
+      case 0:
+        return Options(
+          title: "SOS Activation",
+          info: "Required number of clicks to activate SOS button",
+          trailing: _sosActButton(),
+          leading: Icon(Icons.sos_rounded),
+        );
+
+      case 1:
+        return Options(
+          title: "Emergency Contacts",
+          trailing: Icon(
+            Icons.arrow_forward_ios_rounded,
+            size: 20,
+          ),
+        );
+      case 2:
+        return Options(
+          title: "Home Location",
+        );
+      default:
+        return Options(title: "default", info: "default");
+    }
+  }
+
   final dditems = [
     'Single Click',
     'Double Click',
@@ -66,22 +106,11 @@ class MenusState extends State<Menus> {
     'Quad-Click',
   ];
   String? value;
+
   double listIndent = 45;
 
   List<double> itemSize = [55, 55, 55];
   List<double> infoRIndent = [5, 5, 5];
-
-  List<Map<String, dynamic>> entlist = [
-    {
-      "title": "SOS Activation",
-      "info": 'Required number of clicks to activate SOS button',
-    },
-    {
-      "title": "Emergency Contacts",
-      "info": "",
-    },
-    {"title": "Home Location", "info": ""}
-  ];
 
   @override
   void initState() {
@@ -108,7 +137,7 @@ class MenusState extends State<Menus> {
   Widget _scroll() {
     return ListView.separated(
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 30),
-      itemCount: entlist.length,
+      itemCount: 3,
       separatorBuilder: (BuildContext context, int index) => Divider(
         color: Colors.black54,
         thickness: 2,
@@ -116,9 +145,98 @@ class MenusState extends State<Menus> {
         height: 10,
       ),
       itemBuilder: (BuildContext context, int index) {
-        // ignore: unused_local_variable
-        final item = entlist[index];
-        return Container(
+        final Options item = getOption(index);
+        if (index == 1) {
+          List<Contact> selectedContacts = [];
+          return Hero(
+            tag: "iceContacts",
+            child: Material(
+              child: Card(
+                child: ListTile(
+                  title: Text(item.title as String),
+                  trailing: item.trailing,
+                  leading: item.leading,
+                  horizontalTitleGap: 8,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute<Widget>(
+                        builder: (BuildContext context) {
+                          return Scaffold(
+                            appBar: AppBar(
+                              //todo center add icon with title and back button
+                              //? modify back button
+                              actions: [
+                                Padding(
+                                  padding: EdgeInsets.only(right: 32),
+                                  child: InkWell(
+                                    radius: 24,
+                                    borderRadius: BorderRadius.circular(20),
+                                    onTap: () async {
+                                      Future<void> pickContacts() async {
+                                        while (true) {
+                                          final contact = await FlutterContacts
+                                              .openExternalPick();
+                                        }
+                                      }
+
+                                      if (await FlutterContacts
+                                          .requestPermission()) {
+                                        final contact = await FlutterContacts
+                                            .openExternalPick();
+                                        if (contact != null) {
+                                          print(contact.phones);
+                                        }
+                                      }
+                                    },
+                                    child: Icon(
+                                      Icons.add,
+                                      size: 28,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              title: Text(item.title as String),
+                            ),
+                            body: Column(
+                              children: <Widget>[
+                                SizedBox(
+                                  height: 200,
+                                  child: ListView.separated(
+                                    itemCount: selectedContacts.length,
+                                    separatorBuilder:
+                                        (BuildContext context, int index) =>
+                                            Divider(),
+                                    itemBuilder:
+                                        (BuildContext context, int index) {
+                                      return ListTile(
+                                        title: Text("oasdi"),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          );
+        }
+        return Card(
+          child: ListTile(
+            title: Text(item.title as String),
+            trailing: item.trailing,
+            leading: item.leading,
+            horizontalTitleGap: 8,
+          ),
+        );
+
+        /* Container(
           decoration: BoxDecoration(
               border: Border.all(color: Colors.black),
               borderRadius: BorderRadius.circular(12)),
@@ -151,7 +269,7 @@ class MenusState extends State<Menus> {
                                     color:
                                         const Color.fromARGB(0, 0, 255, 21))),
                             child: Text(
-                              (entlist[index]["title"]),
+                              (item.title as String),
                               style: TextStyle(fontSize: 20),
                             ),
                           ),
@@ -170,7 +288,7 @@ class MenusState extends State<Menus> {
                                     color:
                                         const Color.fromARGB(0, 0, 255, 21))),
                             child: Text(
-                              (entlist[index]["info"]),
+                              (item.info ?? "nothing here!"),
                               style: TextStyle(fontSize: 11),
                             ),
                           ),
@@ -182,79 +300,70 @@ class MenusState extends State<Menus> {
               ],
             ),
           ),
-        );
+        ); */
       },
     );
   }
 
-  Widget _buildItem(int index) {
-    switch (index) {
-      case 0:
-        return _sosActButton();
-      case 1:
-        return _contactPicker();
-      case 2:
-        return SizedBox(
-            height: 20,
-            child: Placeholder(color: const Color.fromARGB(255, 53, 1, 242)));
-      default:
-        return SizedBox(
-          height: 20,
-          child: Placeholder(
-            color: Colors.red,
-          ),
-        );
-    }
-  }
-
-  Widget _scrollIcon(int index) {
-    switch (index) {
-      case 0:
-        return Container(
-          clipBehavior: Clip.antiAlias,
-          margin: EdgeInsets.only(right: 5, left: 3, top: 2, bottom: 2),
-          decoration: BoxDecoration(
-              shape: BoxShape.circle, border: Border.all(width: 2)),
-          child: Center(
-            child: Text(
-              "SOS",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-            ),
-          ),
-        );
-      default:
-        return Placeholder();
-    }
-  }
+  //*  Widget _buildItem(int index) {
+  //*   switch (index) {
+  //*    case 0:
+  //*      return _sosActButton();
+  //*    case 1:
+  //*      return _contactPicker();
+  //*    case 2:
+  //*      return SizedBox(
+  //*          height: 20,
+  //*          child: Placeholder(color: const Color.fromARGB(255, 53, 1, 242)));
+  //*    default:
+  //*      return SizedBox(
+  //*        height: 20,
+  //*        child: Placeholder(
+  //*         color: Colors.red,
+  //*       ),
+  //*     );
+  //* }
+  //* }
 
   Widget _contactPicker() {
-    return ElevatedButton(
-      style: ButtonStyle(
-        foregroundColor: WidgetStatePropertyAll(Palette.purple),
-        backgroundColor:
-            WidgetStatePropertyAll(const Color.fromARGB(255, 253, 246, 255)),
-        //  shadowColor:
-        //     WidgetStatePropertyAll(const Color.fromARGB(255, 211, 26, 26)),
-      ),
-      onPressed: () async {
-        if (await FlutterContacts.requestPermission()) {
-          final contact = await FlutterContacts.openExternalPick();
-          if (contact != null) {
-            print(contact.phones);
+    return Container(
+      margin: EdgeInsets.only(right: 5),
+      // decoration: BoxDecoration(border: Border.all(color: Colors.black)),
+      child: ElevatedButton(
+        style: ButtonStyle(
+          foregroundColor: WidgetStatePropertyAll(Palette.purple),
+          backgroundColor:
+              WidgetStatePropertyAll(const Color.fromARGB(255, 253, 246, 255)),
+          //  shadowColor:
+          //     WidgetStatePropertyAll(const Color.fromARGB(255, 211, 26, 26)),
+        ),
+        onPressed: () async {
+          Future<void> pickContacts() async {
+            while (true) {
+              final contact = await FlutterContacts.openExternalPick();
+            }
           }
-        }
-      },
-      child: Text("Pick"),
+
+          if (await FlutterContacts.requestPermission()) {
+            final contact = await FlutterContacts.openExternalPick();
+            if (contact != null) {
+              print(contact.phones);
+            }
+          }
+        },
+        child: Text("Pick"),
+      ),
     );
   }
 
   Widget _sosActButton() {
     return // dropdown button
         Container(
-      height: 30,
+      height: 40,
       decoration: BoxDecoration(
           border: Border.all(color: const Color.fromARGB(0, 255, 170, 0))),
       child: DropdownButton<String>(
+        autofocus: false,
         padding: EdgeInsets.only(left: 8, right: 1),
         onTap: () {
           HapticFeedback.selectionClick();
