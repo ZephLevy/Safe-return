@@ -54,21 +54,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   NavigationBar _bottomBar() {
+    var destinations = [
+      NavigationDestination(
+          icon: Icon(Icons.home_filled, size: iconSize), label: "Home"),
+      NavigationDestination(
+          icon: Icon(Icons.location_on, size: iconSize), label: "Map"),
+      NavigationDestination(
+          icon: Icon(Icons.settings, size: iconSize), label: "Settings"),
+    ];
     return NavigationBar(
-      destinations: [
-        NavigationDestination(
-            icon: Icon(Icons.home_filled, size: iconSize), label: "Home"),
-        NavigationDestination(
-            icon: Icon(Icons.location_on, size: iconSize), label: "Map"),
-        NavigationDestination(
-            icon: Icon(Icons.settings, size: iconSize), label: "Settings"),
-      ],
+      destinations: destinations,
       selectedIndex: _selectedIndex,
       onDestinationSelected: (value) {
         setState(() {
           _selectedIndex = value;
         });
-
         pageController.animateToPage(
           _selectedIndex,
           duration: const Duration(milliseconds: 300),
@@ -80,9 +80,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   AppBar _appBar() {
+    const List<String> titles = ["Home", "Map", "Settings"];
+
     return AppBar(
       title: Text(
-        'Safe Return',
+        titles[_selectedIndex],
         style: TextStyle(
           fontWeight: FontWeight.w700,
           fontSize: 25,
