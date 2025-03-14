@@ -36,6 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   geolocator: ^13.0.2
   flutter_contacts: ^1.1.9+2
+  flutter_launcher_icons: ^0.14.3
   
 
 dev_dependencies:

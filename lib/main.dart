@@ -69,11 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _selectedIndex = value;
         });
-        pageController.animateToPage(
-          _selectedIndex,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
+        pageController.jumpToPage(_selectedIndex);
       },
       indicatorColor: Palette.blue4,
     );
