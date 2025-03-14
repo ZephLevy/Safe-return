@@ -45,10 +45,11 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: _bottomBar(),
       body: PageView(
         controller: pageController,
-        children: _pages,
         onPageChanged: (index) => setState(() {
           _selectedIndex = index;
         }),
+        physics: NeverScrollableScrollPhysics(),
+        children: _pages,
       ),
     );
   }
@@ -68,18 +69,14 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _selectedIndex = value;
         });
-        pageController.animateToPage(
-          _selectedIndex,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
+        pageController.jumpToPage(_selectedIndex);
       },
       indicatorColor: Palette.blue4,
     );
   }
 
   AppBar _appBar() {
-    const List<String> titles = ["Home", "Map", "Settings"];
+    const List<String> titles = ["Safe Return", "Map", "Settings"];
 
     return AppBar(
       title: Text(
