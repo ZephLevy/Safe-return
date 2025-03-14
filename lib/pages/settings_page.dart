@@ -63,6 +63,7 @@ class Options extends StatefulWidget {
   final String? info;
   final Widget? leading;
   final Widget? trailing;
+  static List<Contact> selectedContacts = [];
 
   const Options(
       {this.title, this.info, this.leading, this.trailing, super.key});
@@ -105,12 +106,15 @@ class OptionsState extends State<Options> {
     'Triple Click',
     'Quad-Click',
   ];
+//*declared dropdown
   String? value;
 
+//*declared listview builder + separator indent
   double listIndent = 45;
 
-  List<double> itemSize = [55, 55, 55];
-  List<double> infoRIndent = [5, 5, 5];
+//*declared contact picker
+  List<String> contactPhone = [];
+  List<String> contactName = [];
 
   @override
   void initState() {
@@ -145,9 +149,10 @@ class OptionsState extends State<Options> {
         height: 10,
       ),
       itemBuilder: (BuildContext context, int index) {
+//*declared for switch properties in Option
         final Options item = getOption(index);
+
         if (index == 1) {
-          List<Contact> selectedContacts = [];
           return Hero(
             tag: "iceContacts",
             child: Material(
@@ -164,31 +169,15 @@ class OptionsState extends State<Options> {
                         builder: (BuildContext context) {
                           return Scaffold(
                             appBar: AppBar(
-                              //todo center add icon with title and back button
-                              //? modify back button
+//todo center add icon with title and back button
+//? modify back button
                               actions: [
                                 Padding(
                                   padding: EdgeInsets.only(right: 32),
                                   child: InkWell(
                                     radius: 24,
                                     borderRadius: BorderRadius.circular(20),
-                                    onTap: () async {
-                                      Future<void> pickContacts() async {
-                                        while (true) {
-                                          final contact = await FlutterContacts
-                                              .openExternalPick();
-                                        }
-                                      }
-
-                                      if (await FlutterContacts
-                                          .requestPermission()) {
-                                        final contact = await FlutterContacts
-                                            .openExternalPick();
-                                        if (contact != null) {
-                                          print(contact.phones);
-                                        }
-                                      }
-                                    },
+                                    onTap: _multipleContacts,
                                     child: Icon(
                                       Icons.add,
                                       size: 28,
@@ -201,16 +190,17 @@ class OptionsState extends State<Options> {
                             body: Column(
                               children: <Widget>[
                                 SizedBox(
-                                  height: 200,
+                                  height: 700,
                                   child: ListView.separated(
-                                    itemCount: selectedContacts.length,
+                                    itemCount: contactName.length,
                                     separatorBuilder:
                                         (BuildContext context, int index) =>
                                             Divider(),
                                     itemBuilder:
                                         (BuildContext context, int index) {
                                       return ListTile(
-                                        title: Text("oasdi"),
+                                        title: Text(contactName[index]),
+                                        trailing: Text(contactPhone[index]),
                                       );
                                     },
                                   ),
@@ -305,6 +295,27 @@ class OptionsState extends State<Options> {
     );
   }
 
+  void _multipleContacts() async {
+    if (await FlutterContacts.requestPermission()) {
+//*declared contant info when selected
+      final contact = await FlutterContacts.openExternalPick();
+      if (contact != null) {
+        print("Selected contacts:");
+        for (var p in contact.phones) {
+          print("${contact.displayName}: ${p.number}");
+          setState(
+            () {
+              contactName.add(contact.displayName);
+              contactPhone.add(p.number);
+            },
+          );
+        }
+        print(contactName);
+        print(contactPhone);
+      }
+    }
+  }
+
   //*  Widget _buildItem(int index) {
   //*   switch (index) {
   //*    case 0:
@@ -324,37 +335,6 @@ class OptionsState extends State<Options> {
   //*     );
   //* }
   //* }
-
-  Widget _contactPicker() {
-    return Container(
-      margin: EdgeInsets.only(right: 5),
-      // decoration: BoxDecoration(border: Border.all(color: Colors.black)),
-      child: ElevatedButton(
-        style: ButtonStyle(
-          foregroundColor: WidgetStatePropertyAll(Palette.purple),
-          backgroundColor:
-              WidgetStatePropertyAll(const Color.fromARGB(255, 253, 246, 255)),
-          //  shadowColor:
-          //     WidgetStatePropertyAll(const Color.fromARGB(255, 211, 26, 26)),
-        ),
-        onPressed: () async {
-          Future<void> pickContacts() async {
-            while (true) {
-              final contact = await FlutterContacts.openExternalPick();
-            }
-          }
-
-          if (await FlutterContacts.requestPermission()) {
-            final contact = await FlutterContacts.openExternalPick();
-            if (contact != null) {
-              print(contact.phones);
-            }
-          }
-        },
-        child: Text("Pick"),
-      ),
-    );
-  }
 
   Widget _sosActButton() {
     return // dropdown button
