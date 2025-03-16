@@ -22,7 +22,6 @@ class SettingsPage extends StatelessWidget {
         children: [
           Stack(
             children: [
-              _sosUi(),
               SizedBox(
                 width: double.infinity,
                 height: 600,
@@ -32,28 +31,6 @@ class SettingsPage extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _sosUi() {
-    return Stack(
-      children: [
-        //Settings box
-        Container(
-          margin: EdgeInsets.symmetric(horizontal: 70, vertical: 7),
-          padding: EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.black, width: 2),
-          ),
-          child: Center(
-            child: Text(
-              "Settings",
-              style: TextStyle(color: Colors.black, fontSize: 21),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -80,7 +57,7 @@ class OptionsState extends State<Options> {
           title: "SOS Activation",
           info: "Required number of clicks to activate SOS button",
           trailing: _sosActButton(),
-          leading: Icon(Icons.sos_rounded),
+          //? leading: Icon(Icons.sos_rounded),
         );
 
       case 1:
@@ -100,12 +77,14 @@ class OptionsState extends State<Options> {
     }
   }
 
+//*declared dropdown items for sos activation
   final dditems = [
     'Single Click',
     'Double Click',
     'Triple Click',
     'Quad-Click',
   ];
+
 //*declared dropdown
   String? value;
 
@@ -124,21 +103,6 @@ class OptionsState extends State<Options> {
 
   @override
   Widget build(BuildContext context) {
-    return //Opening box under settings box
-        Container(
-      clipBehavior: Clip.antiAlias,
-      margin: EdgeInsets.symmetric(horizontal: 15, vertical: 51.5),
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: const Color.fromARGB(201, 0, 0, 0), width: 2),
-        ),
-        borderRadius: BorderRadius.circular(40),
-      ),
-      child: _scroll(),
-    );
-  }
-
-  Widget _scroll() {
     return ListView.separated(
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 30),
       itemCount: 3,
