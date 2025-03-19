@@ -4,7 +4,6 @@ import 'package:safe_return/logic/singletons/sos_manager.dart';
 import 'package:safe_return/logic/singletons/time_manager.dart';
 import 'package:safe_return/palette.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:async';
 
 class HomePage extends StatelessWidget {
