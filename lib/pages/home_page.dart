@@ -4,6 +4,7 @@ import 'package:safe_return/logic/singletons/sos_manager.dart';
 import 'package:safe_return/logic/singletons/time_manager.dart';
 import 'package:safe_return/palette.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:async';
 
 class HomePage extends StatelessWidget {
@@ -69,7 +70,7 @@ class HomePage extends StatelessWidget {
                 height: 150,
                 child: CupertinoDatePicker(
                   onDateTimeChanged: (value) {
-                    TimeManager().selectedTime = value;
+                    TimeManager.selectedTime = value;
                   },
                   mode: CupertinoDatePickerMode.time,
                   use24hFormat: true,
@@ -107,7 +108,7 @@ class _SosButtonState extends State<SosButton> {
   int _tapCount = 0;
 
   void _handleTapUp(TapUpDetails details) {
-    int tapN = SosManager().clickN;
+    int tapN = SosManager.clickN;
     if (_tapTimer != null && _tapTimer!.isActive) {
       _tapCount++;
     } else {
@@ -176,11 +177,21 @@ class _TimeSetButtonState extends State<TimeSetButton> {
       child: Material(
         child: GestureDetector(
           onTap: () {
-            setState(() {
-              date = TimeManager().selectedTime;
-              isSelected = false;
-              HapticFeedback.mediumImpact();
+            Future.delayed(Duration(seconds: 5), () {
+              setState(() {
+                date = TimeManager.selectedTime;
+                HapticFeedback.mediumImpact();
+              });
             });
+            setState(() {
+              isSelected = false;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Setting location..."),
+                duration: Duration(seconds: 5, milliseconds: 100),
+              ),
+            );
           },
           onTapDown: (details) {
             setState(() {

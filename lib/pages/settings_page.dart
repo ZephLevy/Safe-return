@@ -321,7 +321,7 @@ class OptionsState extends State<Options> {
         items: dditems.map(buildMenuItem).toList(),
         onChanged: (value) {
           setState(() => this.value = value);
-          SosManager().clickN = dditems.indexOf(value ?? "Single Click") + 1;
+          SosManager.clickN = dditems.indexOf(value ?? "Single Click") + 1;
         },
       ),
     );
