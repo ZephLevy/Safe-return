@@ -36,6 +36,7 @@ class MapPage extends StatelessWidget {
         child: Icon(Icons.location_pin, color: Colors.red),
       ),
     ];
+
     if (Location.homePosition != null) {
       markers.add(
         Marker(
@@ -48,6 +49,15 @@ class MapPage extends StatelessWidget {
           ),
         ),
       );
+      bool closeToHome = Geolocator.distanceBetween(
+              position.latitude,
+              position.longitude,
+              Location.homePosition!.latitude,
+              Location.homePosition!.longitude) <
+          20;
+      if (closeToHome) {
+        markers.removeAt(0); //Home and current location don't overlap
+      }
     }
     return FlutterMap(
       options: MapOptions(initialCenter: position, initialZoom: 20),
