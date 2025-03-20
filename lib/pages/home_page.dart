@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:safe_return/logic/location.dart';
 import 'package:safe_return/logic/singletons/sos_manager.dart';
 import 'package:safe_return/logic/singletons/time_manager.dart';
 import 'package:safe_return/palette.dart';
@@ -176,12 +179,28 @@ class _TimeSetButtonState extends State<TimeSetButton> {
       child: Material(
         child: GestureDetector(
           onTap: () {
-            Future.delayed(Duration(seconds: 5), () {
+            Future.delayed(Duration(seconds: 5), () async {
               if (TimeManager.selectedTime != null) {
                 setState(() {
                   date = TimeManager.selectedTime!;
                 });
                 HapticFeedback.mediumImpact();
+              }
+              //HACK: This is just to test distance logic. Remove this later
+              if (Location.homePosition == null) return;
+              final LatLng homePosition = Location.homePosition!;
+              final Position currentPosition =
+                  await Location.determinePosition();
+              final double distance = Geolocator.distanceBetween(
+                  homePosition.latitude,
+                  homePosition.longitude,
+                  currentPosition.latitude,
+                  currentPosition.longitude);
+              final accuracy = await Geolocator.getLocationAccuracy();
+              if (accuracy == LocationAccuracyStatus.reduced) {
+                print("User is away from home: ${distance >= 5000} ");
+              } else {
+                print("User is away from home: ${distance >= 20} ");
               }
             });
             setState(() {
