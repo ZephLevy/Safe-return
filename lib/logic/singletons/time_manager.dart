@@ -1,3 +1,3 @@
 class TimeManager {
-  static DateTime selectedTime = DateTime.now();
+  static DateTime? selectedTime;
 }

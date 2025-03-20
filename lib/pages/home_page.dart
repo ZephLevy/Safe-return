@@ -177,20 +177,40 @@ class _TimeSetButtonState extends State<TimeSetButton> {
         child: GestureDetector(
           onTap: () {
             Future.delayed(Duration(seconds: 5), () {
-              setState(() {
-                date = TimeManager.selectedTime;
+              if (TimeManager.selectedTime != null) {
+                setState(() {
+                  date = TimeManager.selectedTime!;
+                });
                 HapticFeedback.mediumImpact();
-              });
+              }
             });
             setState(() {
               isSelected = false;
             });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: SnackBarContent(),
-                duration: Duration(seconds: 5, milliseconds: 100),
-              ),
-            );
+
+            // This makes me not want to open source this project purely out of shame
+            var timesAreDifferent = (TimeManager.selectedTime != null)
+                ? !((TimeManager.selectedTime!.hour == DateTime.now().hour &&
+                    (TimeManager.selectedTime!.minute ==
+                        DateTime.now().minute)))
+                : false;
+
+            if (TimeManager.selectedTime != null && timesAreDifferent) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: SnackBarContent(),
+                  duration: Duration(seconds: 5, milliseconds: 100),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Center(
+                    child: Text("Please select a time that is not now!"),
+                  ),
+                ),
+              );
+            }
           },
           onTapDown: (details) {
             setState(() {
