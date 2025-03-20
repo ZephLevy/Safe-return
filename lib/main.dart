@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:safe_return/logic/location.dart';
 import 'package:safe_return/pages/home_page.dart';
 import 'package:safe_return/pages/map_page.dart';
 import 'package:safe_return/pages/settings_page.dart';
 import 'package:safe_return/palette.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+Future<void> main() async {
+  final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
+  WidgetsFlutterBinding.ensureInitialized();
+  double? latitude = await asyncPrefs.getDouble("latitude");
+  double? longitude = await asyncPrefs.getDouble("longitude");
+  if (latitude != null && longitude != null) {
+    Location.homePosition = LatLng(latitude, longitude);
+  }
   runApp(MyApp());
 }
 
@@ -87,6 +98,24 @@ class _HomeScreenState extends State<HomeScreen> {
           color: Palette.blue1,
         ),
       ),
+      actions: [
+        (_selectedIndex == 1)
+            ? Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: IconButton(
+                    onPressed: () => _setHomeLocation(),
+                    icon: Icon(Icons.home)),
+              )
+            : SizedBox.shrink(),
+      ],
     );
+  }
+
+  Future<void> _setHomeLocation() async {
+    final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
+    final Position location = await Location.determinePosition();
+
+    await asyncPrefs.setDouble("latitude", location.latitude);
+    await asyncPrefs.setDouble("longitude", location.longitude);
   }
 }

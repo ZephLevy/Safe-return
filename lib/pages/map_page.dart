@@ -28,22 +28,34 @@ class MapPage extends StatelessWidget {
 
   Widget _mainBody(Position snapshot) {
     LatLng position = LatLng(snapshot.latitude, snapshot.longitude);
+    List<Marker> markers = [
+      Marker(
+        width: 80.0,
+        height: 80.0,
+        point: position,
+        child: Icon(Icons.location_pin, color: Colors.red),
+      ),
+    ];
+    if (Location.homePosition != null) {
+      markers.add(
+        Marker(
+          width: 80.0,
+          height: 80.0,
+          point: Location.homePosition!,
+          child: Icon(
+            Icons.home,
+            color: Colors.blue,
+          ),
+        ),
+      );
+    }
     return FlutterMap(
       options: MapOptions(initialCenter: position, initialZoom: 20),
       children: [
         TileLayer(
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
         ),
-        MarkerLayer(
-          markers: [
-            Marker(
-              width: 80.0,
-              height: 80.0,
-              point: position,
-              child: Icon(Icons.location_pin, color: Colors.red),
-            ),
-          ],
-        ),
+        MarkerLayer(markers: markers),
       ],
     );
   }
