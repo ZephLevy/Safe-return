@@ -10,26 +10,20 @@ class MapPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: (Location.lastKnownPosition == null)
-          ? FutureBuilder(
-              future: Location.determinePosition(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(child: Text("${snapshot.error}"));
-                } else if (snapshot.connectionState ==
-                    ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasData) {
-                  return _mainBody(snapshot.data!);
-                } else {
-                  throw Exception("No location returned");
-                }
-              },
-            )
-          : Center(
-              child: Text(Location.lastKnownPosition.toString()),
-            ),
-    );
+        body: FutureBuilder(
+      future: Location.determinePosition(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(child: Text("${snapshot.error}"));
+        } else if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasData) {
+          return _mainBody(snapshot.data!);
+        } else {
+          throw Exception("No location returned");
+        }
+      },
+    ));
   }
 
   Widget _mainBody(Position snapshot) {
