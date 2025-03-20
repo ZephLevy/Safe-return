@@ -102,9 +102,12 @@ class _HomeScreenState extends State<HomeScreen> {
         (_selectedIndex == 1)
             ? Padding(
                 padding: const EdgeInsets.only(right: 8.0),
-                child: IconButton(
-                    onPressed: () => _setHomeLocation(),
-                    icon: Icon(Icons.home)),
+                child: Tooltip(
+                  message: "Update the home location",
+                  child: IconButton(
+                      onPressed: () => _setHomeLocation(),
+                      icon: Icon(Icons.home)),
+                ),
               )
             : SizedBox.shrink(),
       ],
