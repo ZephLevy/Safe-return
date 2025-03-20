@@ -33,7 +33,7 @@ class MapPage extends StatelessWidget {
   }
 
   Widget _mainBody(Position snapshot) {
-    var position = LatLng(snapshot.latitude, snapshot.longitude);
+    LatLng position = LatLng(snapshot.latitude, snapshot.longitude);
     return FlutterMap(
       options: MapOptions(initialCenter: position, initialZoom: 20),
       children: [
