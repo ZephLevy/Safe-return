@@ -187,7 +187,7 @@ class _TimeSetButtonState extends State<TimeSetButton> {
             });
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text("Setting location..."),
+                content: SnackBarContent(),
                 duration: Duration(seconds: 5, milliseconds: 100),
               ),
             );
@@ -222,5 +222,55 @@ class _TimeSetButtonState extends State<TimeSetButton> {
         ),
       ),
     );
+  }
+}
+
+class SnackBarContent extends StatefulWidget {
+  const SnackBarContent({
+    super.key,
+  });
+
+  @override
+  State<SnackBarContent> createState() => _SnackBarContentState();
+}
+
+class _SnackBarContentState extends State<SnackBarContent> {
+  final List<String> loadingStates = [
+    "Setting Event",
+    "Setting Event.",
+    "Setting Event..",
+    "Setting Event..."
+  ];
+  int index = 0;
+  late Timer timer;
+
+  @override
+  void initState() {
+    super.initState();
+    timer = Timer.periodic(
+      Duration(milliseconds: 250),
+      (timer) {
+        if (mounted) {
+          setState(
+            () {
+              index = (index + 1) %
+                  loadingStates
+                      .length; //This loops index over the possible list values
+            },
+          );
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text(loadingStates[index]));
   }
 }
