@@ -105,7 +105,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Tooltip(
                   message: "Update the home location",
                   child: IconButton(
-                      onPressed: () => _setHomeLocation(),
+                      onPressed: () {
+                        _setHomeLocation();
+                      },
                       icon: Icon(Icons.home)),
                 ),
               )

@@ -184,23 +184,8 @@ class _TimeSetButtonState extends State<TimeSetButton> {
                 setState(() {
                   date = TimeManager.selectedTime!;
                 });
+                _scheduleCheck();
                 HapticFeedback.mediumImpact();
-              }
-              //HACK: This is just to test distance logic. Remove this later
-              if (Location.homePosition == null) return;
-              final LatLng homePosition = Location.homePosition!;
-              final Position currentPosition =
-                  await Location.determinePosition();
-              final double distance = Geolocator.distanceBetween(
-                  homePosition.latitude,
-                  homePosition.longitude,
-                  currentPosition.latitude,
-                  currentPosition.longitude);
-              final accuracy = await Geolocator.getLocationAccuracy();
-              if (accuracy == LocationAccuracyStatus.reduced) {
-                print("User is away from home: ${distance >= 5000} ");
-              } else {
-                print("User is away from home: ${distance >= 20} ");
               }
             });
             setState(() {
@@ -261,6 +246,26 @@ class _TimeSetButtonState extends State<TimeSetButton> {
         ),
       ),
     );
+  }
+
+  void _scheduleCheck() {
+    Duration timeTo = date.difference(DateTime.now());
+    Future.delayed(timeTo, () async {
+      if (Location.homePosition == null) return;
+      final LatLng homePosition = Location.homePosition!;
+      final Position currentPosition = await Location.determinePosition();
+      final double distance = Geolocator.distanceBetween(
+          homePosition.latitude,
+          homePosition.longitude,
+          currentPosition.latitude,
+          currentPosition.longitude);
+      final accuracy = await Geolocator.getLocationAccuracy();
+      if (accuracy == LocationAccuracyStatus.reduced) {
+        print("User is away from home: ${distance >= 5000} ");
+      } else {
+        print("User is away from home: ${distance >= 20} ");
+      }
+    });
   }
 }
 
