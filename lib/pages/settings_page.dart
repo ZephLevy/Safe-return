@@ -334,4 +334,38 @@ class OptionsState extends State<Options> {
           style: TextStyle(fontSize: 16),
         ),
       );
+
+  static void showCodeEnter(BuildContext context) {
+    TextEditingController textController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Enter a code"),
+          content: TextField(
+            controller: textController,
+            decoration: InputDecoration(hintText: "Enter your secret code..."),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+              },
+              child: Text(
+                "Cancel",
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                SosManager.secretCode = textController.text;
+                Navigator.of(context).pop(); // Close dialog
+              },
+              child: Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
