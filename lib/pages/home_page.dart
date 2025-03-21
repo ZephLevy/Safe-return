@@ -260,12 +260,18 @@ class _TimeSetButtonState extends State<TimeSetButton> {
           currentPosition.latitude,
           currentPosition.longitude);
       final accuracy = await Geolocator.getLocationAccuracy();
+      late int radius;
       if (accuracy == LocationAccuracyStatus.reduced) {
-        print("User is away from home: ${distance >= 5000} ");
+        radius = 5000;
       } else {
-        print("User is away from home: ${distance >= 20} ");
+        radius = 20;
       }
+      if (distance > radius) _alert();
     });
+  }
+
+  void _alert() {
+    print("Alerted");
   }
 }
 
