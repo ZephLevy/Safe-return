@@ -335,7 +335,7 @@ class OptionsState extends State<Options> {
         ),
       );
 
-  static void showCodeEnter(BuildContext context) {
+  void showCodeEnter() {
     TextEditingController textController = TextEditingController();
     showDialog(
       context: context,
