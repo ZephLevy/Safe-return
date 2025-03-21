@@ -69,11 +69,10 @@ class OptionsState extends State<Options> {
             size: 20,
           ),
         );
-      //? case 2:
-      //?   return Options(
-      //?    title: "Home Location",
-      //?     trailing: _homeLocation(),
-      //?  );
+      case 2:
+        return Options(
+          title: "Set codes",
+        );
       default:
         return Options(title: "default", info: "default");
     }
@@ -99,7 +98,7 @@ class OptionsState extends State<Options> {
     return ListView.separated(
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 30),
       itemCount:
-          2, //! change "2" to change automatically based on the number of cases, or a new list's length
+          3, //! change "2" to change automatically based on the number of cases, or a new list's length
       separatorBuilder: (BuildContext context, int index) => Divider(
         color: Colors.black54,
         thickness: 2,
@@ -134,13 +133,21 @@ class OptionsState extends State<Options> {
             ),
           );
         }
-        return Card(
-          child: ListTile(
-            title: Text(item.title as String),
-            trailing: item.trailing,
-            leading: item.leading,
-            horizontalTitleGap: 8,
+        return InkWell(
+          child: Card(
+            child: ListTile(
+              title: Text(item.title as String),
+              trailing: item.trailing,
+              leading: item.leading,
+              horizontalTitleGap: 8,
+            ),
           ),
+          onTap: () {
+            if (index == 2) {
+              getCodeInput(false);
+              getCodeInput(true);
+            }
+          },
         );
       },
     );
@@ -192,16 +199,21 @@ class OptionsState extends State<Options> {
         ),
       );
 
-  void showCodeEnter() {
+  void getCodeInput(bool fakeCode) {
     TextEditingController textController = TextEditingController();
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("Enter a code"),
+          title: Text(!fakeCode
+              ? "Enter a code: if threatened to enter a code, this will silently call an alert"
+              : "Enter a code"),
           content: TextField(
             controller: textController,
-            decoration: InputDecoration(hintText: "Enter your secret code..."),
+            decoration: InputDecoration(
+                hintText: !fakeCode
+                    ? "Enter your decoy code..."
+                    : "Enter your real code"),
           ),
           actions: [
             TextButton(
@@ -215,7 +227,11 @@ class OptionsState extends State<Options> {
             ),
             TextButton(
               onPressed: () {
-                SosManager.secretCode = textController.text;
+                if (fakeCode) {
+                  SosManager.secretCode = textController.text;
+                } else {
+                  SosManager.fakeCode = textController.text;
+                }
                 Navigator.of(context).pop(); // Close dialog
               },
               child: Text("OK"),
