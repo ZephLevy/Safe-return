@@ -1,19 +1,16 @@
 //! Not goooood
-//? Crappppp code
+//? On stand-by
 // Overused comment
 //todo I have way to much uncompleted code
 //* This is okkkk
 //. I WILL KILL MYSELF
 
-// ignore_for_file: unused_import, avoid_print
-// ignore: unnecessary_import
-import 'package:flutter/cupertino.dart';
+// ignore_for_file: unused_import
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:safe_return/logic/singletons/sos_manager.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:safe_return/palette.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:safe_return/utils/stored_settings.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -71,11 +68,11 @@ class OptionsState extends State<Options> {
             size: 20,
           ),
         );
-      case 2:
-        return Options(
-          title: "Home Location",
-          // trailing: _homeLocation(),
-        );
+      //? case 2:
+      //?   return Options(
+      //?    title: "Home Location",
+      //?     trailing: _homeLocation(),
+      //?  );
       default:
         return Options(title: "default", info: "default");
     }
@@ -100,7 +97,8 @@ class OptionsState extends State<Options> {
   Widget build(BuildContext context) {
     return ListView.separated(
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 30),
-      itemCount: 3,
+      itemCount:
+          2, //! change "2" to change automatically based on the number of cases, or a new list's length
       separatorBuilder: (BuildContext context, int index) => Divider(
         color: Colors.black54,
         thickness: 2,
@@ -161,21 +159,6 @@ class OptionsState extends State<Options> {
                                     },
                                   ),
                                 )
-                                /*    Padding(
-                                  padding: EdgeInsets.only(right: 32),
-                                  child: FloatingActionButton.small(
-                                    backgroundColor: Colors.transparent,
-                                    foregroundColor: Colors.black,
-                                    elevation: 0,
-                                    highlightElevation: 0,
-                                    shape: CircleBorder(),
-                                    onPressed: _selectContacts,
-                                    child: Icon(
-                                      Icons.add,
-                                      size: 28,
-                                    ),
-                                  ),
-                                ), */
                               ],
                               title: Text(item.title as String),
                             ),
@@ -251,8 +234,8 @@ class OptionsState extends State<Options> {
             );
           }
         }
-        print(StoredSettings.contactName);
-        print(StoredSettings.contactPhone);
+        // print(StoredSettings.contactName);
+        // print(StoredSettings.contactPhone);
       }
       setState(() {});
     }
@@ -275,19 +258,19 @@ class OptionsState extends State<Options> {
             },
           );
         }
-        print(StoredSettings.contactName);
-        print(StoredSettings.contactPhone);
+        // print(StoredSettings.contactName);
+        // print(StoredSettings.contactPhone);
       }
       setState(() {});
     }
   }
 
-  /* Widget _homeLocation() {
-    return Container(
-      height: 3,
-      width: 10,
-    );
-  } */
+  //? Widget _homeLocation() {
+  //?   return Container(
+  //?     height: 3,
+  //?     width: 10,
+  //?   );
+  //? }
 
   Widget _sosActButton() {
     return // dropdown button
@@ -309,8 +292,8 @@ class OptionsState extends State<Options> {
         isExpanded: false,
         items: dditems.map(buildMenuItem).toList(),
         onChanged: (value) {
-          print(StoredSettings.dvalue);
-          print(value);
+          // print(StoredSettings.dvalue);
+          // print(value);
           setState(() => StoredSettings.dvalue = value as String);
           StoredSettings.saveDropdown(StoredSettings.dvalue);
           SosManager.clickN = dditems.indexOf(value ?? "Single Click") + 1;

@@ -31,9 +31,9 @@ class StoredSettings {
     contactPhone = storedPhone;
     contactName = storedName;
     dvalue = storedDropdown;
-    print("stored phone: $storedPhone");
-    print("stored name: $storedName");
-    print("stored value: $storedDropdown");
-    print("drop: $dvalue");
+    // print("stored phone: $storedPhone");
+    // print("stored name: $storedName");
+    // print("stored value: $storedDropdown");
+    // print("drop: $dvalue");
   }
 }
