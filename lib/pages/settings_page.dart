@@ -5,12 +5,16 @@
 //* This is okkkk
 //. I WILL KILL MYSELF
 
+// ignore_for_file: unused_import, avoid_print
+// ignore: unnecessary_import
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:safe_return/logic/singletons/sos_manager.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:safe_return/palette.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:safe_return/utils/stored_settings.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -77,23 +81,14 @@ class OptionsState extends State<Options> {
     }
   }
 
-//*declared dropdown items for sos activation
   final dditems = [
     'Single Click',
     'Double Click',
     'Triple Click',
     'Quad-Click',
   ];
-
-//*declared dropdown
   String? value;
-
-//*declared listview builder + separator indent
   double listIndent = 45;
-
-//*declared contact picker
-  List<String> contactPhone = [];
-  List<String> contactName = [];
 
   @override
   void initState() {
@@ -131,45 +126,67 @@ class OptionsState extends State<Options> {
                       context,
                       MaterialPageRoute<Widget>(
                         builder: (BuildContext context) {
-                          return Scaffold(
-                            appBar: AppBar(
-//todo center add icon with title and back button
-//? modify back button
-                              actions: [
-                                Padding(
-                                  padding: EdgeInsets.only(right: 32),
-                                  child: InkWell(
-                                    radius: 24,
-                                    borderRadius: BorderRadius.circular(20),
-                                    onTap: _multipleContacts,
-                                    child: Icon(
-                                      Icons.add,
-                                      size: 28,
+                          return Theme(
+                            data: ThemeData(),
+                            child: Scaffold(
+                              appBar: AppBar(
+                                //todo center add icon with title and back button
+                                //? modify back button
+                                actions: [
+                                  Padding(
+                                    padding: EdgeInsets.only(right: 32),
+                                    child: FloatingActionButton.small(
+                                      backgroundColor: Colors.transparent,
+                                      foregroundColor: Colors.black,
+                                      elevation: 0,
+                                      highlightElevation: 0,
+                                      shape: CircleBorder(),
+                                      onPressed: _selectContacts,
+                                      child: Icon(
+                                        Icons.add,
+                                        size: 28,
+                                      ),
+                                      /* child: InkWell(
+                                        radius: 24,
+                                        borderRadius: BorderRadius.circular(20),
+                                        onTap: _selectContacts,
+                                        child: Icon(
+                                          Icons.add,
+                                          size: 28,
+                                        ),
+                                      ), */
                                     ),
                                   ),
-                                ),
-                              ],
-                              title: Text(item.title as String),
-                            ),
-                            body: Column(
-                              children: <Widget>[
-                                SizedBox(
-                                  height: 700,
-                                  child: ListView.separated(
-                                    itemCount: contactName.length,
-                                    separatorBuilder:
-                                        (BuildContext context, int index) =>
-                                            Divider(),
-                                    itemBuilder:
-                                        (BuildContext context, int index) {
-                                      return ListTile(
-                                        title: Text(contactName[index]),
-                                        trailing: Text(contactPhone[index]),
-                                      );
-                                    },
+                                ],
+                                title: Text(item.title as String),
+                              ),
+                              bottomNavigationBar: BottomAppBar(
+                                child: AppBar(),
+                              ),
+                              // bottomNavigationBar: BottomAppBar(),
+                              body: Column(
+                                children: <Widget>[
+                                  SizedBox(
+                                    height: 700,
+                                    child: ListView.separated(
+                                      itemCount:
+                                          StoredSettings.contactName.length,
+                                      separatorBuilder:
+                                          (BuildContext context, int index) =>
+                                              Divider(),
+                                      itemBuilder:
+                                          (BuildContext context, int index) {
+                                        return ListTile(
+                                          title: Text(StoredSettings
+                                              .contactName[index]),
+                                          trailing: Text(StoredSettings
+                                              .contactPhone[index]),
+                                        );
+                                      },
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           );
                         },
@@ -189,116 +206,42 @@ class OptionsState extends State<Options> {
             horizontalTitleGap: 8,
           ),
         );
-
-        /* Container(
-          decoration: BoxDecoration(
-              border: Border.all(color: Colors.black),
-              borderRadius: BorderRadius.circular(12)),
-          child: SizedBox(
-            height: itemSize[index],
-            child: Stack(
-              children: [
-                Container(
-                    decoration: BoxDecoration(
-                        border: Border.all(
-                            color: const Color.fromARGB(0, 255, 64, 128))),
-                    width: listIndent,
-                    height: itemSize[index],
-                    child: _scrollIcon(index)),
-                Wrap(
-                  children: [
-                    Container(
-                      margin: EdgeInsets.only(left: listIndent),
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                              color: const Color.fromARGB(0, 255, 18, 18))),
-                      child: Wrap(
-                        spacing: 0,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        alignment: WrapAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                                border: Border.all(
-                                    color:
-                                        const Color.fromARGB(0, 0, 255, 21))),
-                            child: Text(
-                              (item.title as String),
-                              style: TextStyle(fontSize: 20),
-                            ),
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                                border: Border.all(
-                                    color:
-                                        const Color.fromARGB(0, 0, 255, 21))),
-                            child: _buildItem(index),
-                          ),
-                          Container(
-                            margin: EdgeInsets.only(right: infoRIndent[index]),
-                            alignment: Alignment.centerLeft,
-                            decoration: BoxDecoration(
-                                border: Border.all(
-                                    color:
-                                        const Color.fromARGB(0, 0, 255, 21))),
-                            child: Text(
-                              (item.info ?? "nothing here!"),
-                              style: TextStyle(fontSize: 11),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ); */
       },
     );
   }
 
-  void _multipleContacts() async {
+  void _selectContacts() async {
     if (await FlutterContacts.requestPermission()) {
-//*declared contant info when selected
+      StoredSettings.loadContacts();
+//*declared contact info when selected
       final contact = await FlutterContacts.openExternalPick();
+
       if (contact != null) {
-        print("Selected contacts:");
-        for (var p in contact.phones) {
-          print("${contact.displayName}: ${p.number}");
-          setState(
-            () {
-              contactName.add(contact.displayName);
-              contactPhone.add(p.number);
-            },
-          );
+        for (var phone in contact.phones) {
+          if (StoredSettings.contactPhone.contains(phone.number) &&
+              context.mounted) {
+            // ignore: use_build_context_synchronously
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text("This contact is already selected!"),
+              showCloseIcon: true,
+            ));
+          } else {
+            setState(
+              () {
+                StoredSettings.contactName.add(contact.displayName);
+                StoredSettings.contactPhone.add(phone.number);
+                StoredSettings.saveContacts(
+                    StoredSettings.contactPhone, StoredSettings.contactName);
+              },
+            );
+          }
         }
-        print(contactName);
-        print(contactPhone);
+        print(StoredSettings.contactName);
+        print(StoredSettings.contactPhone);
       }
+      setState(() {});
     }
   }
-
-  //*  Widget _buildItem(int index) {
-  //*   switch (index) {
-  //*    case 0:
-  //*      return _sosActButton();
-  //*    case 1:
-  //*      return _contactPicker();
-  //*    case 2:
-  //*      return SizedBox(
-  //*          height: 20,
-  //*          child: Placeholder(color: const Color.fromARGB(255, 53, 1, 242)));
-  //*    default:
-  //*      return SizedBox(
-  //*        height: 20,
-  //*        child: Placeholder(
-  //*         color: Colors.red,
-  //*       ),
-  //*     );
-  //* }
-  //* }
 
   Widget _sosActButton() {
     return // dropdown button

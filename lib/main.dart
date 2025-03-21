@@ -3,9 +3,12 @@ import 'package:safe_return/pages/home_page.dart';
 import 'package:safe_return/pages/map_page.dart';
 import 'package:safe_return/pages/settings_page.dart';
 import 'package:safe_return/palette.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:safe_return/utils/stored_settings.dart';
 
 void main() {
   runApp(MyApp());
+  StoredSettings.loadContacts();
 }
 
 class MyApp extends StatelessWidget {
