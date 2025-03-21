@@ -63,7 +63,6 @@ class OptionsState extends State<Options> {
           trailing: _sosActButton(),
           //? leading: Icon(Icons.sos_rounded),
         );
-
       case 1:
         return Options(
           title: "Emergency Contacts",
@@ -75,6 +74,7 @@ class OptionsState extends State<Options> {
       case 2:
         return Options(
           title: "Home Location",
+          // trailing: _homeLocation(),
         );
       default:
         return Options(title: "default", info: "default");
@@ -87,13 +87,13 @@ class OptionsState extends State<Options> {
     'Triple Click',
     'Quad-Click',
   ];
-  String? value;
+
   double listIndent = 45;
 
   @override
   void initState() {
     super.initState();
-    value = dditems.first;
+    StoredSettings.loadAll();
   }
 
   @override
@@ -126,67 +126,82 @@ class OptionsState extends State<Options> {
                       context,
                       MaterialPageRoute<Widget>(
                         builder: (BuildContext context) {
-                          return Theme(
-                            data: ThemeData(),
-                            child: Scaffold(
-                              appBar: AppBar(
-                                //todo center add icon with title and back button
-                                //? modify back button
-                                actions: [
-                                  Padding(
-                                    padding: EdgeInsets.only(right: 32),
-                                    child: FloatingActionButton.small(
-                                      backgroundColor: Colors.transparent,
-                                      foregroundColor: Colors.black,
-                                      elevation: 0,
-                                      highlightElevation: 0,
-                                      shape: CircleBorder(),
-                                      onPressed: _selectContacts,
-                                      child: Icon(
-                                        Icons.add,
-                                        size: 28,
-                                      ),
-                                      /* child: InkWell(
-                                        radius: 24,
-                                        borderRadius: BorderRadius.circular(20),
-                                        onTap: _selectContacts,
-                                        child: Icon(
-                                          Icons.add,
-                                          size: 28,
+                          return Scaffold(
+                            appBar: AppBar(
+                              //todo center add icon with title and back button
+                              //? modify back button
+                              actions: [
+                                Padding(
+                                  padding: EdgeInsets.only(right: 20),
+                                  child: PopupMenuButton(
+                                    icon: Icon(Icons.more_vert),
+                                    itemBuilder: (BuildContext context) {
+                                      return [
+                                        PopupMenuItem(
+                                          onTap: _selectContacts,
+                                          child: ListTile(
+                                            leading: Icon(
+                                              Icons.add,
+                                              size: 28,
+                                            ),
+                                            title: Text("Add"),
+                                          ),
                                         ),
-                                      ), */
+                                        PopupMenuItem(
+                                          onTap: _removeContacts,
+                                          child: ListTile(
+                                            leading: Icon(
+                                              Icons.delete_outlined,
+                                              size: 28,
+                                            ),
+                                            title: Text("Remove"),
+                                          ),
+                                        )
+                                      ];
+                                    },
+                                  ),
+                                )
+                                /*    Padding(
+                                  padding: EdgeInsets.only(right: 32),
+                                  child: FloatingActionButton.small(
+                                    backgroundColor: Colors.transparent,
+                                    foregroundColor: Colors.black,
+                                    elevation: 0,
+                                    highlightElevation: 0,
+                                    shape: CircleBorder(),
+                                    onPressed: _selectContacts,
+                                    child: Icon(
+                                      Icons.add,
+                                      size: 28,
                                     ),
                                   ),
-                                ],
-                                title: Text(item.title as String),
-                              ),
-                              bottomNavigationBar: BottomAppBar(
-                                child: AppBar(),
-                              ),
-                              // bottomNavigationBar: BottomAppBar(),
-                              body: Column(
-                                children: <Widget>[
-                                  SizedBox(
-                                    height: 700,
-                                    child: ListView.separated(
-                                      itemCount:
-                                          StoredSettings.contactName.length,
-                                      separatorBuilder:
-                                          (BuildContext context, int index) =>
-                                              Divider(),
-                                      itemBuilder:
-                                          (BuildContext context, int index) {
-                                        return ListTile(
-                                          title: Text(StoredSettings
-                                              .contactName[index]),
-                                          trailing: Text(StoredSettings
-                                              .contactPhone[index]),
-                                        );
-                                      },
-                                    ),
+                                ), */
+                              ],
+                              title: Text(item.title as String),
+                            ),
+                            // bottomNavigationBar: BottomAppBar(),
+                            body: Column(
+                              children: <Widget>[
+                                SizedBox(
+                                  height: 600,
+                                  child: ListView.separated(
+                                    itemCount:
+                                        StoredSettings.contactName.length,
+                                    separatorBuilder:
+                                        (BuildContext context, int index) =>
+                                            Divider(),
+                                    itemBuilder:
+                                        (BuildContext context, int index) {
+                                      return ListTile(
+                                        title: Text(
+                                            StoredSettings.contactName[index]),
+                                        trailing: Text(
+                                            StoredSettings.contactPhone[index]),
+                                      );
+                                    },
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           );
                         },
@@ -212,7 +227,7 @@ class OptionsState extends State<Options> {
 
   void _selectContacts() async {
     if (await FlutterContacts.requestPermission()) {
-      StoredSettings.loadContacts();
+      StoredSettings.loadAll();
 //*declared contact info when selected
       final contact = await FlutterContacts.openExternalPick();
 
@@ -243,6 +258,37 @@ class OptionsState extends State<Options> {
     }
   }
 
+  void _removeContacts() async {
+    if (await FlutterContacts.requestPermission()) {
+      StoredSettings.loadAll();
+//*declared contact info when selected
+      final contact = await FlutterContacts.openExternalPick();
+
+      if (contact != null) {
+        for (var phone in contact.phones) {
+          setState(
+            () {
+              StoredSettings.contactPhone.remove(phone.number);
+              StoredSettings.contactName.remove(contact.displayName);
+              StoredSettings.saveContacts(
+                  StoredSettings.contactPhone, StoredSettings.contactName);
+            },
+          );
+        }
+        print(StoredSettings.contactName);
+        print(StoredSettings.contactPhone);
+      }
+      setState(() {});
+    }
+  }
+
+  /* Widget _homeLocation() {
+    return Container(
+      height: 3,
+      width: 10,
+    );
+  } */
+
   Widget _sosActButton() {
     return // dropdown button
         Container(
@@ -259,11 +305,14 @@ class OptionsState extends State<Options> {
         borderRadius: BorderRadius.circular(8),
         iconSize: 25,
         menuWidth: 160,
-        value: value,
+        value: StoredSettings.dvalue,
         isExpanded: false,
         items: dditems.map(buildMenuItem).toList(),
         onChanged: (value) {
-          setState(() => this.value = value);
+          print(StoredSettings.dvalue);
+          print(value);
+          setState(() => StoredSettings.dvalue = value as String);
+          StoredSettings.saveDropdown(StoredSettings.dvalue);
           SosManager.clickN = dditems.indexOf(value ?? "Single Click") + 1;
         },
       ),

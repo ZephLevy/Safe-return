@@ -18,7 +18,7 @@ Future<void> main() async {
     Location.homePosition = LatLng(latitude, longitude);
   }
   runApp(MyApp());
-  StoredSettings.loadContacts();
+  StoredSettings.loadAll();
 }
 
 class MyApp extends StatelessWidget {
