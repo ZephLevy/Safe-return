@@ -8,7 +8,7 @@
 // ignore_for_file: unused_import
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:safe_return/logic/singletons/sos_manager.dart';
+import 'package:safe_return/utils/sos_manager.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:safe_return/palette.dart';
 import 'package:safe_return/utils/stored_settings.dart';
