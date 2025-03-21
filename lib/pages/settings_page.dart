@@ -292,10 +292,11 @@ class OptionsState extends State<Options> {
         isExpanded: false,
         items: dditems.map(buildMenuItem).toList(),
         onChanged: (value) {
+          setState(() => StoredSettings.dvalue = value);
           // print(StoredSettings.dvalue);
           // print(value);
-          setState(() => StoredSettings.dvalue = value as String);
           StoredSettings.saveDropdown(StoredSettings.dvalue);
+
           SosManager.clickN = dditems.indexOf(value ?? "Single Click") + 1;
         },
       ),

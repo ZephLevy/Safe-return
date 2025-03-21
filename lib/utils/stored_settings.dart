@@ -26,8 +26,8 @@ class StoredSettings {
         await _asyncPrefs.getStringList('selectedPhones') ?? [];
     final List<String> storedName =
         await _asyncPrefs.getStringList('selectedNames') ?? [];
-    final String storedDropdown =
-        await _asyncPrefs.getString('dropdown value') ?? "null";
+    final String? storedDropdown =
+        await _asyncPrefs.getString('dropdown value');
     contactPhone = storedPhone;
     contactName = storedName;
     dvalue = storedDropdown;
