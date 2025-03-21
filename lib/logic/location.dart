@@ -1,7 +1,8 @@
 import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 
 class Location {
-  static Position? lastKnownPosition;
+  static LatLng? homePosition;
 
   static Future<Position> determinePosition() async {
     // Check if location services are enabled
@@ -24,8 +25,6 @@ class Location {
       return Future.error(
           'Location permissions are permanently denied, we cannot request permissions.');
     }
-
-    lastKnownPosition = await Geolocator.getCurrentPosition();
 
     // If permissions are granted, return the current location
     return await Geolocator.getCurrentPosition();

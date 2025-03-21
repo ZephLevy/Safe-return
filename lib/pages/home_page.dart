@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:safe_return/logic/location.dart';
 import 'package:safe_return/logic/singletons/sos_manager.dart';
 import 'package:safe_return/logic/singletons/time_manager.dart';
 import 'package:safe_return/palette.dart';
@@ -69,7 +72,7 @@ class HomePage extends StatelessWidget {
                 height: 150,
                 child: CupertinoDatePicker(
                   onDateTimeChanged: (value) {
-                    TimeManager().selectedTime = value;
+                    TimeManager.selectedTime = value;
                   },
                   mode: CupertinoDatePickerMode.time,
                   use24hFormat: true,
@@ -107,7 +110,7 @@ class _SosButtonState extends State<SosButton> {
   int _tapCount = 0;
 
   void _handleTapUp(TapUpDetails details) {
-    int tapN = SosManager().clickN;
+    int tapN = SosManager.clickN;
     if (_tapTimer != null && _tapTimer!.isActive) {
       _tapCount++;
     } else {
@@ -176,11 +179,42 @@ class _TimeSetButtonState extends State<TimeSetButton> {
       child: Material(
         child: GestureDetector(
           onTap: () {
-            setState(() {
-              date = TimeManager().selectedTime;
-              isSelected = false;
-              HapticFeedback.mediumImpact();
+            Future.delayed(Duration(seconds: 5), () async {
+              if (TimeManager.selectedTime != null) {
+                setState(() {
+                  date = TimeManager.selectedTime!;
+                });
+                _scheduleCheck();
+                HapticFeedback.mediumImpact();
+              }
             });
+            setState(() {
+              isSelected = false;
+            });
+
+            // This makes me not want to open source this project purely out of shame
+            var timesAreDifferent = (TimeManager.selectedTime != null)
+                ? !((TimeManager.selectedTime!.hour == DateTime.now().hour &&
+                    (TimeManager.selectedTime!.minute ==
+                        DateTime.now().minute)))
+                : false;
+
+            if (TimeManager.selectedTime != null && timesAreDifferent) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: SnackBarContent(),
+                  duration: Duration(seconds: 5, milliseconds: 100),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Center(
+                    child: Text("Please select a time that is not now!"),
+                  ),
+                ),
+              );
+            }
           },
           onTapDown: (details) {
             setState(() {
@@ -212,5 +246,81 @@ class _TimeSetButtonState extends State<TimeSetButton> {
         ),
       ),
     );
+  }
+
+  void _scheduleCheck() {
+    Duration timeTo = date.difference(DateTime.now());
+    Future.delayed(timeTo, () async {
+      if (Location.homePosition == null) return;
+      final LatLng homePosition = Location.homePosition!;
+      final Position currentPosition = await Location.determinePosition();
+      final double distance = Geolocator.distanceBetween(
+          homePosition.latitude,
+          homePosition.longitude,
+          currentPosition.latitude,
+          currentPosition.longitude);
+      final accuracy = await Geolocator.getLocationAccuracy();
+      late int radius;
+      if (accuracy == LocationAccuracyStatus.reduced) {
+        radius = 5000;
+      } else {
+        radius = 20;
+      }
+      if (distance > radius) _alert();
+    });
+  }
+
+  void _alert() {
+    print("Alerted");
+  }
+}
+
+class SnackBarContent extends StatefulWidget {
+  const SnackBarContent({
+    super.key,
+  });
+
+  @override
+  State<SnackBarContent> createState() => _SnackBarContentState();
+}
+
+class _SnackBarContentState extends State<SnackBarContent> {
+  final List<String> loadingStates = [
+    "Setting Event",
+    "Setting Event.",
+    "Setting Event..",
+    "Setting Event..."
+  ];
+  int index = 0;
+  late Timer timer;
+
+  @override
+  void initState() {
+    super.initState();
+    timer = Timer.periodic(
+      Duration(milliseconds: 250),
+      (timer) {
+        if (mounted) {
+          setState(
+            () {
+              index = (index + 1) %
+                  loadingStates
+                      .length; //This loops index over the possible list values
+            },
+          );
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text(loadingStates[index]));
   }
 }
