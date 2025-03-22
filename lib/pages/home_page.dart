@@ -303,11 +303,17 @@ class _TimeSetButtonState extends State<TimeSetButton> {
             actions: [
               TextButton(
                 onPressed: () {
+                  //This code is messy.
+                  //It is also 2:03 in the morning, and therefore a problem for "future me"
                   if (textController.text == SosManager.fakeCode) {
                     _alert();
-                    Navigator.pop(context);
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    }
                   } else if (textController.text == SosManager.secretCode) {
-                    Navigator.pop(context);
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    }
                   } else {
                     textController.clear();
                     timeSetButtonState(() {
@@ -316,7 +322,6 @@ class _TimeSetButtonState extends State<TimeSetButton> {
 
                     if (codeAttempts <= 0) {
                       _alert();
-                      //Code would cause an exeption when I don't do this
                       if (Navigator.canPop(context)) {
                         Navigator.pop(context); // Close if attempts exhausted
                       }

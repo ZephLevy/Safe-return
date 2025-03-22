@@ -6,6 +6,7 @@ import 'package:safe_return/pages/home_page.dart';
 import 'package:safe_return/pages/map_page.dart';
 import 'package:safe_return/pages/settings_page.dart';
 import 'package:safe_return/palette.dart';
+import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/stored_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,6 +15,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   double? latitude = await asyncPrefs.getDouble("latitude");
   double? longitude = await asyncPrefs.getDouble("longitude");
+  SosManager.secretCode = await asyncPrefs.getString("secretCode");
+  SosManager.fakeCode = await asyncPrefs.getString("fakeCode");
   if (latitude != null && longitude != null) {
     Location.homePosition = LatLng(latitude, longitude);
   }

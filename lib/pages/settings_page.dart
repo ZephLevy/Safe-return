@@ -13,6 +13,7 @@ import 'package:safe_return/utils/sos_manager.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:safe_return/palette.dart';
 import 'package:safe_return/utils/stored_settings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -201,6 +202,7 @@ class OptionsState extends State<Options> {
 
   void getCodeInput(bool fakeCode) {
     TextEditingController textController = TextEditingController();
+    final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
     showDialog(
       context: context,
       builder: (context) {
@@ -226,11 +228,13 @@ class OptionsState extends State<Options> {
               ),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 if (fakeCode) {
                   SosManager.secretCode = textController.text;
+                  await asyncPrefs.setString("secretCode", textController.text);
                 } else {
                   SosManager.fakeCode = textController.text;
+                  await asyncPrefs.setString("fakeCode", textController.text);
                 }
                 Navigator.of(context).pop(); // Close dialog
               },
