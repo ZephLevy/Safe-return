@@ -170,6 +170,7 @@ class TimeSetButton extends StatefulWidget {
 class _TimeSetButtonState extends State<TimeSetButton> {
   bool isSelected = false;
   DateTime date = DateTime.now();
+  int codeAttempts = 3;
 
   @override
   Widget build(BuildContext context) {
@@ -183,6 +184,7 @@ class _TimeSetButtonState extends State<TimeSetButton> {
               if (TimeManager.selectedTime != null) {
                 setState(() {
                   date = TimeManager.selectedTime!;
+                  codeAttempts = 3;
                 });
                 _scheduleCheck();
                 HapticFeedback.mediumImpact();
@@ -198,19 +200,32 @@ class _TimeSetButtonState extends State<TimeSetButton> {
                     (TimeManager.selectedTime!.minute ==
                         DateTime.now().minute)))
                 : false;
+            bool codesNull =
+                SosManager.fakeCode == null || SosManager.secretCode == null;
 
-            if (TimeManager.selectedTime != null && timesAreDifferent) {
+            if (TimeManager.selectedTime != null &&
+                timesAreDifferent &&
+                !codesNull) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: SnackBarContent(),
                   duration: Duration(seconds: 5, milliseconds: 100),
                 ),
               );
-            } else {
+            } else if (!timesAreDifferent || !codesNull) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Center(
                     child: Text("Please select a time that is not now!"),
+                  ),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Center(
+                    child: Text(
+                        "Please configure your codes in the settings page"),
                   ),
                 ),
               );
@@ -266,12 +281,61 @@ class _TimeSetButtonState extends State<TimeSetButton> {
       } else {
         radius = 20;
       }
-      if (distance > radius) _alert();
+      if (distance > radius) _handleAwayFromhome();
     });
   }
 
+  void _handleAwayFromhome() {
+    TextEditingController textController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, timeSetButtonState) => AlertDialog(
+            title: Text(
+              "It looks like you're away from your home. Enter your code:",
+            ),
+            content: TextField(
+              controller: textController,
+              decoration: InputDecoration(
+                  hintText: "You have $codeAttempts attempts left"),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  if (textController.text == SosManager.fakeCode) {
+                    _alert();
+                    Navigator.pop(context);
+                  } else if (textController.text == SosManager.secretCode) {
+                    Navigator.pop(context);
+                  } else {
+                    textController.clear();
+                    timeSetButtonState(() {
+                      codeAttempts--;
+                    });
+
+                    if (codeAttempts <= 0) {
+                      _alert();
+                      //Code would cause an exeption when I don't do this
+                      if (Navigator.canPop(context)) {
+                        Navigator.pop(context); // Close if attempts exhausted
+                      }
+                    }
+                  }
+                },
+                child: Text("Enter"),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _alert() {
-    print("Alerted");
+    //This is called when we are sure the user is in danger.
+    //TODO: implement something
+    print("alerted");
   }
 }
 
