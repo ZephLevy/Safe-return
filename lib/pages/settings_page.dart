@@ -134,23 +134,29 @@ class OptionsState extends State<Options> {
             ),
           );
         }
-        return InkWell(
-          child: Card(
-            child: ListTile(
-              title: Text(item.title as String),
-              trailing: item.trailing,
-              leading: item.leading,
-              horizontalTitleGap: 8,
-            ),
-          ),
-          onTap: () {
-            if (index == 2) {
-              getCodeInput(false);
-              getCodeInput(true);
-            }
-          },
-        );
+        return index == 2
+            ? InkWell(
+                child: _mainCardBody(item),
+                onTap: () {
+                  if (index == 2) {
+                    getCodeInput(false);
+                    getCodeInput(true);
+                  }
+                },
+              )
+            : _mainCardBody(item);
       },
+    );
+  }
+
+  Card _mainCardBody(Options item) {
+    return Card(
+      child: ListTile(
+        title: Text(item.title as String),
+        trailing: item.trailing,
+        leading: item.leading,
+        horizontalTitleGap: 8,
+      ),
     );
   }
 
@@ -236,7 +242,9 @@ class OptionsState extends State<Options> {
                   SosManager.fakeCode = textController.text;
                   await asyncPrefs.setString("fakeCode", textController.text);
                 }
-                Navigator.of(context).pop(); // Close dialog
+                if (context.mounted) {
+                  Navigator.of(context).pop(); // Close dialog
+                }
               },
               child: Text("OK"),
             ),
