@@ -53,32 +53,6 @@ class Options extends StatefulWidget {
 }
 
 class OptionsState extends State<Options> {
-  Options getOption(int index) {
-    switch (index) {
-      case 0:
-        return Options(
-          title: "SOS Activation",
-          info: "Required number of clicks to activate SOS button",
-          trailing: _sosActButton(),
-          //? leading: Icon(Icons.sos_rounded),
-        );
-      case 1:
-        return Options(
-          title: "Emergency Contacts",
-          trailing: Icon(
-            Icons.arrow_forward_ios_rounded,
-            size: 20,
-          ),
-        );
-      case 2:
-        return Options(
-          title: "Set codes",
-        );
-      default:
-        return Options(title: "default", info: "default");
-    }
-  }
-
   final dditems = [
     'Single Click',
     'Double Click',
@@ -96,10 +70,27 @@ class OptionsState extends State<Options> {
 
   @override
   Widget build(BuildContext context) {
+    final List<Options> settingsItems = [
+      Options(
+        title: "SOS Activation",
+        info: "Required number of clicks to activate SOS button",
+        trailing: _sosActButton(),
+        //? leading: Icon(Icons.sos_rounded),
+      ),
+      Options(
+        title: "Emergency Contacts",
+        trailing: Icon(
+          Icons.arrow_forward_ios_rounded,
+          size: 20,
+        ),
+      ),
+      Options(
+        title: "Set codes",
+      ),
+    ];
     return ListView.separated(
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 30),
-      itemCount:
-          3, //! change "2" to change automatically based on the number of cases, or a new list's length
+      itemCount: settingsItems.length,
       separatorBuilder: (BuildContext context, int index) => Divider(
         color: Colors.black54,
         thickness: 2,
@@ -107,8 +98,7 @@ class OptionsState extends State<Options> {
         height: 10,
       ),
       itemBuilder: (BuildContext context, int index) {
-//*declared for switch properties in Option
-        final Options item = getOption(index);
+        final Options item = settingsItems[index];
 
         if (index == 1) {
           return Hero(
