@@ -8,7 +8,7 @@
 // ignore_for_file: unused_import
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:safe_return/pages/contacts_page.dart';
+import 'package:safe_return/utils/contacts/contacts_page.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:safe_return/palette.dart';
@@ -72,20 +72,17 @@ class OptionsState extends State<Options> {
   Widget build(BuildContext context) {
     final List<Options> settingsItems = [
       Options(
-        title: "SOS Activation",
-        info: "Required number of clicks to activate SOS button",
-        trailing: _sosActButton(),
-        //? leading: Icon(Icons.sos_rounded),
-      ),
+          title: "SOS Activation",
+          info: "Required number of clicks to activate SOS button",
+          trailing: _nextPage()
+          //? leading: Icon(Icons.sos_rounded),
+          ),
       Options(
         title: "Emergency Contacts",
-        trailing: Icon(
-          Icons.arrow_forward_ios_rounded,
-          size: 20,
-        ),
+        trailing: _nextPage(),
       ),
       Options(
-        title: "Set codes",
+        title: "Set Security Codes",
       ),
     ];
     return ListView.separated(
@@ -100,52 +97,114 @@ class OptionsState extends State<Options> {
       itemBuilder: (BuildContext context, int index) {
         final Options item = settingsItems[index];
 
-        if (index == 1) {
-          return Hero(
-            tag: "iceContacts",
-            child: Material(
-              child: Card(
-                child: ListTile(
-                  title: Text(item.title as String),
-                  trailing: item.trailing,
-                  leading: item.leading,
-                  horizontalTitleGap: 8,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute<Widget>(
-                        builder: (BuildContext context) =>
-                            ContactsPage(item: item),
-                      ),
-                    );
-                  },
+        return {
+              0: Hero(
+                tag: "sosActivation",
+                child: Material(
+                  child: _mainBody(
+                    item,
+                    onTap: () {
+                      _pushToSosActivation(context);
+                      setState(() {});
+                    },
+                  ),
                 ),
               ),
-            ),
-          );
-        }
-        return index == 2
-            ? InkWell(
-                child: _mainCardBody(item),
+              1: Hero(
+                tag: "emergencyContacts",
+                child: Material(
+                  child: _mainBody(item,
+                      onTap: () => _pushToContacts(context, item)),
+                ),
+              ),
+              2: _mainBody(
+                item,
                 onTap: () {
-                  if (index == 2) {
-                    getCodeInput(false);
-                    getCodeInput(true);
-                  }
+                  getCodeInput(false);
+                  getCodeInput(true);
                 },
               )
-            : _mainCardBody(item);
+            }[index]
+            //
+            ??
+            _mainBody(item);
       },
     );
   }
 
-  Card _mainCardBody(Options item) {
+  Card _mainBody(Options item, {VoidCallback? onTap}) {
     return Card(
+      elevation: 1.5,
+      clipBehavior: Clip.antiAlias,
       child: ListTile(
         title: Text(item.title as String),
         trailing: item.trailing,
         leading: item.leading,
         horizontalTitleGap: 8,
+        onTap: onTap,
+      ),
+    );
+  }
+
+  Icon _nextPage() {
+    return Icon(Icons.arrow_forward_ios_rounded);
+  }
+
+  Widget _sosList() {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text("SOS Activation"),
+          ),
+          body: ListView.separated(
+            separatorBuilder: (BuildContext context, int index) => Divider(
+              height: 0,
+            ),
+            itemCount: dditems.length,
+            itemBuilder: (BuildContext context, int index) {
+              return ListTile(
+                minTileHeight: 65,
+                title: Text(dditems[index]),
+                trailing: StoredSettings.selectedIndex == index
+                    ? Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: Icon(
+                          Icons.check_rounded,
+                          color: Colors.blue.shade600,
+                        ),
+                      )
+                    : null,
+                onTap: () => setState(
+                  () {
+                    StoredSettings.selectedIndex = index;
+                    SosManager.clickN = StoredSettings.selectedIndex + 1;
+                    StoredSettings.saveSosActivation(
+                        StoredSettings.selectedIndex);
+                  },
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  void _pushToContacts(BuildContext context, Options item) {
+    Navigator.push(
+      context,
+      MaterialPageRoute<Widget>(
+        builder: (BuildContext context) => ContactsPage(item: item),
+      ),
+    );
+  }
+
+  void _pushToSosActivation(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) => _sosList(),
       ),
     );
   }
@@ -157,36 +216,36 @@ class OptionsState extends State<Options> {
   //?   );
   //? }
 
-  Widget _sosActButton() {
-    return // dropdown button
-        Container(
-      height: 40,
-      decoration: BoxDecoration(
-          border: Border.all(color: const Color.fromARGB(0, 255, 170, 0))),
-      child: DropdownButton<String>(
-        autofocus: false,
-        padding: EdgeInsets.only(left: 8, right: 1),
-        onTap: () {
-          HapticFeedback.selectionClick();
-        },
-        enableFeedback: true,
-        borderRadius: BorderRadius.circular(8),
-        iconSize: 25,
-        menuWidth: 160,
-        value: StoredSettings.dvalue,
-        isExpanded: false,
-        items: dditems.map(buildMenuItem).toList(),
-        onChanged: (value) {
-          setState(() => StoredSettings.dvalue = value);
-          // print(StoredSettings.dvalue);
-          // print(value);
-          StoredSettings.saveDropdown(StoredSettings.dvalue);
+  // Widget _sosActButton() { //todo remove this
+  //   return // dropdown button
+  //       Container(
+  //     height: 40,
+  //     decoration: BoxDecoration(
+  //         border: Border.all(color: const Color.fromARGB(0, 255, 170, 0))),
+  //     child: DropdownButton<String>(
+  //       autofocus: false,
+  //       padding: EdgeInsets.only(left: 8, right: 1),
+  //       onTap: () {
+  //         HapticFeedback.selectionClick();
+  //       },
+  //       enableFeedback: true,
+  //       borderRadius: BorderRadius.circular(8),
+  //       iconSize: 25,
+  //       menuWidth: 160,
+  //       value: StoredSettings.dvalue,
+  //       isExpanded: false,
+  //       items: dditems.map(buildMenuItem).toList(),
+  //       onChanged: (value) {
+  //         setState(() => StoredSettings.dvalue = value);
+  //         // print(StoredSettings.dvalue);
+  //         // print(value);
+  //         // StoredSettings.saveSosActivation(StoredSettings.dvalue);
 
-          SosManager.clickN = dditems.indexOf(value ?? "Single Click") + 1;
-        },
-      ),
-    );
-  }
+  //         SosManager.clickN = dditems.indexOf(value ?? "Single Click") + 1;
+  //       },
+  //     ),
+  //   );
+  // } //todo remove this
 
   DropdownMenuItem<String> buildMenuItem(String item) => DropdownMenuItem(
         value: item,

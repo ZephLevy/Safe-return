@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:safe_return/pages/settings_page.dart';
 import 'package:safe_return/utils/stored_settings.dart';
+import 'package:safe_return/utils/contacts/persons.dart';
 
 class ContactsPage extends StatefulWidget {
   final Options item;
@@ -58,12 +59,34 @@ class _ContactsPageState extends State<ContactsPage> {
           SizedBox(
             height: 600,
             child: ListView.separated(
-              itemCount: StoredSettings.contactName.length,
+              itemCount: Person.persons.length,
               separatorBuilder: (BuildContext context, int index) => Divider(),
               itemBuilder: (BuildContext context, int index) {
-                return ListTile(
-                  title: Text(StoredSettings.contactName[index]),
-                  trailing: Text(StoredSettings.contactPhone[index]),
+                return Dismissible(
+                  key: Key(Person.persons[index].phone),
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: EdgeInsets.only(right: 20),
+                    child: Text(
+                      "Delete",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  onDismissed: (direction) {
+                    setState(() {
+                      Person.persons.removeAt(index);
+                      StoredSettings.contactPhone.removeAt(index);
+                      StoredSettings.saveContacts(
+                          StoredSettings.contactPhone,
+                          StoredSettings.contactName,
+                          Person.encodePersonString);
+                    });
+                  },
+                  child: ListTile(
+                    title: Text(Person.persons[index].name),
+                    trailing: Text(Person.persons[index].phone),
+                  ),
                 );
               },
             ),
@@ -91,10 +114,12 @@ class _ContactsPageState extends State<ContactsPage> {
           } else {
             setState(
               () {
-                StoredSettings.contactName.add(contact.displayName);
-                StoredSettings.contactPhone.add(phone.number);
-                StoredSettings.saveContacts(
-                    StoredSettings.contactPhone, StoredSettings.contactName);
+                Person.persons.add(Person(contact.displayName, phone.number));
+                // StoredSettings.contactName.add(contact.displayName);
+                // StoredSettings.contactPhone.add(phone.number);
+                StoredSettings.saveContacts(StoredSettings.contactPhone,
+                    StoredSettings.contactName, Person.encodePersonString);
+                print("added: ${Person.persons}");
               },
             );
           }
@@ -116,13 +141,16 @@ class _ContactsPageState extends State<ContactsPage> {
         for (var phone in contact.phones) {
           setState(
             () {
-              StoredSettings.contactPhone.remove(phone.number);
-              StoredSettings.contactName.remove(contact.displayName);
-              StoredSettings.saveContacts(
-                  StoredSettings.contactPhone, StoredSettings.contactName);
+              // StoredSettings.contactPhone.remove(phone.number);
+              // StoredSettings.contactName.remove(contact.displayName);
+              Person.persons
+                  .removeWhere((person) => person.phone == phone.number);
+              StoredSettings.saveContacts(StoredSettings.contactPhone,
+                  StoredSettings.contactName, Person.encodePersonString);
             },
           );
         }
+        print(Person.persons);
         // print(StoredSettings.contactName);
         // print(StoredSettings.contactPhone);
       }
