@@ -179,8 +179,7 @@ class OptionsState extends State<Options> {
                   () {
                     StoredSettings.selectedIndex = index;
                     SosManager.clickN = StoredSettings.selectedIndex + 1;
-                    StoredSettings.saveSosActivation(
-                        StoredSettings.selectedIndex);
+                    StoredSettings.saveAll();
                   },
                 ),
               );
