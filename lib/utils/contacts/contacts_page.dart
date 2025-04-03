@@ -37,7 +37,6 @@ class _ContactsPageState extends State<ContactsPage> {
                     ),
                   ),
                   PopupMenuItem(
-                    onTap: _removeContacts,
                     child: ListTile(
                       leading: Icon(
                         Icons.delete_outlined,
@@ -68,19 +67,21 @@ class _ContactsPageState extends State<ContactsPage> {
                     color: Colors.red,
                     alignment: Alignment.centerRight,
                     padding: EdgeInsets.only(right: 20),
-                    child: Text(
-                      "Delete",
-                      style: TextStyle(color: Colors.white),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          "Delete",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
                     ),
                   ),
+                  direction: DismissDirection.endToStart,
                   onDismissed: (direction) {
                     setState(() {
                       Person.persons.removeAt(index);
-                      StoredSettings.contactPhone.removeAt(index);
-                      StoredSettings.saveContacts(
-                          StoredSettings.contactPhone,
-                          StoredSettings.contactName,
-                          Person.encodePersonString);
+                      StoredSettings.saveAll();
                     });
                   },
                   child: ListTile(
@@ -104,7 +105,7 @@ class _ContactsPageState extends State<ContactsPage> {
 
       if (contact != null) {
         for (var phone in contact.phones) {
-          if (StoredSettings.contactPhone.contains(phone.number) &&
+          if (Person.persons.any((person) => person.phone == phone.number) &&
               context.mounted) {
             // ignore: use_build_context_synchronously
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -115,44 +116,12 @@ class _ContactsPageState extends State<ContactsPage> {
             setState(
               () {
                 Person.persons.add(Person(contact.displayName, phone.number));
-                // StoredSettings.contactName.add(contact.displayName);
-                // StoredSettings.contactPhone.add(phone.number);
-                StoredSettings.saveContacts(StoredSettings.contactPhone,
-                    StoredSettings.contactName, Person.encodePersonString);
-                print("added: ${Person.persons}");
+                StoredSettings.saveAll();
+                print("updated persons: ${Person.persons}");
               },
             );
           }
         }
-        // print(StoredSettings.contactName);
-        // print(StoredSettings.contactPhone);
-      }
-      setState(() {});
-    }
-  }
-
-  void _removeContacts() async {
-    if (await FlutterContacts.requestPermission()) {
-      StoredSettings.loadAll();
-//*declared contact info when selected
-      final contact = await FlutterContacts.openExternalPick();
-
-      if (contact != null) {
-        for (var phone in contact.phones) {
-          setState(
-            () {
-              // StoredSettings.contactPhone.remove(phone.number);
-              // StoredSettings.contactName.remove(contact.displayName);
-              Person.persons
-                  .removeWhere((person) => person.phone == phone.number);
-              StoredSettings.saveContacts(StoredSettings.contactPhone,
-                  StoredSettings.contactName, Person.encodePersonString);
-            },
-          );
-        }
-        print(Person.persons);
-        // print(StoredSettings.contactName);
-        // print(StoredSettings.contactPhone);
       }
       setState(() {});
     }

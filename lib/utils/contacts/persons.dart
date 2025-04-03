@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:safe_return/utils/stored_settings.dart';
 
 class Person {
   static List<Person> persons = [];
+  static String encodedPersonString = '';
 
   String name;
   String phone;
@@ -22,15 +22,20 @@ class Person {
         'name': name,
         'phone': phone,
       };
-  static List<Map<String, dynamic>> encodePersonsList = persons
-      .map((person) => person.toJson())
-      .toList(); //encodes List of Person objects to List of maps
-  static String encodePersonString =
-      jsonEncode(encodePersonsList); //encodes List of maps into a string
 
-  static List<dynamic> decodePersonsList =
-      jsonDecode(encodePersonString); //decodes the string into list of maps
-  static List<Person> decodePersonsString = encodePersonsList
-      .map((item) => Person.fromJson(item))
-      .toList(); //decodes list of maps into List of Person objects
+  static void encodePerson() {
+    List<Map<String, dynamic>> encodedPersonList = persons
+        .map((person) => person.toJson())
+        .toList(); //encodes List of Person objects to List of maps
+    encodedPersonString =
+        jsonEncode(encodedPersonList); //encodes List of maps into a string
+  }
+
+  static void decodePerson() {
+    List<dynamic> decodePersonList =
+        jsonDecode(encodedPersonString); //decodes the string into list of maps
+    persons = decodePersonList
+        .map((item) => Person.fromJson(item))
+        .toList(); //decodes list of maps into List of Person objects
+  }
 }

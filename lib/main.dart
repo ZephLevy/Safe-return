@@ -20,8 +20,8 @@ Future<void> main() async {
   if (latitude != null && longitude != null) {
     Location.homePosition = LatLng(latitude, longitude);
   }
-  runApp(MyApp());
   StoredSettings.loadAll();
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
