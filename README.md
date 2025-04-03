@@ -6,3 +6,6 @@ It analyses the user's location, and if they are not at their set home at a set 
 ## Caveats
 - Currently, the app will only work if foregrounded. We strongly reccomend using guided access if trying to use the app
 - The app only works on IOS so far. Android support will come
+
+
+NOTE: This app is not production ready, but hopefully the day will come.
