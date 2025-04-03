@@ -190,6 +190,7 @@ class _TimeSetButtonState extends State<TimeSetButton> {
                 HapticFeedback.mediumImpact();
               }
             });
+            if (!mounted) return;
             setState(() {
               isSelected = false;
             });
