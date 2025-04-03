@@ -7,6 +7,7 @@ import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/time_manager.dart';
 import 'package:safe_return/palette.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:http/http.dart' as http;
 import 'dart:async';
 
 class HomePage extends StatelessWidget {
@@ -265,6 +266,7 @@ class _TimeSetButtonState extends State<TimeSetButton> {
   }
 
   void _scheduleCheck() {
+    _sendTime(date);
     Duration timeTo = date.difference(DateTime.now());
     Future.delayed(timeTo, () async {
       if (Location.homePosition == null) return;
@@ -284,6 +286,17 @@ class _TimeSetButtonState extends State<TimeSetButton> {
       }
       if (distance > radius) _handleAwayFromhome();
     });
+  }
+
+  Future<void> _sendTime(DateTime time) async {
+    Uri url = Uri.parse(
+        'http://localhost:8080/submit'); // HACK: This should not be hardcoded at all...
+    final response = await http.post(url, body: {'time': date.toString()});
+    if (response.statusCode == 200) {
+      print('Success: ${response.body}');
+    } else {
+      print('Failed with status: ${response.statusCode}');
+    }
   }
 
   void _handleAwayFromhome() {
