@@ -289,8 +289,14 @@ class _TimeSetButtonState extends State<TimeSetButton> {
   }
 
   Future<void> _sendTime(DateTime time) async {
-    Uri url = Uri.parse(
-        'http://localhost:8080/submit'); // HACK: This should not be hardcoded at all...
+    // IMPORTANT: Use "flutter run --dart-define=IP=[ip]" to set this before running
+    const String ip = String.fromEnvironment('IP');
+
+    if (ip == "") {
+      print("No ip passed to CLI when run");
+      return;
+    }
+    Uri url = Uri.parse('http://$ip:8080/submit');
     final response = await http.post(url, body: {'time': date.toString()});
     if (response.statusCode == 200) {
       print('Success: ${response.body}');
