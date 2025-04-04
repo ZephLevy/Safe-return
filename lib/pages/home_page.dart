@@ -296,7 +296,7 @@ class _TimeSetButtonState extends State<TimeSetButton> {
       print("No ip passed to CLI when run");
       return;
     }
-    Uri url = Uri.parse('http://$ip:8080/submit');
+    Uri url = Uri.parse('http://$ip:8080/setTime');
     final response = await http.post(url, body: {'time': date.toString()});
     if (response.statusCode == 200) {
       print('Success: ${response.body}');
