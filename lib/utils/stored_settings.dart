@@ -34,6 +34,5 @@ class StoredSettings {
     selectedIndex = storedSelectedIndex;
     SosManager.clickN = storedClickN;
     print("persons loaded: ${Person.persons}");
-    print("persons loaded: ${Person.persons}");
   }
 }
