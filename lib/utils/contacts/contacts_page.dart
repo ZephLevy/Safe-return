@@ -21,34 +21,17 @@ class _ContactsPageState extends State<ContactsPage> {
         //? modify back button
         actions: [
           Padding(
-            padding: EdgeInsets.only(right: 20),
-            child: PopupMenuButton(
-              icon: Icon(Icons.more_vert),
-              itemBuilder: (BuildContext context) {
-                return [
-                  PopupMenuItem(
-                    onTap: _selectContacts,
-                    child: ListTile(
-                      leading: Icon(
-                        Icons.add,
-                        size: 28,
-                      ),
-                      title: Text("Add"),
-                    ),
-                  ),
-                  PopupMenuItem(
-                    child: ListTile(
-                      leading: Icon(
-                        Icons.delete_outlined,
-                        size: 28,
-                      ),
-                      title: Text("Remove"),
-                    ),
-                  )
-                ];
-              },
+            padding: EdgeInsets.only(right: 32),
+            child: InkWell(
+              radius: 24,
+              borderRadius: BorderRadius.circular(20),
+              onTap: _selectContacts,
+              child: Icon(
+                Icons.add,
+                size: 28,
+              ),
             ),
-          )
+          ),
         ],
         title: Text(widget.item.title as String),
       ),

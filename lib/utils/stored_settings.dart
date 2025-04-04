@@ -9,7 +9,7 @@ class StoredSettings {
   static final SharedPreferencesAsync _asyncPrefs = SharedPreferencesAsync();
 
   static Future<void> saveAll() async {
-    Person.encodePerson();
+    Person.encodePerson(Person.persons);
     await _asyncPrefs.setString('persons', Person.encodedPersonString);
     await _asyncPrefs.setInt('selectedIndex', selectedIndex);
     await _asyncPrefs.setInt('clickN', SosManager.clickN);
@@ -17,19 +17,20 @@ class StoredSettings {
 
   static Future<void> loadAll() async {
     // print("String load: ${Person.encodedPersonString}");
+    final String storedEncodedPersonString =
+        await _asyncPrefs.getString('persons') ?? "";
+    Person.encodedPersonString = storedEncodedPersonString;
 
     Person.encodedPersonString.isNotEmpty
-        ? Person.decodePerson()
-        : print("the string is empty");
+        ? Person.decodePerson(
+            toDecode: Person.encodedPersonString, targetList: Person.persons)
+        : print("this is empty: ${Person.encodedPersonString}");
 
-    final String storedEncodedPersonString =
-        await _asyncPrefs.getString('persons') ?? Person.encodedPersonString;
     final int storedSelectedIndex =
         await _asyncPrefs.getInt('selectedIndex') ?? 1;
     final int storedClickN =
         await _asyncPrefs.getInt('clickN') ?? selectedIndex + 1;
 
-    Person.encodedPersonString = storedEncodedPersonString;
     selectedIndex = storedSelectedIndex;
     SosManager.clickN = storedClickN;
     print("persons loaded: ${Person.persons}");

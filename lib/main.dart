@@ -8,6 +8,7 @@ import 'package:safe_return/pages/settings_page.dart';
 import 'package:safe_return/palette.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/stored_settings.dart';
+import 'package:safe_return/utils/contacts/persons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
@@ -20,7 +21,8 @@ Future<void> main() async {
   if (latitude != null && longitude != null) {
     Location.homePosition = LatLng(latitude, longitude);
   }
-  StoredSettings.loadAll();
+
+  await StoredSettings.loadAll();
   runApp(MyApp());
 }
 

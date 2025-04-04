@@ -23,19 +23,22 @@ class Person {
         'phone': phone,
       };
 
-  static void encodePerson() {
-    List<Map<String, dynamic>> encodedPersonList = persons
+  static void encodePerson(List<Person> targetList) {
+    List<Map<String, dynamic>> mappedList = targetList
         .map((person) => person.toJson())
         .toList(); //encodes List of Person objects to List of maps
     encodedPersonString =
-        jsonEncode(encodedPersonList); //encodes List of maps into a string
+        jsonEncode(mappedList); //encodes List of maps into a string
   }
 
-  static void decodePerson() {
-    List<dynamic> decodePersonList =
-        jsonDecode(encodedPersonString); //decodes the string into list of maps
-    persons = decodePersonList
+  static void decodePerson(
+      {required String toDecode, required List<Person> targetList}) {
+    List<dynamic> decodedList =
+        jsonDecode(toDecode); //decodes the string into list of maps
+
+    targetList.clear();
+    targetList.addAll(decodedList
         .map((item) => Person.fromJson(item))
-        .toList(); //decodes list of maps into List of Person objects
+        .toList()); //decodes list of maps into List of Person objects
   }
 }

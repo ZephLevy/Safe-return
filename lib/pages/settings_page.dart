@@ -65,7 +65,6 @@ class OptionsState extends State<Options> {
   @override
   void initState() {
     super.initState();
-    StoredSettings.loadAll();
   }
 
   @override
