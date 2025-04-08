@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:safe_return/logic/location.dart';
+import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/time_manager.dart';
 import 'package:safe_return/palette.dart';
@@ -306,6 +307,7 @@ class _TimeSetButtonState extends State<TimeSetButton> {
   }
 
   void _handleAwayFromhome() {
+    NotiService().showNotification(title: "u good?");
     TextEditingController textController = TextEditingController();
     showDialog(
       context: context,

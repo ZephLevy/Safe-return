@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'package:safe_return/utils/sos_manager.dart';
-import 'package:safe_return/utils/contacts/persons.dart';
+import 'package:safe_return/pages/Settings/Emergency%20contacts/persons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class StoredSettings {
-  static String? dvalue; //todo remove this
   static int selectedIndex = 1;
   static final SharedPreferencesAsync _asyncPrefs = SharedPreferencesAsync();
 
@@ -33,6 +32,5 @@ class StoredSettings {
 
     selectedIndex = storedSelectedIndex;
     SosManager.clickN = storedClickN;
-    print("persons loaded: ${Person.persons}");
   }
 }

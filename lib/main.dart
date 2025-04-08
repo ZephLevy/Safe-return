@@ -4,16 +4,18 @@ import 'package:latlong2/latlong.dart';
 import 'package:safe_return/logic/location.dart';
 import 'package:safe_return/pages/home_page.dart';
 import 'package:safe_return/pages/map_page.dart';
-import 'package:safe_return/pages/settings_page.dart';
+import 'package:safe_return/pages/Settings/settings_page.dart';
 import 'package:safe_return/palette.dart';
+import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/stored_settings.dart';
-import 'package:safe_return/utils/contacts/persons.dart';
+import 'package:safe_return/pages/Settings/Emergency%20contacts/persons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
   WidgetsFlutterBinding.ensureInitialized();
+  NotiService().initNotification();
   double? latitude = await asyncPrefs.getDouble("latitude");
   double? longitude = await asyncPrefs.getDouble("longitude");
   SosManager.secretCode = await asyncPrefs.getString("secretCode");

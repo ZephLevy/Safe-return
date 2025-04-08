@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:safe_return/pages/settings_page.dart';
+import 'package:safe_return/pages/Settings/settings_page.dart';
 import 'package:safe_return/utils/stored_settings.dart';
-import 'package:safe_return/utils/contacts/persons.dart';
+import 'package:safe_return/pages/Settings/Emergency%20contacts/persons.dart';
 
 class ContactsPage extends StatefulWidget {
-  final Options item;
-  const ContactsPage({required this.item, super.key});
+  const ContactsPage({super.key});
 
   @override
   State<ContactsPage> createState() => _ContactsPageState();
@@ -33,7 +32,7 @@ class _ContactsPageState extends State<ContactsPage> {
             ),
           ),
         ],
-        title: Text(widget.item.title as String),
+        title: Text("SOS Activation"),
       ),
       // bottomNavigationBar: BottomAppBar(),
       body: Column(
