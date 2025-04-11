@@ -31,7 +31,7 @@ class _ContactsPageState extends State<ContactsPage> {
             ),
           ),
         ],
-        title: Text("SOS Activation"),
+        title: Text("Emergency contacts"),
       ),
       // bottomNavigationBar: BottomAppBar(),
       body: Column(
