@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:safe_return/pages/Settings/settings_page.dart';
 import 'package:safe_return/utils/stored_settings.dart';
 import 'package:safe_return/pages/Settings/Emergency%20contacts/persons.dart';
 

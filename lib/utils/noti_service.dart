@@ -7,7 +7,7 @@ class NotiService {
 
   bool get isInitialized => _isInitialized;
 
-//initialize
+  //initialize
   Future<void> initNotification() async {
     if (_isInitialized) return; // prevent re-initialization
 

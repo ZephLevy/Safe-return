@@ -5,6 +5,7 @@
 //* This is okkkk
 //. Fix the code
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:safe_return/pages/Settings/Emergency%20contacts/contacts_page.dart';
@@ -21,104 +22,134 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          Stack(
-            children: [
-              SizedBox(
-                width: double.infinity,
-                height: 600,
-                child: Options(title: ""),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+    return Settings(title: "");
   }
 }
 
-class Options extends StatefulWidget {
+class Settings extends StatefulWidget {
   final String? title;
   final String? info;
   final Widget? leading;
   final Widget? trailing;
   static List<Contact> selectedContacts = [];
 
-  const Options(
+  const Settings(
       {required this.title, this.info, this.leading, this.trailing, super.key});
 
   @override
-  OptionsState createState() => OptionsState();
+  SettingsState createState() => SettingsState();
 }
 
-class OptionsState extends State<Options> {
+class SettingsState extends State<Settings> {
   @override
   Widget build(BuildContext context) {
-    return ListView(children: [
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          //General
-          Padding(
-            padding: const EdgeInsets.only(left: 8),
-            child: Text(
-              "General",
-              style: TextStyle(fontSize: 24),
+    return ListTileTheme(
+      data: ListTileThemeData(
+          titleTextStyle: TextStyle(fontSize: 17, color: Colors.black),
+          subtitleTextStyle: TextStyle(fontSize: 12, color: Colors.black)),
+      child: ListView(children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            //General
+            Padding(
+              padding: EdgeInsets.only(left: 10),
+              child: Text(
+                "General",
+                style: TextStyle(fontSize: 24),
+              ),
             ),
-          ),
-          SizedBox(height: 10),
-          ListTile(
-            title: Text("SOS Activation"),
-            subtitle: Text(
-              "Number of clicks required to activate SOS button",
-              style: TextStyle(fontSize: 12),
+            ListTile(
+              title: Text("SOS Activation"),
+              subtitle: Text(
+                "Number of clicks required to activate SOS button",
+              ),
+              leading: Icon(Icons.sos_outlined),
+              trailing: Icon(Icons.arrow_forward_ios_rounded),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (BuildContext context) => _sosList(),
+                ),
+              ),
             ),
-            leading: Icon(Icons.sos_outlined),
-            trailing: Icon(Icons.arrow_forward_ios_rounded),
-            onTap: () => _pushToSosActivation(context),
-          ),
-          ListTile(
-            title: Text("Emergency Contacts"),
-            subtitle: Text(
-              "These contacts will be alerted if you are not home by the set time",
-              style: TextStyle(fontSize: 12),
+            ListTile(
+              title: Text("Emergency Contacts"),
+              subtitle: Text(
+                "These contacts will be alerted if you are not home by the set time",
+              ),
+              leading: Icon(
+                Icons.phone_in_talk,
+                size: 22,
+              ),
+              trailing: Icon(Icons.arrow_forward_ios_rounded),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute<Widget>(
+                  builder: (BuildContext context) => ContactsPage(),
+                ),
+              ),
             ),
-            leading: Icon(
-              Icons.phone_in_talk,
-              size: 22,
+            SizedBox(height: 12),
+            Padding(
+              padding: EdgeInsets.only(left: 10),
+              child: Text(
+                "Privacy",
+                style: TextStyle(fontSize: 24),
+              ),
             ),
-            trailing: Icon(Icons.arrow_forward_ios_rounded),
-            onTap: () => _pushToContacts(context),
-          ),
-          SizedBox(height: 10),
-          Padding(
-            padding: EdgeInsets.only(left: 8),
-            child: Text(
-              "Privacy",
-              style: TextStyle(fontSize: 24),
+            ListTile(
+              title: Text("Security Codes"),
+              leading: Icon(
+                Icons.vpn_key,
+                size: 22,
+              ),
+              trailing: Icon(Icons.arrow_forward_ios_rounded),
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (BuildContext context) => _securityCodes()));
+              },
             ),
-          ),
-          ListTile(
-            title: Text("Set Security Codes"),
-            leading: Icon(
-              Icons.vpn_key,
-              size: 22,
+            ListTile(
+              title: Text("Use Biometrics"),
+              subtitle: Text(
+                  "You can use biometrics throughout the app. You cannot unlock the app with biometrics for security reasons."),
+              leading: Icon(
+                Icons.fingerprint_rounded,
+                size: 22,
+              ),
+              trailing: CupertinoSwitch(
+                value: StoredSettings.biometricsValue,
+                onChanged: (bool value) {
+                  setState(
+                    () {
+                      StoredSettings.biometricsValue = value;
+                      StoredSettings.saveAll();
+                    },
+                  );
+                },
+              ),
             ),
-            trailing: Icon(Icons.arrow_forward_ios_rounded),
-            onTap: () {
-              _pushToCodes(context);
-            },
-          ),
-          ListTile(
-            title: Text("notiffff"),
-            onTap: () =>
-                NotiService().showNotification(title: "title", body: "body"),
-          )
-        ],
-      ),
-    ]);
+            SizedBox(height: 12),
+            Padding(
+              padding: EdgeInsets.only(left: 10),
+              child: Text("Other", style: TextStyle(fontSize: 24)),
+            ),
+
+            ListTile(
+              title: Text("Test Notification"),
+              subtitle: Text(
+                  "This is to see what will be sent if you are not home by the set time"),
+              leading: Icon(Icons.notifications),
+              onTap: () =>
+                  NotiService().showNotification(title: "title", body: "body"),
+            )
+          ],
+        ),
+      ]),
+    );
   }
 
   Widget _sosList() {
@@ -185,15 +216,35 @@ class OptionsState extends State<Options> {
                     ? Icons.input
                     : Icons.lock_reset),
             onTap: () {
-              getCodeInput(false);
-              getCodeInput(true);
+              iosAlert(
+                () {
+                  Navigator.pop(context);
+                  whichCodeChange();
+                },
+              );
             },
           ),
           ListTile(
             title: Text("View Codes"),
             leading: Icon(Icons.visibility),
             onTap: () async {
-              _auth(() => _pushToViewCodes(context));
+              if (StoredSettings.biometricsValue) {
+                AuthService.auth(
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (BuildContext context) => _viewCodes(),
+                    ),
+                  ),
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (BuildContext context) => _viewCodes(),
+                  ),
+                );
+              }
             },
             trailing: Icon(Icons.arrow_forward_ios_rounded),
           )
@@ -202,8 +253,86 @@ class OptionsState extends State<Options> {
     );
   }
 
+  void iosAlert(Function proceed) {
+    showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: Text("Are you sure?"),
+          content: Text("This will change your security code(s)."),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                "cancel",
+                style: TextStyle(
+                    color: const Color.fromARGB(255, 0, 120, 255),
+                    fontWeight: FontWeight.w500),
+              ),
+            ),
+            CupertinoDialogAction(
+                onPressed: () {
+                  proceed();
+                },
+                child: Text(
+                  "continue",
+                  style: TextStyle(color: Colors.red),
+                ))
+          ],
+        );
+      },
+    );
+  }
+
+  whichCodeChange() {
+    showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoActionSheet(
+            title: Text(
+              "Which code would you like to change?",
+              style: TextStyle(fontSize: 13.5),
+            ),
+            cancelButton: CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text("Cancel", style: TextStyle(color: Colors.red))),
+            actions: [
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    getCodeInput(true);
+                  },
+                  child: Text("Change real code",
+                      style: TextStyle(
+                          color: const Color.fromARGB(255, 0, 120, 255)))),
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    getCodeInput(false);
+                  },
+                  child: Text("Change decoy code",
+                      style: TextStyle(
+                          color: const Color.fromARGB(255, 0, 120, 255)))),
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    getCodeInput(false);
+                    getCodeInput(true);
+                  },
+                  child: Text("Change both",
+                      style: TextStyle(
+                          color: const Color.fromARGB(255, 0, 120, 255)))),
+            ],
+          );
+        });
+  }
+
   Widget _viewCodes() {
-    print("\nreal: ${SosManager.secretCode} \ndecoy: ${SosManager.fakeCode}");
+    // print("\nreal: ${SosManager.secretCode} \ndecoy: ${SosManager.fakeCode}");
     return Scaffold(
       appBar: AppBar(
         title: Text("Your Codes"),
@@ -234,50 +363,11 @@ class OptionsState extends State<Options> {
     );
   }
 
-  _pushToSosActivation(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (BuildContext context) => _sosList(),
-      ),
-    );
-  }
-
-  _pushToContacts(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute<Widget>(
-        builder: (BuildContext context) => ContactsPage(),
-      ),
-    );
-  }
-
-  _pushToCodes(BuildContext context) {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (BuildContext context) => _securityCodes()));
-  }
-
-  _pushToViewCodes(BuildContext context) {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (BuildContext context) => _viewCodes()));
-  }
-
-  _auth(Function ifTrue) async {
-    final AuthService _authService = AuthService();
-
-    bool isAuthenticated = await _authService.authenticateWithBiometrics();
-    if (isAuthenticated) {
-      print("good");
-      ifTrue();
-    } else {
-      print("noooo");
-    }
-  }
-
   void getCodeInput(bool fakeCode) {
     TextEditingController textController = TextEditingController();
     final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
     showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (context) {
         return AlertDialog(
