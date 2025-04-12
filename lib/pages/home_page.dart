@@ -291,13 +291,15 @@ class _TimeSetButtonState extends State<TimeSetButton> {
 
   Future<void> _sendTime(DateTime time) async {
     // IMPORTANT: Use "flutter run --dart-define=IP=[ip]" to set this before running
+    // ALSO IMPORTANT: @Grayerhack700 if you don't use nginx then specify port 8080 (eg. localhost:8080)
+    // If you are using nginx then it *should* default to port 80
     const String ip = String.fromEnvironment('IP');
 
     if (ip == "") {
       print("No ip passed to CLI when run");
       return;
     }
-    Uri url = Uri.parse('http://$ip:8080/setTime');
+    Uri url = Uri.parse('http://$ip/setTime');
     final response = await http.post(url, body: {'time': date.toString()});
     if (response.statusCode == 200) {
       print('Success: ${response.body}');
