@@ -33,7 +33,7 @@ class _ContactsPageState extends State<ContactsPage> {
         ],
         title: Text("Emergency contacts"),
       ),
-      // bottomNavigationBar: BottomAppBar(),
+      //todo bottomNavigationBar: BottomAppBar(),
       body: Column(
         children: <Widget>[
           SizedBox(
@@ -98,7 +98,6 @@ class _ContactsPageState extends State<ContactsPage> {
               () {
                 Person.persons.add(Person(contact.displayName, phone.number));
                 StoredSettings.saveAll();
-                print("updated persons: ${Person.persons}");
               },
             );
           }

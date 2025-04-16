@@ -9,7 +9,6 @@ import 'package:safe_return/palette.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/stored_settings.dart';
-import 'package:safe_return/pages/Settings/Emergency%20contacts/persons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {

@@ -166,13 +166,13 @@ class TimeSetButton extends StatefulWidget {
   const TimeSetButton({super.key});
 
   @override
-  State<TimeSetButton> createState() => _TimeSetButtonState();
+  State<TimeSetButton> createState() => TimeSetButtonState();
 }
 
-class _TimeSetButtonState extends State<TimeSetButton> {
+class TimeSetButtonState extends State<TimeSetButton> {
   bool isSelected = false;
   DateTime date = DateTime.now();
-  int codeAttempts = 3;
+  static int codeAttempts = 3;
 
   @override
   Widget build(BuildContext context) {
@@ -307,7 +307,9 @@ class _TimeSetButtonState extends State<TimeSetButton> {
   }
 
   void _handleAwayFromhome() {
-    NotiService().showNotification(title: "u good?");
+    NotiService().showNotification(
+        title: "u good?",
+        category: NotiService.platformChannelSpecificsCodeInput);
     TextEditingController textController = TextEditingController();
     showDialog(
       context: context,
@@ -328,7 +330,7 @@ class _TimeSetButtonState extends State<TimeSetButton> {
                   String text = textController.text;
                   bool canPop = Navigator.canPop(context);
                   if (text == SosManager.fakeCode) {
-                    _alert();
+                    alert();
                     if (canPop) Navigator.pop(context);
                     return;
                   } else if (text == SosManager.secretCode) {
@@ -341,7 +343,7 @@ class _TimeSetButtonState extends State<TimeSetButton> {
                   timeSetButtonState(() => codeAttempts--);
 
                   if (codeAttempts <= 0) {
-                    _alert();
+                    alert();
                     if (canPop) Navigator.pop(context);
                   }
                 },
@@ -354,7 +356,7 @@ class _TimeSetButtonState extends State<TimeSetButton> {
     );
   }
 
-  void _alert() {
+  static void alert() {
     //This is called when we are sure the user is in danger.
     //TODO: implement something
     print("alerted");

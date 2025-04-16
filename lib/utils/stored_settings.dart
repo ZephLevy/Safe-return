@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/pages/Settings/Emergency%20contacts/persons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:safe_return/pages/Settings/settings_page.dart';
 
 class StoredSettings {
   static int selectedIndex = 1;

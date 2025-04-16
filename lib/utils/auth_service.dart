@@ -19,9 +19,9 @@ class AuthService {
   }
 
   static auth(Function isAuthed) async {
-    final AuthService _authService = AuthService();
+    final AuthService authService = AuthService();
 
-    bool isAuthenticated = await _authService.authenticateWithBiometrics();
+    bool isAuthenticated = await authService.authenticateWithBiometrics();
     if (isAuthenticated) {
       isAuthed();
     }

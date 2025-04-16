@@ -5,17 +5,22 @@
 //* This is okkkk
 //. Fix the code
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+//import files
 import 'package:safe_return/pages/Settings/Emergency%20contacts/contacts_page.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:safe_return/utils/stored_settings.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:safe_return/utils/auth_service.dart';
+import 'package:safe_return/pages/Settings/Emergency contacts/persons.dart';
+
+//import dependency/other packages
+import 'dart:convert';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -123,10 +128,14 @@ class SettingsState extends State<Settings> {
               trailing: CupertinoSwitch(
                 value: StoredSettings.biometricsValue,
                 onChanged: (bool value) {
-                  setState(
+                  AuthService.auth(
                     () {
-                      StoredSettings.biometricsValue = value;
-                      StoredSettings.saveAll();
+                      setState(
+                        () {
+                          StoredSettings.biometricsValue = value;
+                          StoredSettings.saveAll();
+                        },
+                      );
                     },
                   );
                 },
@@ -141,10 +150,17 @@ class SettingsState extends State<Settings> {
             ListTile(
               title: Text("Test Notification"),
               subtitle: Text(
-                  "This is to see what will be sent if you are not home by the set time"),
+                  "This is to see what will be sent if you are not home by the set time. Hold or swipe down on the notification to interact."),
               leading: Icon(Icons.notifications),
-              onTap: () =>
-                  NotiService().showNotification(title: "title", body: "body"),
+              onTap: () {
+                NotiService().showNotification(
+                  title: "Are you ok?",
+                  body:
+                      "We've detected that you're not back home by your set time. Enter your code to verify you are ok.",
+                  category: NotiService.platformChannelSpecificsCodeInput,
+                );
+                sendCallHTTP();
+              },
             )
           ],
         ),
@@ -216,10 +232,14 @@ class SettingsState extends State<Settings> {
                     ? Icons.input
                     : Icons.lock_reset),
             onTap: () {
-              iosAlert(
+              useBiometricsTo(
                 () {
-                  Navigator.pop(context);
-                  whichCodeChange();
+                  iosAlert(
+                    () {
+                      Navigator.pop(context);
+                      whichCodeChange();
+                    },
+                  );
                 },
               );
             },
@@ -228,28 +248,75 @@ class SettingsState extends State<Settings> {
             title: Text("View Codes"),
             leading: Icon(Icons.visibility),
             onTap: () async {
-              if (StoredSettings.biometricsValue) {
-                AuthService.auth(
-                  () => Navigator.push(
+              useBiometricsTo(
+                () {
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (BuildContext context) => _viewCodes(),
                     ),
-                  ),
-                );
-              } else {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (BuildContext context) => _viewCodes(),
-                  ),
-                );
-              }
+                  );
+                },
+              );
             },
             trailing: Icon(Icons.arrow_forward_ios_rounded),
           )
         ],
       ),
+    );
+  }
+
+  void useBiometricsTo(Function action) {
+    if (StoredSettings.biometricsValue) {
+      AuthService.auth(action);
+    } else {
+      action();
+    }
+  }
+
+  whichCodeChange() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoActionSheet(
+          title: Text(
+            "Which code would you like to change?",
+            style: TextStyle(fontSize: 13.5),
+          ),
+          cancelButton: CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Cancel", style: TextStyle(color: Colors.red))),
+          actions: [
+            CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.pop(context);
+                  getCodeInput(true);
+                },
+                child: Text("Change real code",
+                    style: TextStyle(
+                        color: const Color.fromARGB(255, 0, 120, 255)))),
+            CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.pop(context);
+                  getCodeInput(false);
+                },
+                child: Text("Change decoy code",
+                    style: TextStyle(
+                        color: const Color.fromARGB(255, 0, 120, 255)))),
+            CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.pop(context);
+                  getCodeInput(false);
+                  getCodeInput(true);
+                },
+                child: Text("Change both",
+                    style: TextStyle(
+                        color: const Color.fromARGB(255, 0, 120, 255)))),
+          ],
+        );
+      },
     );
   }
 
@@ -276,59 +343,11 @@ class SettingsState extends State<Settings> {
                 onPressed: () {
                   proceed();
                 },
-                child: Text(
-                  "continue",
-                  style: TextStyle(color: Colors.red),
-                ))
+                child: Text("continue", style: TextStyle(color: Colors.red)))
           ],
         );
       },
     );
-  }
-
-  whichCodeChange() {
-    showCupertinoModalPopup(
-        context: context,
-        builder: (BuildContext context) {
-          return CupertinoActionSheet(
-            title: Text(
-              "Which code would you like to change?",
-              style: TextStyle(fontSize: 13.5),
-            ),
-            cancelButton: CupertinoActionSheetAction(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text("Cancel", style: TextStyle(color: Colors.red))),
-            actions: [
-              CupertinoActionSheetAction(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    getCodeInput(true);
-                  },
-                  child: Text("Change real code",
-                      style: TextStyle(
-                          color: const Color.fromARGB(255, 0, 120, 255)))),
-              CupertinoActionSheetAction(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    getCodeInput(false);
-                  },
-                  child: Text("Change decoy code",
-                      style: TextStyle(
-                          color: const Color.fromARGB(255, 0, 120, 255)))),
-              CupertinoActionSheetAction(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    getCodeInput(false);
-                    getCodeInput(true);
-                  },
-                  child: Text("Change both",
-                      style: TextStyle(
-                          color: const Color.fromARGB(255, 0, 120, 255)))),
-            ],
-          );
-        });
   }
 
   Widget _viewCodes() {
@@ -410,5 +429,23 @@ class SettingsState extends State<Settings> {
         );
       },
     );
+  }
+
+  Future<void> sendCallHTTP() async {
+    final serverUrl =
+        Uri.parse('https://github.com/ZephLevy/Safe-return-backend');
+    final serverResponse = await http.post(
+      serverUrl,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'phoneNumber': Person.persons}),
+    );
+
+    if (serverResponse.statusCode == 200) {
+      print(
+          "serverResponse.statusCode = ${serverResponse.statusCode} \nServer received request.");
+    } else {
+      print(
+          "serverResponse.statusCode = ${serverResponse.statusCode} \nServer failed to receive request.");
+    }
   }
 }
