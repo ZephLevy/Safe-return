@@ -42,5 +42,6 @@ class StoredSettings {
     selectedIndex = storedSelectedIndex;
     SosManager.clickN = storedClickN;
     biometricsValue = storedBiometricsValue;
+    NotiService.okVerificationStep = storedOkVerificationStep;
   }
 }

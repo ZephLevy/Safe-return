@@ -111,7 +111,7 @@ import UIKit
                 channel.invokeMethod("onCodeInput", arguments: userCode)
             }
 
-        case "15_MINS", "1_HOUR":
+        case "15_MINS", "30_MINS", "45_MINS", "1_HOUR", "1.5_HOURS", "2_HOURS", "3_HOURS", "5_HOURS":
             channel.invokeMethod("onActionSelected", arguments: response.actionIdentifier)
 
         default:
