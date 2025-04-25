@@ -37,8 +37,38 @@ import UIKit
                         options: []
                     ),
                     UNNotificationAction(
+                        identifier: "30_MINS",
+                        title: "Extend for 30 minutes",
+                        options: []
+                    ),
+                    UNNotificationAction(
+                        identifier: "45_MINS",
+                        title: "Extend for 45 minutes",
+                        options: []
+                    ),
+                    UNNotificationAction(
                         identifier: "1_HOUR",
                         title: "Extend for 1 hour",
+                        options: []
+                    ),
+                    UNNotificationAction(
+                        identifier: "1.5_HOUR",
+                        title: "Extend for 1 hour 30 minutes",
+                        options: []
+                    ),
+                    UNNotificationAction(
+                        identifier: "2_HOUR",
+                        title: "Extend for 2 hours",
+                        options: []
+                    ),
+                    UNNotificationAction(
+                        identifier: "3_HOUR",
+                        title: "Extend for 3 hours",
+                        options: []
+                    ),
+                    UNNotificationAction(
+                        identifier: "5_HOUR",
+                        title: "Extend for 5 hours",
                         options: []
                     ),
                 ]

@@ -4,7 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:safe_return/logic/location.dart';
 import 'package:safe_return/pages/home_page.dart';
 import 'package:safe_return/pages/map_page.dart';
-import 'package:safe_return/pages/Settings/settings_page.dart';
+import 'package:safe_return/pages/settings_page.dart';
 import 'package:safe_return/palette.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
