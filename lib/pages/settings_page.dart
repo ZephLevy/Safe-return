@@ -19,6 +19,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'
+    as notif;
 import 'package:http/http.dart' as http;
 
 class SettingsPage extends StatelessWidget {
@@ -49,116 +51,159 @@ class SettingsState extends State<Settings> {
   Widget build(BuildContext context) {
     return ListTileTheme(
       data: ListTileThemeData(
+          contentPadding: EdgeInsets.only(left: 25, right: 20),
           titleTextStyle: TextStyle(fontSize: 17, color: Colors.black),
           subtitleTextStyle: TextStyle(fontSize: 12, color: Colors.black)),
       child: ListView(children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            //General
-            Padding(
-              padding: EdgeInsets.only(left: 10),
-              child: Text(
-                "General",
-                style: TextStyle(fontSize: 24),
-              ),
-            ),
-            ListTile(
-              title: Text("SOS Activation"),
-              subtitle: Text(
-                "Number of clicks required to activate SOS button",
-              ),
-              leading: Icon(Icons.sos_outlined),
-              trailing: Icon(Icons.arrow_forward_ios_rounded),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (BuildContext context) => _sosList(),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Card(
+                  elevation: 2,
+                  child: ListTile(
+                    contentPadding: EdgeInsets.only(left: 10),
+                    leading: Icon(Icons.account_circle, size: 50),
+                    minLeadingWidth: 50,
+                    title: Text("Account"),
+                    subtitle: Text("email"),
+                  )),
+              SizedBox(height: 12),
+              //General
+              Padding(
+                padding: EdgeInsets.only(left: 20),
+                child: Text(
+                  "General",
+                  style: TextStyle(fontSize: 24),
                 ),
               ),
-            ),
-            ListTile(
-              title: Text("Emergency Contacts"),
-              subtitle: Text(
-                "These contacts will be alerted if you are not home by the set time",
-              ),
-              leading: Icon(
-                Icons.phone_in_talk,
-                size: 22,
-              ),
-              trailing: Icon(Icons.arrow_forward_ios_rounded),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute<Widget>(
-                  builder: (BuildContext context) => ContactsPage(),
+              Card(
+                child: Column(
+                  children: [
+                    ListTile(
+                      title: Text("SOS Activation"),
+                      subtitle: Text(
+                        "Number of clicks required to activate SOS button",
+                      ),
+                      leading: Icon(Icons.sos_outlined),
+                      trailing: Icon(Icons.arrow_forward_ios_rounded),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (BuildContext context) => _sosList(),
+                        ),
+                      ),
+                    ),
+                    ListTile(
+                      title: Text("Emergency Contacts"),
+                      subtitle: Text(
+                        "These contacts will be alerted if you are not home by the set time",
+                      ),
+                      leading: Icon(
+                        Icons.phone_in_talk,
+                        size: 22,
+                      ),
+                      trailing: Icon(Icons.arrow_forward_ios_rounded),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute<Widget>(
+                          builder: (BuildContext context) => ContactsPage(),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            SizedBox(height: 12),
-            Padding(
-              padding: EdgeInsets.only(left: 10),
-              child: Text(
-                "Privacy",
-                style: TextStyle(fontSize: 24),
+              SizedBox(height: 12),
+              Padding(
+                padding: EdgeInsets.only(left: 10),
+                child: Text(
+                  "Privacy",
+                  style: TextStyle(fontSize: 24),
+                ),
               ),
-            ),
-            ListTile(
-              title: Text("Security Codes"),
-              leading: Icon(
-                Icons.vpn_key,
-                size: 22,
-              ),
-              trailing: Icon(Icons.arrow_forward_ios_rounded),
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (BuildContext context) => _securityCodes()));
-              },
-            ),
-            ListTile(
-              title: Text("Use Biometrics"),
-              subtitle: Text(
-                  "You can use biometrics throughout the app. You cannot unlock the app with biometrics for security reasons."),
-              leading: Icon(
-                Icons.fingerprint_rounded,
-                size: 22,
-              ),
-              trailing: CupertinoSwitch(
-                value: StoredSettings.biometricsValue,
-                onChanged: (bool value) {
-                  AuthService.auth(
-                    () {
-                      setState(
-                        () {
-                          StoredSettings.biometricsValue = value;
-                          StoredSettings.saveAll();
+              Card(
+                child: Column(
+                  children: [
+                    ListTile(
+                      title: Text("Security Codes"),
+                      leading: Icon(
+                        Icons.vpn_key,
+                        size: 22,
+                      ),
+                      trailing: Icon(Icons.arrow_forward_ios_rounded),
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (BuildContext context) =>
+                                    _securityCodes()));
+                      },
+                    ),
+                    ListTile(
+                      title: Text("Use Biometrics"),
+                      subtitle: Text(
+                          "You can use biometrics throughout the app. You cannot unlock the app with biometrics for security reasons."),
+                      leading: Icon(
+                        Icons.fingerprint_rounded,
+                        size: 22,
+                      ),
+                      trailing: CupertinoSwitch(
+                        value: StoredSettings.biometricsValue,
+                        onChanged: (bool value) {
+                          AuthService.auth(
+                            () {
+                              setState(
+                                () {
+                                  StoredSettings.biometricsValue = value;
+                                  StoredSettings.saveAll();
+                                },
+                              );
+                            },
+                          );
                         },
-                      );
-                    },
-                  );
-                },
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            SizedBox(height: 12),
-            Padding(
-              padding: EdgeInsets.only(left: 10),
-              child: Text("Other", style: TextStyle(fontSize: 24)),
-            ),
+              SizedBox(height: 12),
+              Padding(
+                padding: EdgeInsets.only(left: 10),
+                child: Text("Other", style: TextStyle(fontSize: 24)),
+              ),
 
-            ListTile(
-              title: Text("Test Notification"),
-              subtitle: Text(
-                  "This is to see what will be sent if you are not home by the set time. Hold or swipe down on the notification to interact."),
-              leading: Icon(Icons.notifications),
-              onTap: () {
-                NotiService().notHomeNotif();
-                sendCallHTTP();
-              },
-            )
-          ],
+              Card(
+                child: Column(
+                  children: [
+                    ListTile(
+                      title: Text("Test Notification"),
+                      subtitle: Text(
+                          "What will be sent if you are not home by the set time."),
+                      leading: Icon(Icons.notifications),
+                      onTap: () {
+                        notHomeNotif();
+                        sendCallHTTP();
+                      },
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
       ]),
+    );
+  }
+
+  notHomeNotif() {
+    StoredSettings.saveAll();
+    NotiService().showNotification(
+      title: "Are you ok?",
+      body:
+          "We've detected you're not back home. Enter your code to verify you are ok.",
+      category: notif.NotificationDetails(),
     );
   }
 

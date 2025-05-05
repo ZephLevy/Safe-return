@@ -10,7 +10,6 @@ import 'package:safe_return/palette.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
-import 'package:safe_return/utils/check_codes.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -312,54 +311,50 @@ class TimeSetButtonState extends State<TimeSetButton> {
   void _handleAwayFromhome() {
     NotiService().notHomeNotif();
     TextEditingController textController = TextEditingController();
-    if (NotiService.okVerificationStep == 1) {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return StatefulBuilder(
-            builder: (context, timeSetButtonState) => AlertDialog(
-              title: Text(
-                "It looks like you're away from your home. Enter your code:",
-              ),
-              content: TextField(
-                controller: textController,
-                decoration: InputDecoration(
-                    hintText: "You have $codeAttempts attempts left"),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    String text = textController.text;
-                    bool canPop = Navigator.canPop(context);
-                    if (text == SosManager.fakeCode) {
-                      alert();
-                      if (canPop) Navigator.pop(context);
-                      return;
-                    } else if (text == SosManager.secretCode) {
-                      if (canPop) Navigator.pop(context);
-                      return;
-                    }
-
-                    // Got code wrong
-                    textController.clear();
-                    timeSetButtonState(() => codeAttempts--);
-
-                    if (codeAttempts <= 0) {
-                      alert();
-                      if (canPop) Navigator.pop(context);
-                    }
-                  },
-                  child: Text("Enter"),
-                ),
-              ],
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, timeSetButtonState) => AlertDialog(
+            title: Text(
+              "It looks like you're away from your home. Enter your code:",
             ),
-          );
-        },
-      );
-    }
-    if (NotiService.okVerificationStep == 2) {
-      CheckCodes().checkCodes();
-    }
+            content: TextField(
+              controller: textController,
+              decoration: InputDecoration(
+                  hintText: "You have $codeAttempts attempts left"),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  String text = textController.text;
+                  bool canPop = Navigator.canPop(context);
+                  if (text == SosManager.fakeCode) {
+                    alert();
+                    if (canPop) Navigator.pop(context);
+                    return;
+                  } else if (text == SosManager.secretCode) {
+                    if (canPop) Navigator.pop(context);
+                    return;
+                  }
+
+                  // Got code wrong
+                  textController.clear();
+                  timeSetButtonState(() => codeAttempts--);
+
+                  if (codeAttempts <= 0) {
+                    alert();
+                    if (canPop) Navigator.pop(context);
+                  }
+                },
+                child: Text("Enter"),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   static void alert() {

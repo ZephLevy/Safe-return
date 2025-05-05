@@ -1,22 +1,22 @@
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:safe_return/utils/noti_service.dart';
-import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/pages/home_page.dart';
 
 class CheckCodes {
-  void checkCodes() {
-    NotiService.okVerificationStep = 2;
-    print(NotiService.okVerificationStep);
-    if (NotiService.userInput == SosManager.secretCode) {
-      realCode();
-    }
-    if (NotiService.userInput == SosManager.fakeCode) {
-      decoyCode();
-    }
-    if (NotiService.userInput != SosManager.secretCode &&
-        NotiService.userInput != SosManager.fakeCode) {
-      wrongCode();
-    }
-  }
+  // void checkCodes() {
+  //   NotiService.okVerificationStep = 2;
+  //   print(NotiService.okVerificationStep);
+  //   if (NotiService.userInput == SosManager.secretCode) {
+  //     realCode();
+  //   }
+  //   if (NotiService.userInput == SosManager.fakeCode) {
+  //     decoyCode();
+  //   }
+  //   if (NotiService.userInput != SosManager.secretCode &&
+  //       NotiService.userInput != SosManager.fakeCode) {
+  //     wrongCode();
+  //   }
+  // }
 
   void realCode() {
     print("[real]");
@@ -25,7 +25,7 @@ class CheckCodes {
       title: "What time?",
       body:
           'Select how long you would like to delay your "Be Back Home By" time.',
-      category: NotiService.platformChannelSpecificsDelayActions,
+      category: NotificationDetails(),
     );
     TimeSetButtonState.codeAttempts = 3; //todo replace 3 with user custom
   }
@@ -49,11 +49,12 @@ class CheckCodes {
       );
     } else {
       NotiService().showNotification(
-          id: 0,
-          title: "Try again",
-          body:
-              "You've entered the wrong code. You have ${TimeSetButtonState.codeAttempts} attempts left",
-          category: NotiService.platformChannelSpecificsCodeInput);
+        id: 0,
+        title: "Try again",
+        body:
+            "You've entered the wrong code. You have ${TimeSetButtonState.codeAttempts} attempts left",
+        category: NotificationDetails(),
+      );
     }
   }
 }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/persons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,8 +14,6 @@ class StoredSettings {
     await _asyncPrefs.setInt('selectedIndex', selectedIndex);
     await _asyncPrefs.setInt('clickN', SosManager.clickN);
     await _asyncPrefs.setBool('biometrics', biometricsValue);
-    await _asyncPrefs.setInt(
-        'okVerificationStep', NotiService.okVerificationStep ?? 1);
   }
 
   static Future<void> loadAll() async {
@@ -36,12 +33,9 @@ class StoredSettings {
         await _asyncPrefs.getInt('clickN') ?? selectedIndex + 1;
     final bool storedBiometricsValue =
         await _asyncPrefs.getBool('biometrics') ?? false;
-    final int storedOkVerificationStep =
-        await _asyncPrefs.getInt('okVerificationStep') ?? 1;
 
     selectedIndex = storedSelectedIndex;
     SosManager.clickN = storedClickN;
     biometricsValue = storedBiometricsValue;
-    NotiService.okVerificationStep = storedOkVerificationStep;
   }
 }
