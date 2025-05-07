@@ -12,6 +12,7 @@ import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/stored_settings.dart';
 import 'package:safe_return/utils/auth_service.dart';
 import 'package:safe_return/utils/persons.dart';
+import 'package:safe_return/login_page.dart';
 
 //import dependency/other packages
 import 'dart:convert';
@@ -28,19 +29,14 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Settings(title: "");
+    return Settings();
   }
 }
 
 class Settings extends StatefulWidget {
-  final String? title;
-  final String? info;
-  final Widget? leading;
-  final Widget? trailing;
   static List<Contact> selectedContacts = [];
 
-  const Settings(
-      {required this.title, this.info, this.leading, this.trailing, super.key});
+  const Settings({required, super.key});
 
   @override
   SettingsState createState() => SettingsState();
@@ -53,147 +49,149 @@ class SettingsState extends State<Settings> {
       data: ListTileThemeData(
           contentPadding: EdgeInsets.only(left: 25, right: 20),
           titleTextStyle: TextStyle(fontSize: 17, color: Colors.black),
-          subtitleTextStyle: TextStyle(fontSize: 12, color: Colors.black)),
-      child: ListView(children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Card(
-                  elevation: 2,
-                  child: ListTile(
-                    contentPadding: EdgeInsets.only(left: 10),
-                    leading: Icon(Icons.account_circle, size: 50),
-                    minLeadingWidth: 50,
-                    title: Text("Account"),
-                    subtitle: Text("email"),
-                  )),
-              SizedBox(height: 12),
-              //General
-              Padding(
-                padding: EdgeInsets.only(left: 20),
-                child: Text(
-                  "General",
-                  style: TextStyle(fontSize: 24),
-                ),
-              ),
-              Card(
-                child: Column(
-                  children: [
-                    ListTile(
-                      title: Text("SOS Activation"),
-                      subtitle: Text(
-                        "Number of clicks required to activate SOS button",
-                      ),
-                      leading: Icon(Icons.sos_outlined),
-                      trailing: Icon(Icons.arrow_forward_ios_rounded),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (BuildContext context) => _sosList(),
+          subtitleTextStyle: TextStyle(fontSize: 11, color: Colors.black)),
+      child: CardTheme(
+        clipBehavior: Clip.antiAlias,
+        elevation: 0.5,
+        child: ListView(children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Card(
+                    elevation: 2,
+                    child: ListTile(
+                      contentPadding: EdgeInsets.only(left: 10),
+                      leading: Icon(Icons.account_circle, size: 50),
+                      minLeadingWidth: 50,
+                      title: Text("Account"),
+                      subtitle: StatefulBuilder(builder: (context, setState) {
+                        return Text(LoginPageState().email);
+                      }),
+                      onTap: () => accountSettings(),
+                    )),
+                SizedBox(height: 10),
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                          title: Text("SOS Activation"),
+                          subtitle: Text(
+                            "Number of clicks required to activate SOS button",
+                          ),
+                          leading: Icon(Icons.sos_outlined),
+                          trailing: Icon(Icons.arrow_forward_ios_rounded),
+                          onTap: () => _sosList()),
+                      ListTile(
+                        title: Text("Emergency Contacts"),
+                        subtitle: Text(
+                          "These contacts will be alerted if you are not home by the set time",
+                        ),
+                        leading: Icon(
+                          Icons.phone_in_talk,
+                          size: 22,
+                        ),
+                        trailing: Icon(Icons.arrow_forward_ios_rounded),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute<Widget>(
+                            builder: (BuildContext context) => ContactsPage(),
+                          ),
                         ),
                       ),
-                    ),
-                    ListTile(
-                      title: Text("Emergency Contacts"),
-                      subtitle: Text(
-                        "These contacts will be alerted if you are not home by the set time",
+                    ],
+                  ),
+                ),
+                SizedBox(height: 10),
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        title: Text("Security Codes"),
+                        leading: Icon(
+                          Icons.vpn_key,
+                          size: 22,
+                        ),
+                        trailing: Icon(Icons.arrow_forward_ios_rounded),
+                        onTap: () => _securityCodes(),
                       ),
-                      leading: Icon(
-                        Icons.phone_in_talk,
-                        size: 22,
-                      ),
-                      trailing: Icon(Icons.arrow_forward_ios_rounded),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute<Widget>(
-                          builder: (BuildContext context) => ContactsPage(),
+                      ListTile(
+                        title: Text("Use Biometrics"),
+                        leading: Icon(
+                          Icons.fingerprint_rounded,
+                          size: 22,
+                        ),
+                        trailing: CupertinoSwitch(
+                          value: StoredSettings.biometricsValue,
+                          onChanged: (bool value) {
+                            AuthService.auth(
+                              () {
+                                setState(
+                                  () {
+                                    StoredSettings.biometricsValue = value;
+                                    StoredSettings.saveAll();
+                                  },
+                                );
+                              },
+                            );
+                          },
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(height: 12),
-              Padding(
-                padding: EdgeInsets.only(left: 10),
-                child: Text(
-                  "Privacy",
-                  style: TextStyle(fontSize: 24),
-                ),
-              ),
-              Card(
-                child: Column(
-                  children: [
-                    ListTile(
-                      title: Text("Security Codes"),
-                      leading: Icon(
-                        Icons.vpn_key,
-                        size: 22,
-                      ),
-                      trailing: Icon(Icons.arrow_forward_ios_rounded),
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (BuildContext context) =>
-                                    _securityCodes()));
-                      },
-                    ),
-                    ListTile(
-                      title: Text("Use Biometrics"),
-                      subtitle: Text(
-                          "You can use biometrics throughout the app. You cannot unlock the app with biometrics for security reasons."),
-                      leading: Icon(
-                        Icons.fingerprint_rounded,
-                        size: 22,
-                      ),
-                      trailing: CupertinoSwitch(
-                        value: StoredSettings.biometricsValue,
-                        onChanged: (bool value) {
-                          AuthService.auth(
-                            () {
-                              setState(
-                                () {
-                                  StoredSettings.biometricsValue = value;
-                                  StoredSettings.saveAll();
-                                },
-                              );
-                            },
-                          );
+                SizedBox(height: 10),
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        title: Text("Test Notification"),
+                        subtitle: Text(
+                            "What will be sent if you are not home by the set time."),
+                        leading: Icon(Icons.notifications),
+                        onTap: () {
+                          notHomeNotif();
+                          sendCallHTTP();
                         },
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 12),
-              Padding(
-                padding: EdgeInsets.only(left: 10),
-                child: Text("Other", style: TextStyle(fontSize: 24)),
-              ),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
 
-              Card(
-                child: Column(
+  accountSettings() {
+    // go to user account settings
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) {
+          return ListTileTheme(
+            data: ListTileThemeData(),
+            child: CardTheme(
+              child: Scaffold(
+                appBar: AppBar(title: Text("Account")),
+                body: ListView(
                   children: [
                     ListTile(
-                      title: Text("Test Notification"),
-                      subtitle: Text(
-                          "What will be sent if you are not home by the set time."),
-                      leading: Icon(Icons.notifications),
-                      onTap: () {
-                        notHomeNotif();
-                        sendCallHTTP();
-                      },
+                      title: Text("Change Email"),
+                    ),
+                    ListTile(
+                      title: Text("Change Password"),
                     ),
                   ],
                 ),
-              )
-            ],
-          ),
-        ),
-      ]),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -207,100 +205,115 @@ class SettingsState extends State<Settings> {
     );
   }
 
-  Widget _sosList() {
+  _sosList() {
     final dditems = [
       'Single Click',
       'Double Click',
       'Triple Click',
       'Quad-Click',
     ];
-    return StatefulBuilder(
-      builder: (context, setState) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text("SOS Activation"),
-          ),
-          body: ListView.separated(
-            separatorBuilder: (BuildContext context, int index) => Divider(
-              height: 0,
-            ),
-            itemCount: dditems.length,
-            itemBuilder: (BuildContext context, int index) {
-              return ListTile(
-                minTileHeight: 65,
-                title: Text(dditems[index]),
-                trailing: StoredSettings.selectedIndex == index
-                    ? Padding(
-                        padding: const EdgeInsets.only(right: 4),
-                        child: Icon(
-                          Icons.check_rounded,
-                          color: Colors.blue.shade600,
-                        ),
-                      )
-                    : null,
-                onTap: () => setState(
-                  () {
-                    StoredSettings.selectedIndex = index;
-                    SosManager.clickN = StoredSettings.selectedIndex + 1;
-                    StoredSettings.saveAll();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return Scaffold(
+                appBar: AppBar(
+                  title: Text("SOS Activation"),
+                ),
+                body: ListView.separated(
+                  separatorBuilder: (BuildContext context, int index) =>
+                      Divider(
+                    height: 0,
+                  ),
+                  itemCount: dditems.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return ListTile(
+                      minTileHeight: 65,
+                      title: Text(dditems[index]),
+                      trailing: StoredSettings.selectedIndex == index
+                          ? Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: Icon(
+                                Icons.check_rounded,
+                                color: Colors.blue.shade600,
+                              ),
+                            )
+                          : null,
+                      onTap: () => setState(
+                        () {
+                          StoredSettings.selectedIndex = index;
+                          SosManager.clickN = StoredSettings.selectedIndex + 1;
+                          StoredSettings.saveAll();
+                        },
+                      ),
+                    );
                   },
                 ),
               );
             },
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
-  Widget _securityCodes() {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Security Codes"),
-      ),
-      body: ListView(
-        physics: NeverScrollableScrollPhysics(),
-        children: [
-          ListTile(
-            title: Text(
-                SosManager.fakeCode == null || SosManager.secretCode == null
-                    ? "Set Codes"
-                    : "Change Codes"),
-            leading: Icon(
-                SosManager.fakeCode == null || SosManager.secretCode == null
-                    ? Icons.input
-                    : Icons.lock_reset),
-            onTap: () {
-              useBiometricsTo(
-                () {
-                  iosAlert(
-                    () {
-                      Navigator.pop(context);
-                      whichCodeChange();
-                    },
-                  );
-                },
-              );
-            },
-          ),
-          ListTile(
-            title: Text("View Codes"),
-            leading: Icon(Icons.visibility),
-            onTap: () async {
-              useBiometricsTo(
-                () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (BuildContext context) => _viewCodes(),
-                    ),
-                  );
-                },
-              );
-            },
-            trailing: Icon(Icons.arrow_forward_ios_rounded),
-          )
-        ],
+  _securityCodes() {
+    return Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text("Security Codes"),
+            ),
+            body: ListView(
+              physics: NeverScrollableScrollPhysics(),
+              children: [
+                ListTile(
+                  title: Text(SosManager.fakeCode == null ||
+                          SosManager.secretCode == null
+                      ? "Set Codes"
+                      : "Change Codes"),
+                  leading: Icon(SosManager.fakeCode == null ||
+                          SosManager.secretCode == null
+                      ? Icons.input
+                      : Icons.lock_reset),
+                  onTap: () {
+                    useBiometricsTo(
+                      () {
+                        iosAlert(
+                          () {
+                            Navigator.pop(context);
+                            whichCodeChange();
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+                ListTile(
+                  title: Text("View Codes"),
+                  leading: Icon(Icons.visibility),
+                  onTap: () async {
+                    useBiometricsTo(
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (BuildContext context) => _viewCodes(),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  trailing: Icon(Icons.arrow_forward_ios_rounded),
+                )
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -471,12 +484,13 @@ class SettingsState extends State<Settings> {
   }
 
   Future<void> sendCallHTTP() async {
-    final serverUrl =
-        Uri.parse('https://github.com/ZephLevy/Safe-return-backend');
+    const serverUrl = String.fromEnvironment("IP");
     final serverResponse = await http.post(
-      serverUrl,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'phoneNumber': Person.persons}),
+      //TODO fix to correct endpoint?
+      Uri.parse(serverUrl),
+      //TODO remove this?
+      // headers: {'Content-Type': 'application/json'},
+      body: json.encode({'phoneandname': Person.persons}),
     );
 
     if (serverResponse.statusCode == 200) {

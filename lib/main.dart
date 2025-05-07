@@ -10,10 +10,12 @@ import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/stored_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:safe_return/login_page.dart';
 
 Future<void> main() async {
   final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
   WidgetsFlutterBinding.ensureInitialized();
+
   NotiService().initNotification();
   double? latitude = await asyncPrefs.getDouble("latitude");
   double? longitude = await asyncPrefs.getDouble("longitude");
@@ -30,11 +32,10 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: HomeScreen(),
+      home: (LoginPageState.isLoggedIn) ? HomeScreen() : LoginPage(),
     );
   }
 }
