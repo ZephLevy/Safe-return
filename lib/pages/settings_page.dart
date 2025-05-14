@@ -54,7 +54,7 @@ class SettingsState extends State<Settings> {
                 contentPadding: EdgeInsets.only(left: 10),
                 leading: Icon(Icons.account_circle, size: 50),
                 minLeadingWidth: 50,
-                title: Text("Account"),
+                title: Text("${SignUpState.firstName} ${SignUpState.lastName}"),
                 subtitle: StatefulBuilder(builder: (context, setState) {
                   return Text(LoginPageState.email);
                 }),
@@ -180,27 +180,25 @@ class SettingsState extends State<Settings> {
                           ),
                         ),
                         ListTile(
-                          title:
-                              // LoginPageState.email.isNotEmpty //todo add user's first name variable
-                              // ? Text("[user's first name variable]")
-                              // :
-                              Text(
-                            "No first name set",
-                            style: TextStyle(
-                                color: const Color.fromARGB(104, 0, 0, 0)),
-                          ),
+                          title: SignUpState.firstName.isNotEmpty
+                              ? Text(SignUpState.firstName)
+                              : Text(
+                                  "No first name set",
+                                  style: TextStyle(
+                                      color:
+                                          const Color.fromARGB(104, 0, 0, 0)),
+                                ),
                           subtitle: Text("First Name"),
                         ),
                         ListTile(
-                          title:
-                              // LoginPageState.email.isNotEmpty //todo add user's last name variable
-                              // ? Text("[user's last name variable]")
-                              // :
-                              Text(
-                            "No last name set",
-                            style: TextStyle(
-                                color: const Color.fromARGB(104, 0, 0, 0)),
-                          ),
+                          title: SignUpState.lastName.isNotEmpty
+                              ? Text(SignUpState.lastName)
+                              : Text(
+                                  "No last name set",
+                                  style: TextStyle(
+                                      color:
+                                          const Color.fromARGB(104, 0, 0, 0)),
+                                ),
                           subtitle: Text("Last Name"),
                         ),
                         ListTile(
