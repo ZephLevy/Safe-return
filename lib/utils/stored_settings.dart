@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:safe_return/login_page.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/persons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,12 +9,33 @@ class StoredSettings {
   static final SharedPreferencesAsync _asyncPrefs = SharedPreferencesAsync();
   static bool biometricsValue = false;
 
-  static Future<void> saveAll() async {
+  static Future<void> save({
+    String? encodedPersonString,
+    int? selectedIndex,
+    int? clickN,
+    bool? biometricsValue,
+    String? userEmail,
+    bool? isLoggedIn,
+  }) async {
     Person.encodePerson(Person.persons);
-    await _asyncPrefs.setString('persons', Person.encodedPersonString);
-    await _asyncPrefs.setInt('selectedIndex', selectedIndex);
-    await _asyncPrefs.setInt('clickN', SosManager.clickN);
-    await _asyncPrefs.setBool('biometrics', biometricsValue);
+    if (encodedPersonString != null) {
+      await _asyncPrefs.setString('persons', encodedPersonString);
+    }
+    if (selectedIndex != null) {
+      await _asyncPrefs.setInt('selectedIndex', selectedIndex);
+    }
+    if (clickN != null) {
+      await _asyncPrefs.setInt('clickN', clickN);
+    }
+    if (biometricsValue != null) {
+      await _asyncPrefs.setBool('biometrics', biometricsValue);
+    }
+    if (userEmail != null) {
+      await _asyncPrefs.setString('userEmail', userEmail);
+    }
+    if (isLoggedIn != null) {
+      await _asyncPrefs.setBool('isLoggedIn', isLoggedIn);
+    }
   }
 
   static Future<void> loadAll() async {
@@ -33,9 +55,15 @@ class StoredSettings {
         await _asyncPrefs.getInt('clickN') ?? selectedIndex + 1;
     final bool storedBiometricsValue =
         await _asyncPrefs.getBool('biometrics') ?? false;
+    final String storedUserEmail =
+        await _asyncPrefs.getString('userEmail') ?? "";
+    final bool storedIsLoggedIn =
+        await _asyncPrefs.getBool('isLoggedIn') ?? false;
 
     selectedIndex = storedSelectedIndex;
     SosManager.clickN = storedClickN;
     biometricsValue = storedBiometricsValue;
+    LoginPageState().emailController.text = storedUserEmail;
+    LoginPageState.isLoggedIn = storedIsLoggedIn;
   }
 }

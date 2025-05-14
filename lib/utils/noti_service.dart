@@ -1,5 +1,4 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
 import 'package:safe_return/utils/stored_settings.dart';
 
 class NotiService {
@@ -43,11 +42,11 @@ class NotiService {
   }
 
   notHomeNotif() {
-    StoredSettings.saveAll();
+    // StoredSettings.save();
     NotiService().showNotification(
       title: "Are you ok?",
       body:
-          "We've detected that you're not back home by your set time. Enter your code to verify you are ok.",
+          "We've detected you're not back home. Enter your code to verify you are ok.",
       category: NotificationDetails(),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:safe_return/main.dart';
 import 'package:http/http.dart' as http;
+import 'package:safe_return/utils/stored_settings.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,39 +13,17 @@ class LoginPage extends StatefulWidget {
 
 class LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  static var password = LoginPageState().passwordController.text;
+  static var email = LoginPageState().emailController.text;
   static bool isLoggedIn = false;
-  late final email = _emailController.text;
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
     super.dispose();
-  }
-
-  Future<void> _login() async {
-    if (_formKey.currentState!.validate()) {
-      final password = _passwordController.text;
-      const ip = String.fromEnvironment("IP");
-      print(email);
-
-      if (ip.isNotEmpty) {
-        final response = await http.post(Uri.parse("http://$ip/signIn"),
-            body: {"email": email, "password": password});
-        if (response.statusCode == 200) {
-          Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (context) => HomeScreen()));
-          print(response.statusCode);
-        } else {
-          print("no ip passed");
-        }
-      }
-      print("huh");
-
-      // Later this shouldn't push
-    }
   }
 
   @override
@@ -66,7 +45,7 @@ class LoginPageState extends State<LoginPage> {
           child: Column(
             children: [
               TextFormField(
-                controller: _emailController,
+                controller: emailController,
                 decoration: InputDecoration(labelText: "Email"),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
@@ -80,7 +59,7 @@ class LoginPageState extends State<LoginPage> {
                 },
               ),
               TextFormField(
-                controller: _passwordController,
+                controller: passwordController,
                 decoration: InputDecoration(labelText: "Password"),
                 obscureText: true,
                 validator: (value) {
@@ -90,7 +69,7 @@ class LoginPageState extends State<LoginPage> {
                   return null;
                 },
               ),
-              SizedBox(height: 15),
+              SizedBox(height: 35),
               ElevatedButton(
                   style: ElevatedButton.styleFrom(
                       minimumSize: Size(150, 40),
@@ -114,7 +93,7 @@ class LoginPageState extends State<LoginPage> {
                     minimumSize: Size(150, 40),
                   ),
                   onPressed: () {
-                    print(email);
+                    print(emailController.text);
                     Navigator.pushReplacement(context,
                         MaterialPageRoute(builder: (context) => HomeScreen()));
                   },
@@ -125,5 +104,34 @@ class LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _login() async {
+    const ip = String.fromEnvironment("IP");
+    if (_formKey.currentState!.validate()) {
+      email = emailController.text;
+      password = passwordController.text;
+      print(email);
+      print(password);
+      isLoggedIn = true; //todo this should be inside statusCode == 200
+      StoredSettings.save(
+          isLoggedIn:
+              isLoggedIn); //todo this should be inside statusCode == 200
+      if (ip.isNotEmpty) {
+        StoredSettings.save(userEmail: email);
+        final response = await http.post(Uri.parse("http://$ip/signIn"),
+            body: {"email": email, "password": password});
+        if (response.statusCode == 200) {
+          if (mounted) {
+            Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (context) => HomeScreen()));
+            print(response.statusCode);
+          }
+        } else {
+          print("error: code ${response.statusCode}");
+        }
+      }
+      print("huh");
+    }
   }
 }

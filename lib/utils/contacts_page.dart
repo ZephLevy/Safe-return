@@ -62,7 +62,8 @@ class _ContactsPageState extends State<ContactsPage> {
                   onDismissed: (direction) {
                     setState(() {
                       Person.persons.removeAt(index);
-                      StoredSettings.saveAll();
+                      StoredSettings.save(
+                          encodedPersonString: Person.encodedPersonString);
                     });
                   },
                   child: ListTile(
@@ -97,7 +98,8 @@ class _ContactsPageState extends State<ContactsPage> {
             setState(
               () {
                 Person.persons.add(Person(contact.displayName, phone.number));
-                StoredSettings.saveAll();
+                StoredSettings.save(
+                    encodedPersonString: Person.encodedPersonString);
               },
             );
           }

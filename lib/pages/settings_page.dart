@@ -20,23 +20,22 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart'
-    as notif;
 import 'package:http/http.dart' as http;
+import 'package:safe_return/Visuals/theme.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Settings();
+    return Theme(data: Themes.settingsThemeData, child: Settings());
   }
 }
 
 class Settings extends StatefulWidget {
   static List<Contact> selectedContacts = [];
 
-  const Settings({required, super.key});
+  const Settings({super.key});
 
   @override
   SettingsState createState() => SettingsState();
@@ -45,148 +44,211 @@ class Settings extends StatefulWidget {
 class SettingsState extends State<Settings> {
   @override
   Widget build(BuildContext context) {
-    return ListTileTheme(
-      data: ListTileThemeData(
-          contentPadding: EdgeInsets.only(left: 25, right: 20),
-          titleTextStyle: TextStyle(fontSize: 17, color: Colors.black),
-          subtitleTextStyle: TextStyle(fontSize: 11, color: Colors.black)),
-      child: CardTheme(
-        clipBehavior: Clip.antiAlias,
-        elevation: 0.5,
-        child: ListView(children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 15),
+    return ListView(children: [
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Card(
+              elevation: 2,
+              child: ListTile(
+                contentPadding: EdgeInsets.only(left: 10),
+                leading: Icon(Icons.account_circle, size: 50),
+                minLeadingWidth: 50,
+                title: Text("Account"),
+                subtitle: StatefulBuilder(builder: (context, setState) {
+                  return Text(LoginPageState.email);
+                }),
+                onTap: () => accountSettings(),
+              )),
+          SizedBox(height: 10),
+          Card(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Card(
-                    elevation: 2,
-                    child: ListTile(
-                      contentPadding: EdgeInsets.only(left: 10),
-                      leading: Icon(Icons.account_circle, size: 50),
-                      minLeadingWidth: 50,
-                      title: Text("Account"),
-                      subtitle: StatefulBuilder(builder: (context, setState) {
-                        return Text(LoginPageState().email);
-                      }),
-                      onTap: () => accountSettings(),
-                    )),
-                SizedBox(height: 10),
-                Card(
-                  child: Column(
-                    children: [
-                      ListTile(
-                          title: Text("SOS Activation"),
-                          subtitle: Text(
-                            "Number of clicks required to activate SOS button",
-                          ),
-                          leading: Icon(Icons.sos_outlined),
-                          trailing: Icon(Icons.arrow_forward_ios_rounded),
-                          onTap: () => _sosList()),
-                      ListTile(
-                        title: Text("Emergency Contacts"),
-                        subtitle: Text(
-                          "These contacts will be alerted if you are not home by the set time",
-                        ),
-                        leading: Icon(
-                          Icons.phone_in_talk,
-                          size: 22,
-                        ),
-                        trailing: Icon(Icons.arrow_forward_ios_rounded),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute<Widget>(
-                            builder: (BuildContext context) => ContactsPage(),
-                          ),
-                        ),
-                      ),
-                    ],
+                ListTile(
+                    title: Text("SOS Activation"),
+                    subtitle: Text(
+                      "Number of clicks required to activate SOS button",
+                    ),
+                    leading: Icon(Icons.sos_outlined),
+                    trailing: Icon(Icons.arrow_forward_ios_rounded),
+                    onTap: () => _sosList()),
+                ListTile(
+                  title: Text("Emergency Contacts"),
+                  subtitle: Text(
+                    "These contacts will be alerted if you are not home by the set time",
+                  ),
+                  leading: Icon(
+                    Icons.phone_in_talk,
+                    size: 22,
+                  ),
+                  trailing: Icon(Icons.arrow_forward_ios_rounded),
+                  onTap: () => Navigator.push(
+                    context,
+                    CupertinoPageRoute<Widget>(
+                      builder: (BuildContext context) => ContactsPage(),
+                    ),
                   ),
                 ),
-                SizedBox(height: 10),
-                Card(
-                  child: Column(
-                    children: [
-                      ListTile(
-                        title: Text("Security Codes"),
-                        leading: Icon(
-                          Icons.vpn_key,
-                          size: 22,
-                        ),
-                        trailing: Icon(Icons.arrow_forward_ios_rounded),
-                        onTap: () => _securityCodes(),
-                      ),
-                      ListTile(
-                        title: Text("Use Biometrics"),
-                        leading: Icon(
-                          Icons.fingerprint_rounded,
-                          size: 22,
-                        ),
-                        trailing: CupertinoSwitch(
-                          value: StoredSettings.biometricsValue,
-                          onChanged: (bool value) {
-                            AuthService.auth(
-                              () {
-                                setState(
-                                  () {
-                                    StoredSettings.biometricsValue = value;
-                                    StoredSettings.saveAll();
-                                  },
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 10),
-                Card(
-                  child: Column(
-                    children: [
-                      ListTile(
-                        title: Text("Test Notification"),
-                        subtitle: Text(
-                            "What will be sent if you are not home by the set time."),
-                        leading: Icon(Icons.notifications),
-                        onTap: () {
-                          notHomeNotif();
-                          sendCallHTTP();
-                        },
-                      ),
-                    ],
-                  ),
-                )
               ],
             ),
           ),
-        ]),
+          SizedBox(height: 10),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  title: Text("Security Codes"),
+                  leading: Icon(
+                    Icons.vpn_key,
+                    size: 22,
+                  ),
+                  trailing: Icon(Icons.arrow_forward_ios_rounded),
+                  onTap: () => _securityCodes(),
+                ),
+                ListTile(
+                  title: Text("Use Biometrics"),
+                  leading: Icon(
+                    Icons.fingerprint_rounded,
+                    size: 22,
+                  ),
+                  trailing: CupertinoSwitch(
+                    value: StoredSettings.biometricsValue,
+                    onChanged: (bool value) {
+                      AuthService.auth(
+                        () {
+                          setState(
+                            () {
+                              StoredSettings.biometricsValue = value;
+                              StoredSettings.save(
+                                  biometricsValue:
+                                      StoredSettings.biometricsValue);
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 10),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  title: Text("Test Notification"),
+                  subtitle: Text(
+                      "What will be sent if you are not home by the set time."),
+                  leading: Icon(Icons.notifications),
+                  onTap: () {
+                    NotiService().notHomeNotif();
+                    sendCallHTTP();
+                  },
+                ),
+              ],
+            ),
+          )
+        ],
       ),
-    );
+    ]);
   }
 
   accountSettings() {
     // go to user account settings
     Navigator.push(
       context,
-      MaterialPageRoute(
+      CupertinoPageRoute(
+        fullscreenDialog: true,
+        barrierDismissible: true,
         builder: (BuildContext context) {
-          return ListTileTheme(
-            data: ListTileThemeData(),
-            child: CardTheme(
-              child: Scaffold(
-                appBar: AppBar(title: Text("Account")),
-                body: ListView(
-                  children: [
-                    ListTile(
-                      title: Text("Change Email"),
+          return Theme(
+            data: Themes.settingsThemeData,
+            child: Scaffold(
+              appBar: AppBar(title: Text("Account Settings")),
+              body: ListView(
+                children: [
+                  Card(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 10, top: 8),
+                          child: Text(
+                            "Personal Info",
+                            style: TextStyle(fontSize: 15),
+                          ),
+                        ),
+                        ListTile(
+                          title:
+                              // LoginPageState.email.isNotEmpty //todo add user's first name variable
+                              // ? Text("[user's first name variable]")
+                              // :
+                              Text(
+                            "No first name set",
+                            style: TextStyle(
+                                color: const Color.fromARGB(104, 0, 0, 0)),
+                          ),
+                          subtitle: Text("First Name"),
+                        ),
+                        ListTile(
+                          title:
+                              // LoginPageState.email.isNotEmpty //todo add user's last name variable
+                              // ? Text("[user's last name variable]")
+                              // :
+                              Text(
+                            "No last name set",
+                            style: TextStyle(
+                                color: const Color.fromARGB(104, 0, 0, 0)),
+                          ),
+                          subtitle: Text("Last Name"),
+                        ),
+                        ListTile(
+                          title: LoginPageState.email.isNotEmpty
+                              ? Text(LoginPageState.email)
+                              : Text(
+                                  "No email set",
+                                  style: TextStyle(
+                                      color:
+                                          const Color.fromARGB(104, 0, 0, 0)),
+                                ),
+                          subtitle: Text("Email"),
+                        ),
+                      ],
                     ),
-                    ListTile(
-                      title: Text("Change Password"),
+                  ),
+                  SizedBox(height: 10),
+                  Card(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 10, top: 8),
+                          child: Text(
+                            "Privacy and Security",
+                            style: TextStyle(fontSize: 15),
+                          ),
+                        ),
+                        ListTile(
+                          title: Text("Change Password"),
+                        ),
+                        ListTile(
+                          title: Text("Log out debugging"),
+                          onTap: () {
+                            LoginPageState.isLoggedIn = false;
+                            StoredSettings.save(
+                                isLoggedIn: LoginPageState.isLoggedIn);
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                  builder: (context) => LoginPage()),
+                              (Route<dynamic> route) => false,
+                            );
+                          },
+                        )
+                      ],
                     ),
-                  ],
-                ),
+                  )
+                ],
               ),
             ),
           );
@@ -195,13 +257,78 @@ class SettingsState extends State<Settings> {
     );
   }
 
-  notHomeNotif() {
-    StoredSettings.saveAll();
-    NotiService().showNotification(
-      title: "Are you ok?",
-      body:
-          "We've detected you're not back home. Enter your code to verify you are ok.",
-      category: notif.NotificationDetails(),
+  Widget account() {
+    return ListTileTheme(
+      data: ListTileThemeData(
+          subtitleTextStyle: TextStyle(
+              fontSize: 12, color: const Color.fromARGB(255, 78, 78, 78))),
+      child: Scaffold(
+        appBar: AppBar(title: Text("Account Settings")),
+        body: ListView(
+          children: [
+            Card(
+              child: Column(
+                children: [
+                  // Padding(
+                  // padding: const EdgeInsets.only(left: 8),
+                  // child:
+                  Text("Personal Info"),
+                  // ),
+                  ListTile(
+                    title:
+                        // LoginPageState.email.isNotEmpty //todo add user's first name variable
+                        // ? Text("[user's first name variable]")
+                        // :
+                        Text(
+                      "No first name set",
+                      style:
+                          TextStyle(color: const Color.fromARGB(104, 0, 0, 0)),
+                    ),
+                    subtitle: Text("First Name"),
+                  ),
+                  ListTile(
+                    title:
+                        // LoginPageState.email.isNotEmpty //todo add user's last name variable
+                        // ? Text("[user's last name variable]")
+                        // :
+                        Text(
+                      "No last name set",
+                      style:
+                          TextStyle(color: const Color.fromARGB(104, 0, 0, 0)),
+                    ),
+                    subtitle: Text("Last Name"),
+                  ),
+                  ListTile(
+                    title: LoginPageState.email.isNotEmpty
+                        ? Text(LoginPageState.email)
+                        : Text(
+                            "No email set",
+                            style: TextStyle(
+                                color: const Color.fromARGB(104, 0, 0, 0)),
+                          ),
+                    subtitle: Text("Email"),
+                  ),
+                  ListTile(
+                    title: Text("Change Password"),
+                  ),
+                  ListTile(
+                    title: Text("Log out debugging"),
+                    onTap: () {
+                      LoginPageState.isLoggedIn = false;
+                      StoredSettings.save(
+                          isLoggedIn: LoginPageState.isLoggedIn);
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (context) => LoginPage()),
+                        (Route<dynamic> route) => false,
+                      );
+                    },
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -214,7 +341,7 @@ class SettingsState extends State<Settings> {
     ];
     Navigator.push(
       context,
-      MaterialPageRoute(
+      CupertinoPageRoute(
         builder: (BuildContext context) {
           return StatefulBuilder(
             builder: (context, setState) {
@@ -245,7 +372,9 @@ class SettingsState extends State<Settings> {
                         () {
                           StoredSettings.selectedIndex = index;
                           SosManager.clickN = StoredSettings.selectedIndex + 1;
-                          StoredSettings.saveAll();
+                          StoredSettings.save(
+                              selectedIndex: StoredSettings.selectedIndex,
+                              clickN: SosManager.clickN);
                         },
                       ),
                     );
@@ -262,7 +391,7 @@ class SettingsState extends State<Settings> {
   _securityCodes() {
     return Navigator.push(
       context,
-      MaterialPageRoute(
+      CupertinoPageRoute(
         builder: (BuildContext context) {
           return Scaffold(
             appBar: AppBar(
@@ -301,7 +430,7 @@ class SettingsState extends State<Settings> {
                       () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
+                          CupertinoPageRoute(
                             builder: (BuildContext context) => _viewCodes(),
                           ),
                         );

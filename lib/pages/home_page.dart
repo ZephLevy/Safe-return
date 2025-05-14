@@ -6,7 +6,7 @@ import 'package:safe_return/logic/location.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/time_manager.dart';
-import 'package:safe_return/palette.dart';
+import 'package:safe_return/Visuals/palette.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
