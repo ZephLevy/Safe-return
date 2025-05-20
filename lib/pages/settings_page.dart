@@ -212,6 +212,17 @@ class SettingsState extends State<Settings> {
                                 ),
                           subtitle: Text("Email"),
                         ),
+                        ListTile(
+                          title: LoginPageState.password.isNotEmpty
+                              ? Text('\u2022' * LoginPageState.password.length)
+                              : Text(
+                                  "No password set",
+                                  style: TextStyle(
+                                      color:
+                                          const Color.fromARGB(104, 0, 0, 0)),
+                                ),
+                          subtitle: Text("Password"),
+                        )
                       ],
                     ),
                   ),
@@ -229,103 +240,68 @@ class SettingsState extends State<Settings> {
                         ),
                         ListTile(
                           title: Text("Change Password"),
+                          onTap: () {},
                         ),
                         ListTile(
-                          title: Text("Log out debugging"),
-                          onTap: () {
-                            LoginPageState.isLoggedIn = false;
-                            StoredSettings.save(
-                                isLoggedIn: LoginPageState.isLoggedIn);
-                            Navigator.of(context).pushAndRemoveUntil(
-                              MaterialPageRoute(
-                                  builder: (context) => LoginPage()),
-                              (Route<dynamic> route) => false,
-                            );
-                          },
+                          title: Text("Change Email"),
+                          onTap: () {},
                         )
                       ],
                     ),
-                  )
+                  ),
+                  SizedBox(height: 10),
+                  Card(
+                    child: ListTile(
+                      title: Text(
+                        "Log out",
+                        style: TextStyle(color: Colors.red),
+                      ),
+                      onTap: () => iosAlert(
+                        () {
+                          LoginPageState.isLoggedIn = false;
+                          StoredSettings.save(
+                              isLoggedIn: LoginPageState.isLoggedIn);
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                                builder: (context) => LoginPage()),
+                            (Route<dynamic> route) => false,
+                          );
+                          StoredSettings.logOut();
+                        },
+                        title: "Log out?",
+                        content: "You can log back in any time.",
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Card(
+                    child: ListTile(
+                      title: Text(
+                        "Delete account",
+                        style: TextStyle(color: Colors.red),
+                      ),
+                      onTap: () => iosAlert(
+                        () {
+                          LoginPageState.isLoggedIn = false;
+                          StoredSettings.save(
+                              isLoggedIn: LoginPageState.isLoggedIn);
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                                builder: (context) => LoginPage()),
+                            (Route<dynamic> route) => false,
+                          );
+                        },
+                        title: "Delete account?",
+                        content:
+                            "This will delete all the data on your account. You will need to re-create one to log back in.",
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget account() {
-    return ListTileTheme(
-      data: ListTileThemeData(
-          subtitleTextStyle: TextStyle(
-              fontSize: 12, color: const Color.fromARGB(255, 78, 78, 78))),
-      child: Scaffold(
-        appBar: AppBar(title: Text("Account Settings")),
-        body: ListView(
-          children: [
-            Card(
-              child: Column(
-                children: [
-                  // Padding(
-                  // padding: const EdgeInsets.only(left: 8),
-                  // child:
-                  Text("Personal Info"),
-                  // ),
-                  ListTile(
-                    title:
-                        // LoginPageState.email.isNotEmpty //todo add user's first name variable
-                        // ? Text("[user's first name variable]")
-                        // :
-                        Text(
-                      "No first name set",
-                      style:
-                          TextStyle(color: const Color.fromARGB(104, 0, 0, 0)),
-                    ),
-                    subtitle: Text("First Name"),
-                  ),
-                  ListTile(
-                    title:
-                        // LoginPageState.email.isNotEmpty //todo add user's last name variable
-                        // ? Text("[user's last name variable]")
-                        // :
-                        Text(
-                      "No last name set",
-                      style:
-                          TextStyle(color: const Color.fromARGB(104, 0, 0, 0)),
-                    ),
-                    subtitle: Text("Last Name"),
-                  ),
-                  ListTile(
-                    title: LoginPageState.email.isNotEmpty
-                        ? Text(LoginPageState.email)
-                        : Text(
-                            "No email set",
-                            style: TextStyle(
-                                color: const Color.fromARGB(104, 0, 0, 0)),
-                          ),
-                    subtitle: Text("Email"),
-                  ),
-                  ListTile(
-                    title: Text("Change Password"),
-                  ),
-                  ListTile(
-                    title: Text("Log out debugging"),
-                    onTap: () {
-                      LoginPageState.isLoggedIn = false;
-                      StoredSettings.save(
-                          isLoggedIn: LoginPageState.isLoggedIn);
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (context) => LoginPage()),
-                        (Route<dynamic> route) => false,
-                      );
-                    },
-                  )
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -409,14 +385,17 @@ class SettingsState extends State<Settings> {
                       : Icons.lock_reset),
                   onTap: () {
                     useBiometricsTo(
-                      () {
-                        iosAlert(
-                          () {
-                            Navigator.pop(context);
-                            whichCodeChange();
-                          },
-                        );
-                      },
+                      () => iosAlert(
+                        () {
+                          Navigator.pop(context);
+                          whichCodeChange();
+                        },
+                        title: "Are you sure?",
+                        content: SosManager.fakeCode == null ||
+                                SosManager.secretCode == null
+                            ? "This will set your security code(s)."
+                            : "This will change your security code(s).",
+                      ),
                     );
                   },
                 ),
@@ -459,7 +438,9 @@ class SettingsState extends State<Settings> {
       builder: (BuildContext context) {
         return CupertinoActionSheet(
           title: Text(
-            "Which code would you like to change?",
+            SosManager.fakeCode == null || SosManager.secretCode == null
+                ? "Which code would you like to set?"
+                : "Which code would you like to change?",
             style: TextStyle(fontSize: 13.5),
           ),
           cancelButton: CupertinoActionSheetAction(
@@ -473,7 +454,10 @@ class SettingsState extends State<Settings> {
                   Navigator.pop(context);
                   getCodeInput(true);
                 },
-                child: Text("Change real code",
+                child: Text(
+                    SosManager.secretCode == null
+                        ? "Set real code"
+                        : "Change real code",
                     style: TextStyle(
                         color: const Color.fromARGB(255, 0, 120, 255)))),
             CupertinoActionSheetAction(
@@ -481,31 +465,40 @@ class SettingsState extends State<Settings> {
                   Navigator.pop(context);
                   getCodeInput(false);
                 },
-                child: Text("Change decoy code",
+                child: Text(
+                    SosManager.fakeCode == null
+                        ? "Set decoy code"
+                        : "Change decoy code",
                     style: TextStyle(
                         color: const Color.fromARGB(255, 0, 120, 255)))),
             CupertinoActionSheetAction(
-                onPressed: () {
-                  Navigator.pop(context);
-                  getCodeInput(false);
-                  getCodeInput(true);
-                },
-                child: Text("Change both",
-                    style: TextStyle(
-                        color: const Color.fromARGB(255, 0, 120, 255)))),
+              onPressed: () {
+                Navigator.pop(context);
+                getCodeInput(false);
+                getCodeInput(true);
+              },
+              child: Text(
+                SosManager.fakeCode == null || SosManager.secretCode == null
+                    ? "Set both"
+                    : "Change both",
+                style: TextStyle(
+                  color: const Color.fromARGB(255, 0, 120, 255),
+                ),
+              ),
+            ),
           ],
         );
       },
     );
   }
 
-  void iosAlert(Function proceed) {
+  void iosAlert(Function proceed, {String? title, String? content}) {
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) {
         return CupertinoAlertDialog(
-          title: Text("Are you sure?"),
-          content: Text("This will change your security code(s)."),
+          title: Text(title ?? ""),
+          content: Text(content ?? ""),
           actions: [
             CupertinoDialogAction(
               onPressed: () {
@@ -530,7 +523,6 @@ class SettingsState extends State<Settings> {
   }
 
   Widget _viewCodes() {
-    // print("\nreal: ${SosManager.secretCode} \ndecoy: ${SosManager.fakeCode}");
     return Scaffold(
       appBar: AppBar(
         title: Text("Your Codes"),

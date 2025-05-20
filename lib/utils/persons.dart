@@ -23,7 +23,7 @@ class Person {
         'phone': phone,
       };
 
-  static void encodePerson(List<Person> targetList) {
+  static encodePerson(List<Person> targetList) {
     List<Map<String, dynamic>> mappedList = targetList
         .map((person) => person.toJson())
         .toList(); //encodes List of Person objects to List of maps

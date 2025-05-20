@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:safe_return/main.dart';
 import 'package:http/http.dart' as http;
+import 'package:safe_return/secure_storage.dart';
 import 'package:safe_return/utils/stored_settings.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
@@ -16,8 +17,7 @@ class LoginPage extends StatefulWidget {
 class LoginPageState extends State<LoginPage> {
   final RegExp emailValidator = RegExp(
       r"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'"
-      r'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-'
-      r'\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*'
+      r'*+/=?^_`{|}~-]+)*|"(?:[\x01-l0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*'
       r'[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4]'
       r'[0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9]'
       r'[0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\'
@@ -25,8 +25,8 @@ class LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  static var password = LoginPageState().passwordController.text;
-  static var email = LoginPageState().emailController.text;
+  static String password = "";
+  static String email = "";
   static bool isLoggedIn = false;
 
   @override
@@ -39,7 +39,22 @@ class LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Login")),
+      appBar: AppBar(
+        title: Text("Login"),
+        actions: [
+          CupertinoButton(
+              padding: EdgeInsets.only(right: 20),
+              onPressed: () {
+                skipLoginAlert(
+                  () {
+                    Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: (context) => HomeScreen()));
+                  },
+                );
+              },
+              child: Text("Skip", style: TextStyle(fontSize: 17))),
+        ],
+      ),
       body: Form(
         key: _formKey,
         child: Padding(
@@ -69,19 +84,23 @@ class LoginPageState extends State<LoginPage> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a password';
                     }
+                    if (value.length > 50) {
+                      return 'Password must be under 50 characters';
+                    }
                     return null;
                   },
                 ),
                 SizedBox(height: 35),
                 ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                        minimumSize: Size(150, 40),
-                        textStyle: TextStyle(fontSize: 17)),
-                    onPressed: _login,
-                    child: Text("Login")),
+                  style: ElevatedButton.styleFrom(
+                      minimumSize: Size(150, 40),
+                      textStyle: TextStyle(fontSize: 17)),
+                  onPressed: _login,
+                  child: Text("Login"),
+                ),
+                SizedBox(height: 10),
                 CupertinoButton(
-                  padding: EdgeInsets.only(top: 20),
-                  minSize: 0,
+                  padding: EdgeInsets.all(0),
                   onPressed: () {
                     resetLoginForms();
                     noAccount();
@@ -91,25 +110,44 @@ class LoginPageState extends State<LoginPage> {
                     style: TextStyle(fontSize: 17),
                   ),
                 ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: Size(150, 40),
-                    ),
-                    onPressed: () {
-                      print(emailController.text);
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => HomeScreen()));
-                    },
-                    child: Text("Force Login [debugging only]",
-                        style: TextStyle(fontSize: 15, color: Colors.red))),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  void skipLoginAlert(Function proceed) {
+    showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: Text("Are you sure?"),
+          content: Text(
+              "By skipping, any data will not be saved to the cloud. If you lose your phone or uninstall the app, all app data will be lost."),
+          actions: [
+            CupertinoDialogAction(
+                onPressed: () {
+                  proceed();
+                },
+                child: Text("Skip and continue as guest",
+                    style: TextStyle(color: Colors.red, fontSize: 16.5))),
+            CupertinoDialogAction(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                "cancel",
+                style: TextStyle(
+                  color: const Color.fromARGB(255, 0, 120, 255),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -129,27 +167,28 @@ class LoginPageState extends State<LoginPage> {
     if (_formKey.currentState!.validate()) {
       email = emailController.text;
       password = passwordController.text;
-      print(email);
-      print(password);
-      isLoggedIn = true; //todo this should be inside statusCode == 200
-      StoredSettings.save(
-          isLoggedIn:
-              isLoggedIn); //todo this should be inside statusCode == 200
+      await SecureStorage.write(password: password);
+      await SecureStorage.read();
+      // print(email);
+      // print(password);
+
       if (ip.isNotEmpty) {
         StoredSettings.save(userEmail: email);
-        final response = await http.post(Uri.parse("http://$ip/signIn"),
+        final response = await http.post(
+            Uri.parse("http://$ip/signUp"), //. change this to /logIn endpoint
             body: {"email": email, "password": password});
         if (response.statusCode == 200) {
+          isLoggedIn = true;
+          StoredSettings.save(isLoggedIn: isLoggedIn);
           if (mounted) {
             Navigator.pushReplacement(
                 context, MaterialPageRoute(builder: (context) => HomeScreen()));
-            print(response.statusCode);
           }
         } else {
           print("error: code ${response.statusCode}");
         }
       }
-      print("huh");
+      print("not connected to server");
     }
   }
 }
@@ -169,16 +208,19 @@ class SignUpState extends State<SignUp> {
   final newPasswordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
-  static var firstName = SignUpState().firstNcontroller.text;
-  static var lastName = SignUpState().lastNcontroller.text;
-  static var newPassword = SignUpState().newPasswordController.text;
-  static var newEmail = SignUpState().newEmailController.text;
-  static var confirmPassword = SignUpState().confirmPasswordController.text;
+  static String firstName = "";
+  static String lastName = "";
+  static String newPassword = "";
+  static String newEmail = "";
+  static String confirmPassword = "";
 
   @override
   void dispose() {
+    firstNcontroller.dispose();
+    lastNcontroller.dispose();
     newEmailController.dispose();
     newPasswordController.dispose();
+    confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -257,9 +299,13 @@ class SignUpState extends State<SignUp> {
                     if (!RegExp(r'[0-9]').hasMatch(value)) {
                       return 'Include at least one digit';
                     }
-                    if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(value)) {
-                      return 'Include at least one special character';
+                    if (value.length > 50) {
+                      return 'Password must be under 50 characters';
                     }
+                    // if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(value)) {
+                    //   return 'Include at least one special character';
+                    // }
+                    //todo decide whether to require special symbol in password or not
                     if (value.contains(' ')) {
                       return 'No spaces allowed';
                     }
@@ -305,113 +351,177 @@ class SignUpState extends State<SignUp> {
 
   void signUp() {
     if (signUpformKey.currentState!.validate()) {
-      newEmail = newEmailController.text;
-      newPassword = newPasswordController.text;
-      firstName = firstNcontroller.text;
-      lastName = lastNcontroller.text;
-      StoredSettings.save(
-          newEmail: newEmail,
-          newPassword: newPassword,
-          firstName: firstName,
-          lastName: lastName);
-      emailVerification();
-      // Navigator.pop(
-      //     context, MaterialPageRoute(builder: (context) => LoginPage()));
+      sendEmailUseCheck(
+        () {
+          SignUpState.newEmail = newEmailController.text;
+          SignUpState.newPassword = newPasswordController.text;
+          firstName = firstNcontroller.text;
+          lastName = lastNcontroller.text;
+          StoredSettings.save(
+              newEmail: newEmail,
+              newPassword: newPassword,
+              firstName: firstName,
+              lastName: lastName);
+          emailVerification();
+        },
+      );
     }
   }
 
   emailVerification() {
-    Navigator.push(context, CupertinoPageRoute(builder: (context) {
-      return Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          // title: Text("Email Verification"),
-        ),
-        body: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                "Almost done!",
-                style: TextStyle(fontSize: 25),
-              ),
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) {
+          return Scaffold(
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
             ),
-            SizedBox(
-              height: 10,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 50),
-              child: Text(
-                "Verification code sent to: \n${SignUpState.newEmail}",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 15),
-              ),
-            ),
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              alignment: Alignment.center,
-              child: Text(
-                "Wrong one? Change it here.",
-                style: TextStyle(fontSize: 15),
-              ),
-              onPressed: () => Navigator.pop(context),
-            ),
-            SizedBox(height: 10),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 25),
-              child: PinCodeTextField(
-                useHapticFeedback: true,
-                hapticFeedbackTypes: HapticFeedbackTypes.light,
-                beforeTextPaste: (text) {
-                  if (text != null && RegExp(r'^\d{6}$').hasMatch(text)) {
-                    return true;
-                  } else {
-                    return false;
-                  }
-                },
-                appContext: context,
-                length: 6,
-                onChanged: (value) {
-                  print(value);
-                },
-                onCompleted: (value) {
-                  print("Completed: $value");
-                },
-                pinTheme: PinTheme(
-                  shape: PinCodeFieldShape.box,
-                  borderRadius: BorderRadius.circular(5),
-                  fieldHeight: 50,
-                  fieldWidth: 40,
-                  activeFillColor: Colors.white,
-                  selectedFillColor: Colors.white,
-                  inactiveFillColor: Colors.grey.shade200,
-                  activeColor: Colors.blue,
-                  selectedColor: Colors.black,
-                  inactiveColor: Colors.grey,
+            body: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    "Almost done!",
+                    style: TextStyle(fontSize: 30),
+                  ),
                 ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                animationType: AnimationType.fade,
-                enableActiveFill: true,
-              ),
+                SizedBox(
+                  height: 10,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 50),
+                  child: Text(
+                    "Verification code sent to: \n${SignUpState.newEmail}",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 15),
+                  ),
+                ),
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  alignment: Alignment.center,
+                  child: Text(
+                    "Wrong email? Change it here.",
+                    style: TextStyle(fontSize: 15),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                SizedBox(height: 10),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 25),
+                  child: PinCodeTextField(
+                    useHapticFeedback: true,
+                    hapticFeedbackTypes: HapticFeedbackTypes.light,
+                    beforeTextPaste: (text) {
+                      if (text != null && RegExp(r'^\d{6}$').hasMatch(text)) {
+                        return true;
+                      } else {
+                        return false;
+                      }
+                    },
+                    appContext: context,
+                    length: 6,
+                    onChanged: (value) {
+                      print(value);
+                    },
+                    onCompleted: (value) {
+                      print("Completed: $value");
+                    },
+                    pinTheme: PinTheme(
+                      shape: PinCodeFieldShape.box,
+                      borderRadius: BorderRadius.circular(5),
+                      fieldHeight: 50,
+                      fieldWidth: 40,
+                      activeFillColor: Colors.white,
+                      selectedFillColor: Colors.white,
+                      inactiveFillColor: Colors.grey.shade200,
+                      activeColor: Colors.blue,
+                      selectedColor: Colors.black,
+                      inactiveColor: Colors.grey,
+                    ),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    animationType: AnimationType.fade,
+                    enableActiveFill: true,
+                  ),
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                    style: ElevatedButton.styleFrom(minimumSize: Size(160, 40)),
+                    onPressed: () async {
+                      sendNewAccountData(
+                        () {
+                          Navigator.popUntil(context, (route) => route.isFirst);
+                        },
+                      );
+                    },
+                    child: Text(
+                      "Verify",
+                      style: TextStyle(fontSize: 18),
+                    )),
+                CupertinoButton(
+                  child: Text("Didn't receive a code? Click here."),
+                  onPressed: () => print("resend code"),
+                ),
+              ],
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-                style: ElevatedButton.styleFrom(minimumSize: Size(160, 40)),
-                onPressed: () {
-                  Navigator.popUntil(context, (route) => route.isFirst);
-                },
-                child: Text(
-                  "Verify",
-                  style: TextStyle(fontSize: 18),
-                )),
-            CupertinoButton(
-              child: Text("Didn't receive a code? Click here."),
-              onPressed: () => print("resend code"),
-            ),
-          ],
-        ),
-      );
-    }));
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> sendNewAccountData(if200) async {
+    const ip = String.fromEnvironment("IP");
+    Uri url = Uri.parse('http://$ip/auth/signup');
+    final response = await http.post(
+      url,
+      body: {
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': newEmail,
+        'password': newPassword,
+      },
+    );
+    if (response.statusCode == 200) {
+      //todo get tokens
+      print(
+          "email not in use - successful authorizatoin: ${response.statusCode}");
+      if200();
+    } else if (response.statusCode == 400) {
+      print("one or more values are null");
+    } else if (response.statusCode == 409) {
+      print("email already in use");
+    } else if (response.statusCode == 401) {
+      print("missing fields");
+    } else {
+      print("internal server error :) ${response.statusCode}");
+    }
+  }
+
+  Future<void> sendEmailUseCheck(if200) async {
+    const ip = String.fromEnvironment("IP");
+    Uri url = Uri.parse('http://$ip/auth/verify-email');
+    final response = await http.post(
+      url,
+      body: {
+        'email': newEmail,
+      },
+    );
+    if (response.statusCode == 200) {
+      //todo get tokens
+      print("sign up successful: ${response.statusCode}");
+      if200();
+    } else if (response.statusCode == 401) {
+      print("one or more values are null");
+      print(response.body);
+    } else if (response.statusCode == 409) {
+      print("email already in use");
+    } else if (response.statusCode == 500) {
+      print("internal server error (status ${response.statusCode})");
+    } else {
+      print(
+          "An error occured while signing you up, please try again. ${response.statusCode}");
+    }
   }
 }

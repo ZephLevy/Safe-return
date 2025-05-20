@@ -62,8 +62,7 @@ class _ContactsPageState extends State<ContactsPage> {
                   onDismissed: (direction) {
                     setState(() {
                       Person.persons.removeAt(index);
-                      StoredSettings.save(
-                          encodedPersonString: Person.encodedPersonString);
+                      StoredSettings.save(personList: Person.persons);
                     });
                   },
                   child: ListTile(
@@ -89,17 +88,19 @@ class _ContactsPageState extends State<ContactsPage> {
         for (var phone in contact.phones) {
           if (Person.persons.any((person) => person.phone == phone.number) &&
               context.mounted) {
-            // ignore: use_build_context_synchronously
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text("This contact is already selected!"),
-              showCloseIcon: true,
-            ));
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("This contact is already selected!"),
+                  showCloseIcon: true,
+                ),
+              );
+            }
           } else {
             setState(
               () {
                 Person.persons.add(Person(contact.displayName, phone.number));
-                StoredSettings.save(
-                    encodedPersonString: Person.encodedPersonString);
+                StoredSettings.save(personList: Person.persons);
               },
             );
           }

@@ -6,11 +6,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class StoredSettings {
   static int selectedIndex = 1;
-  static final SharedPreferencesAsync _asyncPrefs = SharedPreferencesAsync();
+  static final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
   static bool biometricsValue = false;
 
   static Future<void> save({
-    String? encodedPersonString,
+    List<Person>? personList,
     int? selectedIndex,
     int? clickN,
     bool? biometricsValue,
@@ -21,70 +21,83 @@ class StoredSettings {
     String? firstName,
     String? lastName,
   }) async {
-    Person.encodePerson(Person.persons);
-    if (encodedPersonString != null) {
-      await _asyncPrefs.setString('persons', encodedPersonString);
+    if (personList != null) {
+      Person.encodePerson(personList);
     }
+    await asyncPrefs.setString('persons', Person.encodedPersonString);
     if (selectedIndex != null) {
-      await _asyncPrefs.setInt('selectedIndex', selectedIndex);
+      await asyncPrefs.setInt('selectedIndex', selectedIndex);
     }
     if (clickN != null) {
-      await _asyncPrefs.setInt('clickN', clickN);
+      await asyncPrefs.setInt('clickN', clickN);
     }
     if (biometricsValue != null) {
-      await _asyncPrefs.setBool('biometrics', biometricsValue);
+      await asyncPrefs.setBool('biometrics', biometricsValue);
     }
     if (userEmail != null) {
-      await _asyncPrefs.setString('userEmail', userEmail);
+      await asyncPrefs.setString('userEmail', userEmail);
     }
     if (isLoggedIn != null) {
-      await _asyncPrefs.setBool('isLoggedIn', isLoggedIn);
+      await asyncPrefs.setBool('isLoggedIn', isLoggedIn);
     }
     if (newEmail != null) {
-      await _asyncPrefs.setString('newEmail', newEmail);
+      await asyncPrefs.setString('newEmail', newEmail);
     }
     if (newPassword != null) {
-      await _asyncPrefs.setString('newPassword', newPassword);
+      await asyncPrefs.setString('newPassword', newPassword);
     }
     if (firstName != null) {
-      await _asyncPrefs.setString('firstName', firstName);
+      await asyncPrefs.setString('firstName', firstName);
     }
     if (lastName != null) {
-      await _asyncPrefs.setString('lastName', lastName);
+      await asyncPrefs.setString('lastName', lastName);
     }
   }
 
   static Future<void> loadAll() async {
     final String storedEncodedPersonString =
-        await _asyncPrefs.getString('persons') ?? "";
+        await asyncPrefs.getString('persons') ?? "";
     Person.encodedPersonString = storedEncodedPersonString;
 
     Person.encodedPersonString.isNotEmpty
         ? Person.decodePerson(
             toDecode: Person.encodedPersonString, targetList: Person.persons)
-        : print("this is empty: ${Person.encodedPersonString}");
-    null;
+        : null;
 
-    final int zSelectedIndex = await _asyncPrefs.getInt('selectedIndex') ?? 1;
-    final int zClickN = await _asyncPrefs.getInt('clickN') ?? selectedIndex + 1;
+    final int zSelectedIndex = await asyncPrefs.getInt('selectedIndex') ?? 1;
+    final int zClickN = await asyncPrefs.getInt('clickN') ?? selectedIndex + 1;
     final bool zBiometricsValue =
-        await _asyncPrefs.getBool('biometrics') ?? false;
-    final String zUserEmail = await _asyncPrefs.getString('userEmail') ?? "";
-    final bool zIsLoggedIn = await _asyncPrefs.getBool('isLoggedIn') ?? false;
-    final String zNewEmail = await _asyncPrefs.getString('newEmail') ?? "";
-    final String zNewPassword =
-        await _asyncPrefs.getString('newPassword') ?? "";
-    final String zFirstName = await _asyncPrefs.getString('firstName') ?? "";
-    final String zLastName = await _asyncPrefs.getString('lastName') ?? "";
+        await asyncPrefs.getBool('biometrics') ?? false;
+    final String zUserEmail = await asyncPrefs.getString('userEmail') ?? "";
+    final bool zIsLoggedIn = await asyncPrefs.getBool('isLoggedIn') ?? false;
+    final String zNewEmail = await asyncPrefs.getString('newEmail') ?? "";
+    final String zNewPassword = await asyncPrefs.getString('newPassword') ?? "";
+    final String zFirstName = await asyncPrefs.getString('firstName') ?? "";
+    final String zLastName = await asyncPrefs.getString('lastName') ?? "";
 
     selectedIndex = zSelectedIndex;
     SosManager.clickN = zClickN;
     biometricsValue = zBiometricsValue;
-    LoginPageState().emailController.text = zUserEmail;
+    LoginPageState.email = zUserEmail;
     LoginPageState.isLoggedIn = zIsLoggedIn;
-    SignUpState().newEmailController.text = zNewEmail;
-    SignUpState().newPasswordController.text = zNewPassword;
-    SignUpState().firstNcontroller.text = zFirstName;
-    SignUpState().lastNcontroller.text = zLastName;
+    SignUpState.newEmail = zNewEmail;
+    SignUpState.newPassword = zNewPassword;
+    SignUpState.firstName = zFirstName;
+    SignUpState.lastName = zLastName;
+  }
+
+  static Future<void> logOut() async {
+    await asyncPrefs.clear();
+    Person.encodedPersonString = "";
+    selectedIndex = 1;
+    SosManager.clickN = selectedIndex + 1;
+    biometricsValue = false;
+    LoginPageState.email = "";
+    LoginPageState.password = "";
+    LoginPageState.isLoggedIn = false;
+    SignUpState.newEmail = "";
+    SignUpState.newPassword = "";
+    SignUpState.firstName = "";
+    SignUpState.lastName = "";
   }
 }
