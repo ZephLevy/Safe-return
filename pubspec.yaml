@@ -44,6 +44,7 @@ dependencies:
   flutter_local_notifications: ^19.0.0
   local_auth: ^2.3.0
   pin_code_fields: ^8.0.1
+  flutter_secure_storage: ^9.2.4
   
 
 dev_dependencies:

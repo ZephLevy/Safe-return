@@ -182,20 +182,24 @@ class TimeSetButtonState extends State<TimeSetButton> {
       child: Material(
         child: GestureDetector(
           onTap: () {
-            Future.delayed(Duration(seconds: 5), () async {
-              if (TimeManager.selectedTime != null) {
-                setState(() {
-                  date = TimeManager.selectedTime!;
-                  codeAttempts = 3;
-                });
-                _scheduleCheck();
-                HapticFeedback.mediumImpact();
-              }
-            });
-            if (!mounted) return;
             setState(() {
-              isSelected = false;
+              isSelected = true;
             });
+            Future.delayed(
+              Duration(seconds: 5),
+              () async {
+                if (TimeManager.selectedTime != null) {
+                  setState(
+                    () {
+                      date = TimeManager.selectedTime!;
+                      codeAttempts = 3;
+                    },
+                  );
+                  _scheduleCheck();
+                  HapticFeedback.mediumImpact();
+                }
+              },
+            );
 
             // This makes me not want to open source this project purely out of shame
             var timesAreDifferent = (TimeManager.selectedTime != null)
@@ -239,6 +243,16 @@ class TimeSetButtonState extends State<TimeSetButton> {
               isSelected = true;
             });
           },
+          onTapUp: (details) {
+            setState(() {
+              isSelected = true;
+            });
+          },
+          onTapCancel: () {
+            setState(() {
+              isSelected = false;
+            });
+          },
           child: Container(
             margin: EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -252,7 +266,7 @@ class TimeSetButtonState extends State<TimeSetButton> {
             child: SizedBox.expand(
               child: Center(
                 child: Text(
-                  'Set',
+                  isSelected ? 'Cancel' : 'Set',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,

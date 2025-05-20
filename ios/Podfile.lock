@@ -4,10 +4,15 @@ PODS:
     - Flutter
   - flutter_local_notifications (0.0.1):
     - Flutter
+  - flutter_secure_storage (6.0.0):
+    - Flutter
   - geolocator_apple (1.2.0):
     - Flutter
     - FlutterMacOS
   - local_auth_darwin (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
   - shared_preferences_foundation (0.0.1):
@@ -18,8 +23,10 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_contacts (from `.symlinks/plugins/flutter_contacts/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
+  - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
   - local_auth_darwin (from `.symlinks/plugins/local_auth_darwin/darwin`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
 
 EXTERNAL SOURCES:
@@ -29,10 +36,14 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_contacts/ios"
   flutter_local_notifications:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
+  flutter_secure_storage:
+    :path: ".symlinks/plugins/flutter_secure_storage/ios"
   geolocator_apple:
     :path: ".symlinks/plugins/geolocator_apple/darwin"
   local_auth_darwin:
     :path: ".symlinks/plugins/local_auth_darwin/darwin"
+  path_provider_foundation:
+    :path: ".symlinks/plugins/path_provider_foundation/darwin"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
 
@@ -40,8 +51,10 @@ SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_contacts: 5383945387e7ca37cf963d4be57c21f2fc15ca9f
   flutter_local_notifications: a5a732f069baa862e728d839dd2ebb904737effb
+  flutter_secure_storage: 1ed9476fba7e7a782b22888f956cce43e2c62f13
   geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e
   local_auth_darwin: 553ce4f9b16d3fdfeafce9cf042e7c9f77c1c391
+  path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
 
 PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
