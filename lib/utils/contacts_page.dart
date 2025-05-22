@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:safe_return/pages/settings_page.dart';
 import 'package:safe_return/utils/stored_settings.dart';
 import 'package:safe_return/utils/persons.dart';
 
@@ -33,7 +34,8 @@ class _ContactsPageState extends State<ContactsPage> {
         ],
         title: Text("Emergency contacts"),
       ),
-      //todo bottomNavigationBar: BottomAppBar(),
+      //TODO bottomNavigationBar: BottomAppBar(), not sure if to keep this anymore
+      //TODO add an edit button or something so the user has another way to delete the contacts since swiping is too intuitive
       body: Column(
         children: <Widget>[
           SizedBox(
@@ -101,12 +103,13 @@ class _ContactsPageState extends State<ContactsPage> {
               () {
                 Person.persons.add(Person(contact.displayName, phone.number));
                 StoredSettings.save(personList: Person.persons);
+                SettingsState.sendPersonsList;
               },
             );
           }
         }
       }
-      setState(() {});
+      setState(() {}); //TODO remove this, not sure if it even helps.
     }
   }
 }

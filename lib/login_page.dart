@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:safe_return/main.dart';
 import 'package:http/http.dart' as http;
@@ -28,6 +29,7 @@ class LoginPageState extends State<LoginPage> {
   static String password = "";
   static String email = "";
   static bool isLoggedIn = false;
+  static final passwordLength = password.length;
 
   @override
   void dispose() {
@@ -95,15 +97,16 @@ class LoginPageState extends State<LoginPage> {
                   style: ElevatedButton.styleFrom(
                       minimumSize: Size(150, 40),
                       textStyle: TextStyle(fontSize: 17)),
-                  onPressed: _login,
+                  onPressed: () {
+                    _login;
+                  },
                   child: Text("Login"),
                 ),
                 SizedBox(height: 10),
                 CupertinoButton(
                   padding: EdgeInsets.all(0),
                   onPressed: () {
-                    resetLoginForms();
-                    noAccount();
+                    signUp();
                   },
                   child: Text(
                     "No account? Create one here!",
@@ -151,11 +154,8 @@ class LoginPageState extends State<LoginPage> {
     );
   }
 
-  void resetLoginForms() {
+  void signUp() {
     _formKey.currentState?.reset();
-  }
-
-  void noAccount() {
     Navigator.push(
         context,
         CupertinoPageRoute(
@@ -167,15 +167,15 @@ class LoginPageState extends State<LoginPage> {
     if (_formKey.currentState!.validate()) {
       email = emailController.text;
       password = passwordController.text;
-      await SecureStorage.write(password: password);
-      await SecureStorage.read();
-      // print(email);
-      // print(password);
+      await SecureStorage.writePassword(password);
+      await SecureStorage
+          .readPassword(); //TODO not sure if i need to remove this :)
 
       if (ip.isNotEmpty) {
         StoredSettings.save(userEmail: email);
         final response = await http.post(
-            Uri.parse("http://$ip/signUp"), //. change this to /logIn endpoint
+            Uri.parse(
+                "http://$ip/signUp"), //. TODO change this to /logIn endpoint
             body: {"email": email, "password": password});
         if (response.statusCode == 200) {
           isLoggedIn = true;
@@ -184,6 +184,8 @@ class LoginPageState extends State<LoginPage> {
             Navigator.pushReplacement(
                 context, MaterialPageRoute(builder: (context) => HomeScreen()));
           }
+
+          password = "";
         } else {
           print("error: code ${response.statusCode}");
         }
@@ -213,6 +215,7 @@ class SignUpState extends State<SignUp> {
   static String newPassword = "";
   static String newEmail = "";
   static String confirmPassword = "";
+  static String emailCode = "";
 
   @override
   void dispose() {
@@ -305,7 +308,7 @@ class SignUpState extends State<SignUp> {
                     // if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(value)) {
                     //   return 'Include at least one special character';
                     // }
-                    //todo decide whether to require special symbol in password or not
+                    //TODO decide whether to require special symbol in password or not
                     if (value.contains(' ')) {
                       return 'No spaces allowed';
                     }
@@ -358,10 +361,7 @@ class SignUpState extends State<SignUp> {
           firstName = firstNcontroller.text;
           lastName = lastNcontroller.text;
           StoredSettings.save(
-              newEmail: newEmail,
-              newPassword: newPassword,
-              firstName: firstName,
-              lastName: lastName);
+              newEmail: newEmail, firstName: firstName, lastName: lastName);
           emailVerification();
         },
       );
@@ -421,11 +421,11 @@ class SignUpState extends State<SignUp> {
                     },
                     appContext: context,
                     length: 6,
-                    onChanged: (value) {
-                      print(value);
-                    },
+                    onChanged: (value) {},
                     onCompleted: (value) {
                       print("Completed: $value");
+                      emailCode = value;
+                      print(emailCode);
                     },
                     pinTheme: PinTheme(
                       shape: PinCodeFieldShape.box,
@@ -448,13 +448,9 @@ class SignUpState extends State<SignUp> {
                 SizedBox(height: 20),
                 ElevatedButton(
                     style: ElevatedButton.styleFrom(minimumSize: Size(160, 40)),
-                    onPressed: () async {
-                      sendNewAccountData(
-                        () {
+                    onPressed: () async => sendNewAccountData(() {
                           Navigator.popUntil(context, (route) => route.isFirst);
-                        },
-                      );
-                    },
+                        }),
                     child: Text(
                       "Verify",
                       style: TextStyle(fontSize: 18),
@@ -481,10 +477,11 @@ class SignUpState extends State<SignUp> {
         'lastName': lastName,
         'email': newEmail,
         'password': newPassword,
+        'emailCode': emailCode,
       },
     );
     if (response.statusCode == 200) {
-      //todo get tokens
+      //TODO get tokens
       print(
           "email not in use - successful authorizatoin: ${response.statusCode}");
       if200();
@@ -497,6 +494,8 @@ class SignUpState extends State<SignUp> {
     } else {
       print("internal server error :) ${response.statusCode}");
     }
+    newPassword = "";
+    emailCode = "";
   }
 
   Future<void> sendEmailUseCheck(if200) async {
@@ -509,7 +508,7 @@ class SignUpState extends State<SignUp> {
       },
     );
     if (response.statusCode == 200) {
-      //todo get tokens
+      //TODO get tokens
       print("sign up successful: ${response.statusCode}");
       if200();
     } else if (response.statusCode == 401) {

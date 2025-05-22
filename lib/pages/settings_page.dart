@@ -6,6 +6,8 @@
 //. Fix the code
 
 //import files
+import 'dart:math';
+
 import 'package:safe_return/utils/contacts_page.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
@@ -143,7 +145,7 @@ class SettingsState extends State<Settings> {
                   leading: Icon(Icons.notifications),
                   onTap: () {
                     NotiService().notHomeNotif();
-                    sendCallHTTP();
+                    sendPersonsList(); //TODO remove this in production, only for debugging so far, no point in having it for test notif
                   },
                 ),
               ],
@@ -155,6 +157,10 @@ class SettingsState extends State<Settings> {
   }
 
   accountSettings() {
+    int randomInRange(int min, int max) {
+      return Random().nextInt(max - min + 1) + min;
+    }
+
     // go to user account settings
     Navigator.push(
       context,
@@ -214,7 +220,11 @@ class SettingsState extends State<Settings> {
                         ),
                         ListTile(
                           title: LoginPageState.password.isNotEmpty
-                              ? Text('\u2022' * LoginPageState.password.length)
+                              ? Text(
+                                  '\u2022' *
+                                      (randomInRange(0, 4) +
+                                          LoginPageState.passwordLength),
+                                )
                               : Text(
                                   "No password set",
                                   style: TextStyle(
@@ -602,15 +612,13 @@ class SettingsState extends State<Settings> {
     );
   }
 
-  Future<void> sendCallHTTP() async {
-    const serverUrl = String.fromEnvironment("IP");
-    final serverResponse = await http.post(
-      //TODO fix to correct endpoint?
-      Uri.parse(serverUrl),
-      //TODO remove this?
-      // headers: {'Content-Type': 'application/json'},
-      body: json.encode({'phoneandname': Person.persons}),
-    );
+  static Future<void> sendPersonsList() async {
+    Person.encodePerson(Person.persons);
+    const ip = String.fromEnvironment("IP");
+    Uri url = Uri.parse(
+        'http://$ip/auth/verify-email'); //TODO fix to correct endpoint
+    final serverResponse =
+        await http.post(url, body: {'personsList': Person.encodedPersonString});
 
     if (serverResponse.statusCode == 200) {
       print(

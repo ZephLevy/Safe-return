@@ -17,7 +17,6 @@ class StoredSettings {
     String? userEmail,
     bool? isLoggedIn,
     String? newEmail,
-    String? newPassword,
     String? firstName,
     String? lastName,
   }) async {
@@ -42,9 +41,6 @@ class StoredSettings {
     }
     if (newEmail != null) {
       await asyncPrefs.setString('newEmail', newEmail);
-    }
-    if (newPassword != null) {
-      await asyncPrefs.setString('newPassword', newPassword);
     }
     if (firstName != null) {
       await asyncPrefs.setString('firstName', firstName);
@@ -71,7 +67,6 @@ class StoredSettings {
     final String zUserEmail = await asyncPrefs.getString('userEmail') ?? "";
     final bool zIsLoggedIn = await asyncPrefs.getBool('isLoggedIn') ?? false;
     final String zNewEmail = await asyncPrefs.getString('newEmail') ?? "";
-    final String zNewPassword = await asyncPrefs.getString('newPassword') ?? "";
     final String zFirstName = await asyncPrefs.getString('firstName') ?? "";
     final String zLastName = await asyncPrefs.getString('lastName') ?? "";
 
@@ -81,7 +76,6 @@ class StoredSettings {
     LoginPageState.email = zUserEmail;
     LoginPageState.isLoggedIn = zIsLoggedIn;
     SignUpState.newEmail = zNewEmail;
-    SignUpState.newPassword = zNewPassword;
     SignUpState.firstName = zFirstName;
     SignUpState.lastName = zLastName;
   }
@@ -96,7 +90,7 @@ class StoredSettings {
     LoginPageState.password = "";
     LoginPageState.isLoggedIn = false;
     SignUpState.newEmail = "";
-    SignUpState.newPassword = "";
+    SignUpState.newPassword = ""; //TODO not sure to keep this
     SignUpState.firstName = "";
     SignUpState.lastName = "";
   }
