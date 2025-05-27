@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:safe_return/utils/sos_manager.dart';
 
 class SecureStorage {
   //initialize
@@ -11,15 +12,15 @@ class SecureStorage {
       const AndroidOptions(encryptedSharedPreferences: true);
 
 //storage
-  static Future<void> writePassword(password) async {
-    if (password.length > 50) {
-      throw Exception("Value too long for secure storage");
-    }
-    await storage.write(key: 'password', value: password);
+  static Future<void> writeCodes({String? realCode, String? decoyCode}) async {
+    await storage.write(key: 'real', value: realCode);
+    await storage.write(key: 'decoy', value: decoyCode);
   }
 
-  static Future<void> readPassword() async {
-    String? password = await storage.read(key: 'password');
-    print("read: $password");
+  static Future<void> readCodes() async {
+    SosManager.secretCode = await storage.read(key: 'real');
+    SosManager.fakeCode = await storage.read(key: 'decoy');
+    print("read: ${SosManager.secretCode}");
+    print("read: ${SosManager.fakeCode}");
   }
 }

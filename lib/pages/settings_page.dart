@@ -8,6 +8,7 @@
 //import files
 import 'dart:math';
 
+import 'package:local_auth/error_codes.dart';
 import 'package:safe_return/utils/contacts_page.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
@@ -157,10 +158,6 @@ class SettingsState extends State<Settings> {
   }
 
   accountSettings() {
-    int randomInRange(int min, int max) {
-      return Random().nextInt(max - min + 1) + min;
-    }
-
     // go to user account settings
     Navigator.push(
       context,
@@ -221,9 +218,7 @@ class SettingsState extends State<Settings> {
                         ListTile(
                           title: LoginPageState.password.isNotEmpty
                               ? Text(
-                                  '\u2022' *
-                                      (randomInRange(0, 4) +
-                                          LoginPageState.passwordLength),
+                                  '\u2022' * (LoginPageState.passwordLength),
                                 )
                               : Text(
                                   "No password set",

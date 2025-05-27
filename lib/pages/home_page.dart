@@ -171,6 +171,7 @@ class TimeSetButton extends StatefulWidget {
 
 class TimeSetButtonState extends State<TimeSetButton> {
   bool isSelected = false;
+  bool timeIsSet = false;
   DateTime date = DateTime.now();
   static int codeAttempts = 3;
 
@@ -183,7 +184,7 @@ class TimeSetButtonState extends State<TimeSetButton> {
         child: GestureDetector(
           onTap: () {
             setState(() {
-              isSelected = true;
+              !isSelected;
             });
             Future.delayed(
               Duration(seconds: 5),
@@ -220,6 +221,9 @@ class TimeSetButtonState extends State<TimeSetButton> {
                 ),
               );
             } else if (!timesAreDifferent || !codesNull) {
+              setState(() {
+                isSelected = false;
+              });
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Center(
@@ -245,7 +249,7 @@ class TimeSetButtonState extends State<TimeSetButton> {
           },
           onTapUp: (details) {
             setState(() {
-              isSelected = true;
+              !isSelected;
             });
           },
           onTapCancel: () {
@@ -266,7 +270,7 @@ class TimeSetButtonState extends State<TimeSetButton> {
             child: SizedBox.expand(
               child: Center(
                 child: Text(
-                  isSelected ? 'Cancel' : 'Set',
+                  isSelected ? 'Update time' : 'Set time',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,

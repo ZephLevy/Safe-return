@@ -16,7 +16,6 @@ class StoredSettings {
     bool? biometricsValue,
     String? userEmail,
     bool? isLoggedIn,
-    String? newEmail,
     String? firstName,
     String? lastName,
   }) async {
@@ -39,9 +38,6 @@ class StoredSettings {
     if (isLoggedIn != null) {
       await asyncPrefs.setBool('isLoggedIn', isLoggedIn);
     }
-    if (newEmail != null) {
-      await asyncPrefs.setString('newEmail', newEmail);
-    }
     if (firstName != null) {
       await asyncPrefs.setString('firstName', firstName);
     }
@@ -51,9 +47,9 @@ class StoredSettings {
   }
 
   static Future<void> loadAll() async {
-    final String storedEncodedPersonString =
+    final String zEncodedPersonString =
         await asyncPrefs.getString('persons') ?? "";
-    Person.encodedPersonString = storedEncodedPersonString;
+    Person.encodedPersonString = zEncodedPersonString;
 
     Person.encodedPersonString.isNotEmpty
         ? Person.decodePerson(
@@ -66,7 +62,6 @@ class StoredSettings {
         await asyncPrefs.getBool('biometrics') ?? false;
     final String zUserEmail = await asyncPrefs.getString('userEmail') ?? "";
     final bool zIsLoggedIn = await asyncPrefs.getBool('isLoggedIn') ?? false;
-    final String zNewEmail = await asyncPrefs.getString('newEmail') ?? "";
     final String zFirstName = await asyncPrefs.getString('firstName') ?? "";
     final String zLastName = await asyncPrefs.getString('lastName') ?? "";
 
@@ -75,13 +70,14 @@ class StoredSettings {
     biometricsValue = zBiometricsValue;
     LoginPageState.email = zUserEmail;
     LoginPageState.isLoggedIn = zIsLoggedIn;
-    SignUpState.newEmail = zNewEmail;
     SignUpState.firstName = zFirstName;
     SignUpState.lastName = zLastName;
   }
 
   static Future<void> logOut() async {
     await asyncPrefs.clear();
+    SosManager.fakeCode = "";
+    SosManager.secretCode = "";
     Person.encodedPersonString = "";
     selectedIndex = 1;
     SosManager.clickN = selectedIndex + 1;
@@ -90,7 +86,7 @@ class StoredSettings {
     LoginPageState.password = "";
     LoginPageState.isLoggedIn = false;
     SignUpState.newEmail = "";
-    SignUpState.newPassword = ""; //TODO not sure to keep this
+    SignUpState.newPassword = ""; //TODO not sure to keep this, just for safety
     SignUpState.firstName = "";
     SignUpState.lastName = "";
   }

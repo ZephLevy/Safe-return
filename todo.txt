@@ -1,0 +1,31 @@
+app flow:
+	on first install w/out account:
+	login page appears
+	if user needs to create account, they click the "no account? create account" button
+	when all fields completed, and "create account" is clicked, http request to check if email is already in use.
+	if not in use, the server sends a one-time email code to the user via email.
+	user inputs the code, and when the "verify" button is clicked, the app sends the all the user account info to the server. server handles that then.
+	if all good (status code 200), app pushes back to login page.
+	all data is wiped.
+
+	on first install w/ account:
+	login page appears
+	user inputs their email and password.
+	those are sent to the server as strings
+	the server checks if they are correct
+	if correct, wipe all info inserted
+	server sends back all the needed variables, like emergency contacts, or account info.
+	server also sends password length (+- 3 i think) ( its probably better the server handles this rather than the app)
+	those are stored in sharedprefs
+	ONLY the decoy and real passwords are written in secure storage
+
+	on daily usage:
+	app opens on required passcode page
+	it reads the password, and checks if it's correct.
+	in the view passcodes page, it send https request to server to be able to see the codes
+
+
+	REMOVE EMAIL USE CHECK AFTER THE EMAIL HAS ALREADY BEEN CHECKED - IT THINKS THE EMAIL IS ALREADY IN USE
+ok i just commented it out, but it still thinks that there is one or more values null when i click verify which i checked arent null
+
+throw exceptions when connection refuses, with ui saying no internet or smth

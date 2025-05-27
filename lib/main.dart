@@ -99,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const List<String> titles = ["Safe Return", "Map", "Settings"];
 
     return AppBar(
+      automaticallyImplyLeading: false,
       title: Text(
         titles[_selectedIndex],
         style: TextStyle(

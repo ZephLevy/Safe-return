@@ -27,7 +27,7 @@ class CheckCodes {
           'Select how long you would like to delay your "Be Back Home By" time.',
       category: NotificationDetails(),
     );
-    TimeSetButtonState.codeAttempts = 3; //todo replace 3 with user custom
+    TimeSetButtonState.codeAttempts = 3; //TODO replace 3 with user custom
   }
 
   void decoyCode() {

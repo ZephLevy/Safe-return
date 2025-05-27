@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:safe_return/secure_storage.dart';
 import 'package:safe_return/utils/stored_settings.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import 'dart:math';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -29,7 +30,7 @@ class LoginPageState extends State<LoginPage> {
   static String password = "";
   static String email = "";
   static bool isLoggedIn = false;
-  static final passwordLength = password.length;
+  static int passwordLength = 0;
 
   @override
   void dispose() {
@@ -49,6 +50,7 @@ class LoginPageState extends State<LoginPage> {
               onPressed: () {
                 skipLoginAlert(
                   () {
+                    StoredSettings.logOut();
                     Navigator.pushReplacement(context,
                         MaterialPageRoute(builder: (context) => HomeScreen()));
                   },
@@ -167,25 +169,32 @@ class LoginPageState extends State<LoginPage> {
     if (_formKey.currentState!.validate()) {
       email = emailController.text;
       password = passwordController.text;
-      await SecureStorage.writePassword(password);
-      await SecureStorage
-          .readPassword(); //TODO not sure if i need to remove this :)
 
       if (ip.isNotEmpty) {
         StoredSettings.save(userEmail: email);
         final response = await http.post(
-            Uri.parse(
-                "http://$ip/signUp"), //. TODO change this to /logIn endpoint
-            body: {"email": email, "password": password});
+          Uri.parse("http://$ip/logIn"),
+          body: {
+            "email": email,
+            "password": password,
+          },
+        );
         if (response.statusCode == 200) {
+          int randomInRange(int min, int max) {
+            return Random().nextInt(max - min + 1) + min;
+          }
+
+          if (password.isNotEmpty) {
+            passwordLength =
+                randomInRange(1, 5) + (LoginPageState.password.length);
+          }
+          password = "";
           isLoggedIn = true;
           StoredSettings.save(isLoggedIn: isLoggedIn);
           if (mounted) {
             Navigator.pushReplacement(
                 context, MaterialPageRoute(builder: (context) => HomeScreen()));
           }
-
-          password = "";
         } else {
           print("error: code ${response.statusCode}");
         }
@@ -305,10 +314,6 @@ class SignUpState extends State<SignUp> {
                     if (value.length > 50) {
                       return 'Password must be under 50 characters';
                     }
-                    // if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(value)) {
-                    //   return 'Include at least one special character';
-                    // }
-                    //TODO decide whether to require special symbol in password or not
                     if (value.contains(' ')) {
                       return 'No spaces allowed';
                     }
@@ -354,14 +359,13 @@ class SignUpState extends State<SignUp> {
 
   void signUp() {
     if (signUpformKey.currentState!.validate()) {
+      newEmail = newEmailController.text;
       sendEmailUseCheck(
         () {
           SignUpState.newEmail = newEmailController.text;
           SignUpState.newPassword = newPasswordController.text;
           firstName = firstNcontroller.text;
           lastName = lastNcontroller.text;
-          StoredSettings.save(
-              newEmail: newEmail, firstName: firstName, lastName: lastName);
           emailVerification();
         },
       );
@@ -448,9 +452,11 @@ class SignUpState extends State<SignUp> {
                 SizedBox(height: 20),
                 ElevatedButton(
                     style: ElevatedButton.styleFrom(minimumSize: Size(160, 40)),
-                    onPressed: () async => sendNewAccountData(() {
-                          Navigator.popUntil(context, (route) => route.isFirst);
-                        }),
+                    onPressed: () async {
+                      sendNewAccountData(() {
+                        Navigator.popUntil(context, (route) => route.isFirst);
+                      });
+                    },
                     child: Text(
                       "Verify",
                       style: TextStyle(fontSize: 18),
@@ -480,10 +486,20 @@ class SignUpState extends State<SignUp> {
         'emailCode': emailCode,
       },
     );
+    print(newEmail);
+    print(firstName);
+    print(lastName);
+    print(newPassword);
+    print(emailCode);
     if (response.statusCode == 200) {
+      print(newEmail);
+      firstName = "";
+      lastName = "";
+      newEmail = "";
+      newPassword = "";
+      emailCode = "";
       //TODO get tokens
-      print(
-          "email not in use - successful authorizatoin: ${response.statusCode}");
+      print("successful verification code: ${response.statusCode}");
       if200();
     } else if (response.statusCode == 400) {
       print("one or more values are null");
@@ -494,8 +510,6 @@ class SignUpState extends State<SignUp> {
     } else {
       print("internal server error :) ${response.statusCode}");
     }
-    newPassword = "";
-    emailCode = "";
   }
 
   Future<void> sendEmailUseCheck(if200) async {
@@ -507,9 +521,10 @@ class SignUpState extends State<SignUp> {
         'email': newEmail,
       },
     );
+    print(newEmail);
     if (response.statusCode == 200) {
       //TODO get tokens
-      print("sign up successful: ${response.statusCode}");
+      print("email not in use, successful: ${response.statusCode}");
       if200();
     } else if (response.statusCode == 401) {
       print("one or more values are null");
