@@ -45,6 +45,8 @@ dependencies:
   local_auth: ^2.3.0
   pin_code_fields: ^8.0.1
   flutter_secure_storage: ^9.2.4
+  auto_size_text: ^3.0.0
+  circular_countdown_timer: ^0.2.4
   
 
 dev_dependencies:

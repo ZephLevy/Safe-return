@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
@@ -10,6 +11,7 @@ import 'package:safe_return/Visuals/palette.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
+import 'package:circular_countdown_timer/circular_countdown_timer.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -24,66 +26,95 @@ class HomePage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          _timeSetter(),
+          Stack(
+            children: [
+              _bhb(),
+              Container(
+                margin: EdgeInsets.all(8),
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Palette.blue1,
+                    width: 1.5,
+                  ),
+                ),
+                child:
+                    TimeSetButtonState.isCancelable ? _timer() : _timeSetter(),
+              )
+            ],
+          ),
           TimeSetButton(),
         ],
       ),
     );
   }
 
-  Widget _timeSetter() {
-    return Stack(
-      children: [
-        Container(
-          margin: EdgeInsets.all(8),
-          padding: EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Palette.blue1,
-              width: 1.5,
-            ),
-          ),
-          child: Center(
-            child: Text(
-              'Be Home By:',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+  Widget _bhb() {
+    return Container(
+      margin: EdgeInsets.all(8),
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Palette.blue1,
+          width: 1.5,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          'Be Home By:',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
           ),
         ),
-        Container(
-          margin: EdgeInsets.all(8),
-          padding: EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Palette.blue1,
-              width: 1.5,
-            ),
+      ),
+    );
+  }
+
+  Widget _timeSetter() {
+    return SizedBox(
+      width: double.infinity,
+      height: 200,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: SizedBox(
+          width: double.infinity,
+          height: 150,
+          child: CupertinoDatePicker(
+            onDateTimeChanged: (value) {
+              TimeManager.selectedTime = value;
+            },
+            mode: CupertinoDatePickerMode.time,
+            use24hFormat: true,
           ),
-          child: SizedBox(
-            width: double.infinity,
-            height: 200,
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: SizedBox(
-                width: double.infinity,
-                height: 150,
-                child: CupertinoDatePicker(
-                  onDateTimeChanged: (value) {
-                    TimeManager.selectedTime = value;
-                  },
-                  mode: CupertinoDatePickerMode.time,
-                  use24hFormat: true,
-                ),
-              ),
-            ),
-          ),
-        )
-      ],
+        ),
+      ),
+    );
+  }
+
+  Widget _timer() {
+    final CountDownController _timerController = CountDownController();
+    return SizedBox(
+      height: 200,
+      child: Center(
+        child: CircularCountDownTimer(
+          duration: 10,
+          initialDuration: 0,
+          controller: _timerController,
+          width: 150,
+          height: 150,
+          fillColor: Colors.grey,
+          ringColor: Colors.orange,
+          backgroundColor: Colors.white,
+          strokeWidth: 10,
+          strokeCap: StrokeCap.round,
+          textStyle: TextStyle(fontSize: 24),
+          isReverse: true,
+          isReverseAnimation: true,
+        ),
+      ),
     );
   }
 
@@ -170,118 +201,205 @@ class TimeSetButton extends StatefulWidget {
 }
 
 class TimeSetButtonState extends State<TimeSetButton> {
-  bool isSelected = false;
+  static bool isCancelable = false;
+  bool validTime = false;
+  bool updateSelected = false;
+  bool startSelected = false;
   bool timeIsSet = false;
   DateTime date = DateTime.now();
   static int codeAttempts = 3;
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double adjustedScreenWidth = screenWidth - (8 * 2);
+    double spaceBetweenButtons = adjustedScreenWidth / 10;
     return SizedBox(
       height: 60,
-      width: double.infinity,
-      child: Material(
-        child: GestureDetector(
-          onTap: () {
-            setState(() {
-              !isSelected;
-            });
-            Future.delayed(
-              Duration(seconds: 5),
-              () async {
-                if (TimeManager.selectedTime != null) {
-                  setState(
-                    () {
-                      date = TimeManager.selectedTime!;
-                      codeAttempts = 3;
-                    },
-                  );
-                  _scheduleCheck();
-                  HapticFeedback.mediumImpact();
-                }
-              },
-            );
-
-            // This makes me not want to open source this project purely out of shame
-            var timesAreDifferent = (TimeManager.selectedTime != null)
-                ? !((TimeManager.selectedTime!.hour == DateTime.now().hour &&
-                    (TimeManager.selectedTime!.minute ==
-                        DateTime.now().minute)))
-                : false;
-            bool codesNull =
-                SosManager.fakeCode == null || SosManager.secretCode == null;
-
-            if (TimeManager.selectedTime != null &&
-                timesAreDifferent &&
-                !codesNull) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: SnackBarContent(),
-                  duration: Duration(seconds: 5, milliseconds: 100),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Row(
+          children: [
+            //The left button - to update the time
+            Material(
+                child: IgnorePointer(
+              ignoring: !isCancelable,
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    updateSelected = !updateSelected;
+                  });
+                  checkValidTime(context);
+                },
+                onTapDown: (details) {
+                  setState(() {
+                    updateSelected = true;
+                  });
+                },
+                onTapUp: (details) {
+                  setState(() {
+                    updateSelected = !updateSelected;
+                  });
+                },
+                onTapCancel: () {
+                  setState(() {
+                    updateSelected = false;
+                  });
+                },
+                child: Stack(
+                  children: [
+                    Container(
+                      width:
+                          (adjustedScreenWidth / 2) - (spaceBetweenButtons / 2),
+                      margin: EdgeInsets.all(0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Palette.blue1,
+                          width: 1.5,
+                        ),
+                        color: (updateSelected ? Palette.blue3 : Palette.blue4),
+                      ),
+                      child: Center(
+                        child: AutoSizeText(
+                          "Update Time",
+                          maxLines: 2,
+                          minFontSize: 14,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width:
+                          (adjustedScreenWidth / 2) - (spaceBetweenButtons / 2),
+                      decoration: BoxDecoration(
+                          color: isCancelable
+                              ? Colors.transparent
+                              : Colors.white30),
+                    )
+                  ],
                 ),
-              );
-            } else if (!timesAreDifferent || !codesNull) {
-              setState(() {
-                isSelected = false;
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Center(
-                    child: Text("Please select a time that is not now!"),
+              ),
+            )),
+            SizedBox(width: spaceBetweenButtons),
+            //Right button - to start and cancel the time
+            Material(
+              child: GestureDetector(
+                onTap: () {
+                  checkValidTime(context);
+                },
+                onTapDown: (details) {
+                  setState(() {
+                    startSelected = true;
+                  });
+                },
+                onTapUp: (details) {
+                  setState(() {
+                    validTime ? startSelected = true : startSelected = false;
+                  });
+                },
+                onTapCancel: () {
+                  setState(() {
+                    !isCancelable
+                        ? startSelected = false
+                        : startSelected = true;
+                  });
+                },
+                child: Container(
+                  width: (adjustedScreenWidth / 2) - (spaceBetweenButtons / 2),
+                  margin: EdgeInsets.all(0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Palette.blue1,
+                      width: 1.5,
+                    ),
+                    color: startSelected ? Palette.blue3 : Palette.blue4,
                   ),
-                ),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Center(
+                  child: Center(
                     child: Text(
-                        "Please configure your codes in the settings page"),
-                  ),
-                ),
-              );
-            }
-          },
-          onTapDown: (details) {
-            setState(() {
-              isSelected = true;
-            });
-          },
-          onTapUp: (details) {
-            setState(() {
-              !isSelected;
-            });
-          },
-          onTapCancel: () {
-            setState(() {
-              isSelected = false;
-            });
-          },
-          child: Container(
-            margin: EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Palette.blue1,
-                width: 1.5,
-              ),
-              color: isSelected ? Palette.blue3 : Palette.blue4,
-            ),
-            child: SizedBox.expand(
-              child: Center(
-                child: Text(
-                  isSelected ? 'Update time' : 'Set time',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
+                      startSelected ? 'Cancel' : 'Set Time',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
+  }
+
+  void checkValidTime(BuildContext context) {
+    Future.delayed(
+      Duration(seconds: 5),
+      () async {
+        if (TimeManager.selectedTime != null) {
+          setState(
+            () {
+              date = TimeManager.selectedTime!;
+              codeAttempts = 3;
+            },
+          );
+          _scheduleCheck();
+          HapticFeedback.mediumImpact();
+        }
+      },
+    );
+
+    // This makes me not want to open source this project purely out of shame
+    var timesAreDifferent = (TimeManager.selectedTime != null)
+        ? !((TimeManager.selectedTime!.hour == DateTime.now().hour &&
+            (TimeManager.selectedTime!.minute == DateTime.now().minute)))
+        : false;
+    bool codesNull =
+        SosManager.fakeCode == null || SosManager.secretCode == null;
+
+    validTimecheck(timesAreDifferent, codesNull, context);
+  }
+
+  void validTimecheck(
+      bool timesAreDifferent, bool codesNull, BuildContext context) {
+    if (TimeManager.selectedTime != null && timesAreDifferent && !codesNull) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: SnackBarContent(),
+          duration: Duration(seconds: 5, milliseconds: 100),
+        ),
+      );
+      setState(() {
+        isCancelable = true;
+        validTime = true;
+        validTime ? startSelected = true : startSelected = false;
+      });
+    } else if (!timesAreDifferent || !codesNull) {
+      setState(() {
+        validTime = false;
+        startSelected = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Center(
+            child: Text("Please select a time that is not now!"),
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Center(
+            child: Text("Please configure your codes in the settings page"),
+          ),
+        ),
+      );
+    }
   }
 
   void _scheduleCheck() {
