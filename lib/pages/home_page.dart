@@ -22,97 +22,16 @@ class HomePage extends StatelessWidget {
       floatingActionButton: SosButton(
         onTap: () => sosClicked(),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Stack(
-            children: [
-              _bhb(),
-              Container(
-                margin: EdgeInsets.all(8),
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Palette.blue1,
-                    width: 1.5,
-                  ),
-                ),
-                child:
-                    TimeSetButtonState.isCancelable ? _timer() : _timeSetter(),
-              )
-            ],
-          ),
-          TimeSetButton(),
-        ],
-      ),
-    );
-  }
-
-  Widget _bhb() {
-    return Container(
-      margin: EdgeInsets.all(8),
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Palette.blue1,
-          width: 1.5,
-        ),
-      ),
-      child: Center(
-        child: Text(
-          'Be Home By:',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _timeSetter() {
-    return SizedBox(
-      width: double.infinity,
-      height: 200,
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: SizedBox(
-          width: double.infinity,
-          height: 150,
-          child: CupertinoDatePicker(
-            onDateTimeChanged: (value) {
-              TimeManager.selectedTime = value;
-            },
-            mode: CupertinoDatePickerMode.time,
-            use24hFormat: true,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _timer() {
-    final CountDownController _timerController = CountDownController();
-    return SizedBox(
-      height: 200,
-      child: Center(
-        child: CircularCountDownTimer(
-          duration: 10,
-          initialDuration: 0,
-          controller: _timerController,
-          width: 150,
-          height: 150,
-          fillColor: Colors.grey,
-          ringColor: Colors.orange,
-          backgroundColor: Colors.white,
-          strokeWidth: 10,
-          strokeCap: StrokeCap.round,
-          textStyle: TextStyle(fontSize: 24),
-          isReverse: true,
-          isReverseAnimation: true,
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            TimerAndClock(),
+            SizedBox(height: 8),
+            TimeSetButton(),
+          ],
         ),
       ),
     );
@@ -193,6 +112,115 @@ class _SosButtonState extends State<SosButton> {
   }
 }
 
+class TimerAndClock extends StatefulWidget {
+  const TimerAndClock({super.key});
+
+  @override
+  State<TimerAndClock> createState() => _TimerAndClockState();
+}
+
+class _TimerAndClockState extends State<TimerAndClock> {
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Stack(
+        children: [
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Palette.blue1,
+                width: 1.5,
+              ),
+            ),
+          ),
+          Column(
+            children: [
+              _bhb(),
+              Container(
+                decoration:
+                    BoxDecoration(border: Border.all(color: Colors.green)),
+                child:
+                    TimeSetButtonState.isCancelable ? _timer() : _timeSetter(),
+              )
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _bhb() {
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          // color: Palette.blue1,
+          color: const Color.fromARGB(255, 77, 30, 30),
+          width: 1.5,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          'Be Home By:',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _timeSetter() {
+    return SizedBox(
+      width: double.infinity,
+      height: 200,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: SizedBox(
+          width: double.infinity,
+          height: 150,
+          child: CupertinoDatePicker(
+            onDateTimeChanged: (value) {
+              TimeManager.selectedTime = value;
+            },
+            mode: CupertinoDatePickerMode.time,
+            use24hFormat: true,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _timer() {
+    final CountDownController timerController = CountDownController();
+    return Container(
+      decoration: BoxDecoration(border: Border.all(color: Colors.red)),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: CircularCountDownTimer(
+          duration: 10,
+          initialDuration: 0,
+          controller: timerController,
+          width: 200, //TODO get screen height
+          height: 200,
+          fillColor: Colors.grey,
+          ringColor: Colors.orange,
+          backgroundColor: Colors.white,
+          strokeWidth: 10,
+          strokeCap: StrokeCap.round,
+          textStyle: TextStyle(fontSize: 24),
+          isReverse: true,
+          isReverseAnimation: true,
+        ),
+      ),
+    );
+  }
+}
+
 class TimeSetButton extends StatefulWidget {
   const TimeSetButton({super.key});
 
@@ -216,123 +244,117 @@ class TimeSetButtonState extends State<TimeSetButton> {
     double spaceBetweenButtons = adjustedScreenWidth / 10;
     return SizedBox(
       height: 60,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Row(
-          children: [
-            //The left button - to update the time
-            Material(
-                child: IgnorePointer(
-              ignoring: !isCancelable,
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    updateSelected = !updateSelected;
-                  });
-                  checkValidTime(context);
-                },
-                onTapDown: (details) {
-                  setState(() {
-                    updateSelected = true;
-                  });
-                },
-                onTapUp: (details) {
-                  setState(() {
-                    updateSelected = !updateSelected;
-                  });
-                },
-                onTapCancel: () {
-                  setState(() {
-                    updateSelected = false;
-                  });
-                },
-                child: Stack(
-                  children: [
-                    Container(
-                      width:
-                          (adjustedScreenWidth / 2) - (spaceBetweenButtons / 2),
-                      margin: EdgeInsets.all(0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Palette.blue1,
-                          width: 1.5,
-                        ),
-                        color: (updateSelected ? Palette.blue3 : Palette.blue4),
+      child: Row(
+        children: [
+          //The left button - to update the time
+          Material(
+              child: IgnorePointer(
+            ignoring: !isCancelable,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  updateSelected = !updateSelected;
+                });
+                checkValidTime(context);
+              },
+              onTapDown: (details) {
+                setState(() {
+                  updateSelected = true;
+                });
+              },
+              onTapUp: (details) {
+                setState(() {
+                  updateSelected = !updateSelected;
+                });
+              },
+              onTapCancel: () {
+                setState(() {
+                  updateSelected = false;
+                });
+              },
+              child: Stack(
+                children: [
+                  Container(
+                    width:
+                        (adjustedScreenWidth / 2) - (spaceBetweenButtons / 2),
+                    margin: EdgeInsets.all(0),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Palette.blue1,
+                        width: 1.5,
                       ),
-                      child: Center(
-                        child: AutoSizeText(
-                          "Update Time",
-                          maxLines: 2,
-                          minFontSize: 14,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
+                      color: (updateSelected ? Palette.blue3 : Palette.blue4),
+                    ),
+                    child: Center(
+                      child: AutoSizeText(
+                        "Update Time",
+                        maxLines: 2,
+                        minFontSize: 14,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-                    Container(
-                      width:
-                          (adjustedScreenWidth / 2) - (spaceBetweenButtons / 2),
-                      decoration: BoxDecoration(
-                          color: isCancelable
-                              ? Colors.transparent
-                              : Colors.white30),
-                    )
-                  ],
-                ),
-              ),
-            )),
-            SizedBox(width: spaceBetweenButtons),
-            //Right button - to start and cancel the time
-            Material(
-              child: GestureDetector(
-                onTap: () {
-                  checkValidTime(context);
-                },
-                onTapDown: (details) {
-                  setState(() {
-                    startSelected = true;
-                  });
-                },
-                onTapUp: (details) {
-                  setState(() {
-                    validTime ? startSelected = true : startSelected = false;
-                  });
-                },
-                onTapCancel: () {
-                  setState(() {
-                    !isCancelable
-                        ? startSelected = false
-                        : startSelected = true;
-                  });
-                },
-                child: Container(
-                  width: (adjustedScreenWidth / 2) - (spaceBetweenButtons / 2),
-                  margin: EdgeInsets.all(0),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Palette.blue1,
-                      width: 1.5,
-                    ),
-                    color: startSelected ? Palette.blue3 : Palette.blue4,
                   ),
-                  child: Center(
-                    child: Text(
-                      startSelected ? 'Cancel' : 'Set Time',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  Container(
+                    width:
+                        (adjustedScreenWidth / 2) - (spaceBetweenButtons / 2),
+                    decoration: BoxDecoration(
+                        color:
+                            isCancelable ? Colors.transparent : Colors.white30),
+                  )
+                ],
+              ),
+            ),
+          )),
+          SizedBox(width: spaceBetweenButtons),
+          //Right button - to start and cancel the time
+          Material(
+            child: GestureDetector(
+              onTap: () {
+                checkValidTime(context);
+              },
+              onTapDown: (details) {
+                setState(() {
+                  startSelected = true;
+                });
+              },
+              onTapUp: (details) {
+                setState(() {
+                  validTime ? startSelected = true : startSelected = false;
+                });
+              },
+              onTapCancel: () {
+                setState(() {
+                  !isCancelable ? startSelected = false : startSelected = true;
+                });
+              },
+              child: Container(
+                width: (adjustedScreenWidth / 2) - (spaceBetweenButtons / 2),
+                margin: EdgeInsets.all(0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: Palette.blue1,
+                    width: 1.5,
+                  ),
+                  color: startSelected ? Palette.blue3 : Palette.blue4,
+                ),
+                child: Center(
+                  child: Text(
+                    startSelected ? 'Cancel' : 'Set Time',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
