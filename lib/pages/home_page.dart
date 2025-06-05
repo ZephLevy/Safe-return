@@ -13,6 +13,8 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'package:circular_countdown_timer/circular_countdown_timer.dart';
 
+final ValueNotifier<bool> isCancelableNotifier = ValueNotifier(false);
+
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -119,34 +121,41 @@ class TimerAndClock extends StatefulWidget {
   State<TimerAndClock> createState() => _TimerAndClockState();
 }
 
-class _TimerAndClockState extends State<TimerAndClock> {
+class _TimerAndClockState extends State<TimerAndClock>
+    with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return IntrinsicHeight(
-      child: Stack(
-        children: [
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Palette.blue1,
-                width: 1.5,
+      child: AnimatedSize(
+        duration: Duration(milliseconds: 100),
+        child: Stack(
+          children: [
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Palette.blue1,
+                  width: 1.5,
+                ),
               ),
             ),
-          ),
-          Column(
-            children: [
-              _bhb(),
-              Container(
-                decoration:
-                    BoxDecoration(border: Border.all(color: Colors.green)),
-                child:
-                    TimeSetButtonState.isCancelable ? _timer() : _timeSetter(),
-              )
-            ],
-          ),
-        ],
+            Column(
+              children: [
+                _bhb(),
+                ValueListenableBuilder<bool>(
+                    valueListenable: isCancelableNotifier,
+                    builder: (context, isCancelable, child) {
+                      return Container(
+                        child: isCancelableNotifier.value
+                            ? _timer()
+                            : _timeSetter(),
+                      );
+                    })
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -177,45 +186,35 @@ class _TimerAndClockState extends State<TimerAndClock> {
   Widget _timeSetter() {
     return SizedBox(
       width: double.infinity,
-      height: 200,
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: SizedBox(
-          width: double.infinity,
-          height: 150,
-          child: CupertinoDatePicker(
-            onDateTimeChanged: (value) {
-              TimeManager.selectedTime = value;
-            },
-            mode: CupertinoDatePickerMode.time,
-            use24hFormat: true,
-          ),
-        ),
+      height: 150,
+      child: CupertinoDatePicker(
+        onDateTimeChanged: (value) {
+          TimeManager.selectedTime = value;
+        },
+        mode: CupertinoDatePickerMode.time,
+        use24hFormat: true,
       ),
     );
   }
 
   Widget _timer() {
     final CountDownController timerController = CountDownController();
-    return Container(
-      decoration: BoxDecoration(border: Border.all(color: Colors.red)),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: CircularCountDownTimer(
-          duration: 10,
-          initialDuration: 0,
-          controller: timerController,
-          width: 200, //TODO get screen height
-          height: 200,
-          fillColor: Colors.grey,
-          ringColor: Colors.orange,
-          backgroundColor: Colors.white,
-          strokeWidth: 10,
-          strokeCap: StrokeCap.round,
-          textStyle: TextStyle(fontSize: 24),
-          isReverse: true,
-          isReverseAnimation: true,
-        ),
+    return Padding(
+      padding: const EdgeInsets.all(40),
+      child: CircularCountDownTimer(
+        duration: 10,
+        initialDuration: 0,
+        controller: timerController,
+        width: 200, //TODO get screen height
+        height: 200,
+        fillColor: Colors.grey,
+        ringColor: Colors.orange,
+        backgroundColor: Colors.white,
+        strokeWidth: 10,
+        strokeCap: StrokeCap.round,
+        textStyle: TextStyle(fontSize: 24),
+        isReverse: true,
+        isReverseAnimation: true,
       ),
     );
   }
@@ -229,7 +228,6 @@ class TimeSetButton extends StatefulWidget {
 }
 
 class TimeSetButtonState extends State<TimeSetButton> {
-  static bool isCancelable = false;
   bool validTime = false;
   bool updateSelected = false;
   bool startSelected = false;
@@ -249,7 +247,7 @@ class TimeSetButtonState extends State<TimeSetButton> {
           //The left button - to update the time
           Material(
               child: IgnorePointer(
-            ignoring: !isCancelable,
+            ignoring: !isCancelableNotifier.value,
             child: GestureDetector(
               onTap: () {
                 setState(() {
@@ -302,8 +300,9 @@ class TimeSetButtonState extends State<TimeSetButton> {
                     width:
                         (adjustedScreenWidth / 2) - (spaceBetweenButtons / 2),
                     decoration: BoxDecoration(
-                        color:
-                            isCancelable ? Colors.transparent : Colors.white30),
+                        color: isCancelableNotifier.value
+                            ? Colors.transparent
+                            : Colors.white30),
                   )
                 ],
               ),
@@ -314,7 +313,12 @@ class TimeSetButtonState extends State<TimeSetButton> {
           Material(
             child: GestureDetector(
               onTap: () {
-                checkValidTime(context);
+                print("before: ${isCancelableNotifier.value}");
+                if (isCancelableNotifier.value == true) {
+                  cancelEvent();
+                } else if (isCancelableNotifier.value == false) {
+                  checkValidTime(context);
+                }
               },
               onTapDown: (details) {
                 setState(() {
@@ -328,7 +332,9 @@ class TimeSetButtonState extends State<TimeSetButton> {
               },
               onTapCancel: () {
                 setState(() {
-                  !isCancelable ? startSelected = false : startSelected = true;
+                  !isCancelableNotifier.value
+                      ? startSelected = false
+                      : startSelected = true;
                 });
               },
               child: Container(
@@ -357,6 +363,13 @@ class TimeSetButtonState extends State<TimeSetButton> {
         ],
       ),
     );
+  }
+
+  void cancelEvent() {
+    setState(() {
+      isCancelableNotifier.value = false;
+      startSelected = false;
+    });
   }
 
   void checkValidTime(BuildContext context) {
@@ -397,14 +410,16 @@ class TimeSetButtonState extends State<TimeSetButton> {
         ),
       );
       setState(() {
-        isCancelable = true;
+        print("snackbar: ${isCancelableNotifier.value}");
+        isCancelableNotifier.value = true;
         validTime = true;
-        validTime ? startSelected = true : startSelected = false;
+        startSelected = true;
       });
     } else if (!timesAreDifferent || !codesNull) {
       setState(() {
         validTime = false;
         startSelected = false;
+        isCancelableNotifier.value = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
