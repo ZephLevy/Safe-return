@@ -123,6 +123,8 @@ class TimerAndClock extends StatefulWidget {
 
 class _TimerAndClockState extends State<TimerAndClock>
     with TickerProviderStateMixin {
+  static int? timeUntilInSeconds;
+
   @override
   Widget build(BuildContext context) {
     return IntrinsicHeight(
@@ -184,31 +186,35 @@ class _TimerAndClockState extends State<TimerAndClock>
   }
 
   Widget _timeSetter() {
-    return SizedBox(
-      width: double.infinity,
-      height: 150,
-      child: CupertinoDatePicker(
-        onDateTimeChanged: (value) {
-          TimeManager.selectedTime = value;
-        },
-        mode: CupertinoDatePickerMode.time,
-        use24hFormat: true,
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 20),
+      child: SizedBox(
+        height: 150,
+        child: CupertinoDatePicker(
+          onDateTimeChanged: (value) {
+            TimeManager.selectedTime = value;
+          },
+          mode: CupertinoDatePickerMode.time,
+          use24hFormat: true,
+        ),
       ),
     );
   }
 
   Widget _timer() {
     final CountDownController timerController = CountDownController();
+    timeUntilInSeconds =
+        TimeManager.selectedTime?.difference(TimeManager.now).inSeconds;
     return Padding(
       padding: const EdgeInsets.all(40),
       child: CircularCountDownTimer(
-        duration: 10,
+        duration: timeUntilInSeconds ?? 0,
         initialDuration: 0,
         controller: timerController,
         width: 200, //TODO get screen height
         height: 200,
-        fillColor: Colors.grey,
-        ringColor: Colors.orange,
+        ringColor: Colors.grey,
+        fillColor: Colors.orange,
         backgroundColor: Colors.white,
         strokeWidth: 10,
         strokeCap: StrokeCap.round,
@@ -313,11 +319,11 @@ class TimeSetButtonState extends State<TimeSetButton> {
           Material(
             child: GestureDetector(
               onTap: () {
-                print("before: ${isCancelableNotifier.value}");
                 if (isCancelableNotifier.value == true) {
                   cancelEvent();
                 } else if (isCancelableNotifier.value == false) {
                   checkValidTime(context);
+                  print("duration: ${_TimerAndClockState.timeUntilInSeconds}");
                 }
               },
               onTapDown: (details) {
@@ -372,6 +378,13 @@ class TimeSetButtonState extends State<TimeSetButton> {
     });
   }
 
+  void timerCalculations() {
+    TimeManager.now = DateTime.now();
+    if (TimeManager.selectedTime!.isBefore(TimeManager.now)) {
+      TimeManager.selectedTime?.add(Duration(days: 1));
+    }
+  }
+
   void checkValidTime(BuildContext context) {
     Future.delayed(
       Duration(seconds: 5),
@@ -410,7 +423,6 @@ class TimeSetButtonState extends State<TimeSetButton> {
         ),
       );
       setState(() {
-        print("snackbar: ${isCancelableNotifier.value}");
         isCancelableNotifier.value = true;
         validTime = true;
         startSelected = true;
