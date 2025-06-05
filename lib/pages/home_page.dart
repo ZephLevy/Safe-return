@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_null_comparison
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -123,8 +125,6 @@ class TimerAndClock extends StatefulWidget {
 
 class _TimerAndClockState extends State<TimerAndClock>
     with TickerProviderStateMixin {
-  static int? timeUntilInSeconds;
-
   @override
   Widget build(BuildContext context) {
     return IntrinsicHeight(
@@ -175,7 +175,7 @@ class _TimerAndClockState extends State<TimerAndClock>
       ),
       child: Center(
         child: Text(
-          'Be Home By:',
+          isCancelableNotifier.value ? 'You must be home by:' : 'Be Home By:',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w500,
@@ -203,12 +203,11 @@ class _TimerAndClockState extends State<TimerAndClock>
 
   Widget _timer() {
     final CountDownController timerController = CountDownController();
-    timeUntilInSeconds =
-        TimeManager.selectedTime?.difference(TimeManager.now).inSeconds;
+    TimeManager.timerCalculations();
     return Padding(
       padding: const EdgeInsets.all(40),
       child: CircularCountDownTimer(
-        duration: timeUntilInSeconds ?? 0,
+        duration: TimeManager.timeUntilInSeconds,
         initialDuration: 0,
         controller: timerController,
         width: 200, //TODO get screen height
@@ -323,7 +322,7 @@ class TimeSetButtonState extends State<TimeSetButton> {
                   cancelEvent();
                 } else if (isCancelableNotifier.value == false) {
                   checkValidTime(context);
-                  print("duration: ${_TimerAndClockState.timeUntilInSeconds}");
+                  print("duration: ${TimeManager.timeUntilInSeconds}");
                 }
               },
               onTapDown: (details) {
@@ -375,37 +374,30 @@ class TimeSetButtonState extends State<TimeSetButton> {
     setState(() {
       isCancelableNotifier.value = false;
       startSelected = false;
+      TimeManager.now = DateTime.now();
+      TimeManager.selectedTime = DateTime.now();
     });
-  }
-
-  void timerCalculations() {
-    TimeManager.now = DateTime.now();
-    if (TimeManager.selectedTime!.isBefore(TimeManager.now)) {
-      TimeManager.selectedTime?.add(Duration(days: 1));
-    }
   }
 
   void checkValidTime(BuildContext context) {
     Future.delayed(
       Duration(seconds: 5),
       () async {
-        if (TimeManager.selectedTime != null) {
-          setState(
-            () {
-              date = TimeManager.selectedTime!;
-              codeAttempts = 3;
-            },
-          );
-          _scheduleCheck();
-          HapticFeedback.mediumImpact();
-        }
+        setState(
+          () {
+            date = TimeManager.selectedTime;
+            codeAttempts = 3;
+          },
+        );
+        _scheduleCheck();
+        HapticFeedback.mediumImpact();
       },
     );
 
     // This makes me not want to open source this project purely out of shame
     var timesAreDifferent = (TimeManager.selectedTime != null)
-        ? !((TimeManager.selectedTime!.hour == DateTime.now().hour &&
-            (TimeManager.selectedTime!.minute == DateTime.now().minute)))
+        ? !((TimeManager.selectedTime.hour == DateTime.now().hour &&
+            (TimeManager.selectedTime.minute == DateTime.now().minute)))
         : false;
     bool codesNull =
         SosManager.fakeCode == null || SosManager.secretCode == null;
@@ -415,13 +407,14 @@ class TimeSetButtonState extends State<TimeSetButton> {
 
   void validTimecheck(
       bool timesAreDifferent, bool codesNull, BuildContext context) {
-    if (TimeManager.selectedTime != null && timesAreDifferent && !codesNull) {
+    if (timesAreDifferent && !codesNull) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: SnackBarContent(),
           duration: Duration(seconds: 5, milliseconds: 100),
         ),
       );
+      TimeManager.timerCalculations();
       setState(() {
         isCancelableNotifier.value = true;
         validTime = true;

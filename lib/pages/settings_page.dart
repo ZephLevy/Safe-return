@@ -5,26 +5,19 @@
 //* This is okkkk
 //. Fix the code
 
-//import files
-import 'dart:math';
-
-import 'package:local_auth/error_codes.dart';
-import 'package:safe_return/utils/contacts_page.dart';
-import 'package:safe_return/utils/noti_service.dart';
-import 'package:safe_return/utils/sos_manager.dart';
-import 'package:safe_return/utils/stored_settings.dart';
-import 'package:safe_return/utils/auth_service.dart';
-import 'package:safe_return/utils/persons.dart';
-import 'package:safe_return/login_page.dart';
-
-//import dependency/other packages
-import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:safe_return/Visuals/theme.dart';
+import 'package:safe_return/login_page.dart';
+import 'package:safe_return/utils/auth_service.dart';
+import 'package:safe_return/utils/contacts_page.dart';
+import 'package:safe_return/utils/noti_service.dart';
+import 'package:safe_return/utils/persons.dart';
+import 'package:safe_return/utils/sos_manager.dart';
+import 'package:safe_return/utils/stored_settings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
