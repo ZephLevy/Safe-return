@@ -126,55 +126,128 @@ class TimerAndClock extends StatefulWidget {
 
 class _TimerAndClockState extends State<TimerAndClock>
     with TickerProviderStateMixin {
+  final GlobalKey mainContainerKey = GlobalKey();
+  final GlobalKey bHBkey = GlobalKey();
+  double mainContainerHeight = 0;
+  double bHBHeight = 0;
+  Duration animationDuration = Duration(milliseconds: 200);
+  Curve animationCurve = Curves.easeOut;
+
+  @override
+  void initState() {
+    setState(() {
+      TimeSetButtonState.firstLoad = true;
+    });
+    _getMainContainerHeight();
+    _getBHBHeight();
+
+    super.initState();
+  }
+
+  void _getMainContainerHeight() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final context = mainContainerKey.currentContext;
+      if (context != null) {
+        final box = context.findRenderObject() as RenderBox;
+        if (box.size.height != mainContainerHeight) {
+          setState(() {
+            mainContainerHeight = box.size.height;
+          });
+          print('Container height: $mainContainerHeight');
+        }
+      }
+    });
+  }
+
+  void _getBHBHeight() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final context = bHBkey.currentContext;
+      if (context != null) {
+        final box = context.findRenderObject() as RenderBox;
+        if (box.size.height != bHBHeight) {
+          setState(() {
+            bHBHeight = box.size.height;
+          });
+          print('bhb height: $bHBHeight');
+        }
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return IntrinsicHeight(
-      child: AnimatedSize(
-        duration: Duration(milliseconds: 100),
-        child: Stack(
-          children: [
-            bgBox(),
-            Column(
-              children: [
-                _bhb(),
-                ValueListenableBuilder<bool>(
-                    valueListenable: isCancelableNotifier,
-                    builder: (context, isCancelable, child) {
-                      return Container(
-                        child: isCancelableNotifier.value
-                            ? _timer()
-                            : _timeSetter(),
-                      );
-                    })
-              ],
-            ),
-          ],
-        ),
+    return AnimatedSize(
+      curve: animationCurve,
+      duration: animationDuration,
+      alignment: Alignment.topCenter,
+      child: Stack(
+        children: [
+          bgBox(),
+          Column(
+            children: [
+              _bhb(),
+              ValueListenableBuilder<bool>(
+                  valueListenable: isCancelableNotifier,
+                  builder: (context, isCancelable, child) {
+                    _getMainContainerHeight();
+                    _getBHBHeight();
+
+                    return Container(
+                      key: mainContainerKey,
+                      child:
+                          isCancelableNotifier.value ? _timer() : _timeSetter(),
+                    );
+                  })
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  Container bgBox() {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Palette.blue1,
-          width: 1.5,
+  Widget bgBox() {
+    if (TimeSetButtonState.firstLoad) {
+      return Container(
+        width: double.infinity,
+        height: bHBHeight + mainContainerHeight,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Palette.blue1,
+            width: 1.5,
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      return AnimatedContainer(
+        curve: animationCurve,
+        duration:
+            TimeSetButtonState.firstLoad ? Duration.zero : animationDuration,
+        width: double.infinity,
+        height: bHBHeight + mainContainerHeight,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Palette.blue1,
+            width: 1.5,
+          ),
+        ),
+      );
+    }
   }
 
   Widget _bhb() {
+    double screenHeight = ScreenLogic.screenHeight(context);
+    double bhbHeight = ((52.75 * screenHeight) / 852);
+
     return Container(
+      key: bHBkey,
+      height: bhbHeight,
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          // color: Palette.blue1,
-          color: const Color.fromARGB(255, 77, 30, 30),
+          color: Palette.blue1,
           width: 1.5,
         ),
       ),
@@ -238,6 +311,7 @@ class TimeSetButton extends StatefulWidget {
 }
 
 class TimeSetButtonState extends State<TimeSetButton> {
+  static bool firstLoad = false;
   bool validTime = false;
   bool updateSelected = false;
   bool startSelected = false;
@@ -249,16 +323,19 @@ class TimeSetButtonState extends State<TimeSetButton> {
   Widget build(BuildContext context) {
     double screenHeight = ScreenLogic.screenHeight(context);
     double setButtonHeight = ((50 * screenHeight) / 852);
+
     return SizedBox(
       height: setButtonHeight,
       child: GestureDetector(
         onTap: () {
+          setState(() {
+            firstLoad = false;
+          });
           if (isCancelableNotifier.value == true) {
             cancelEvent();
           } else if (isCancelableNotifier.value == false) {
             checkValidTime(context);
             print("duration: ${TimeManager.timeUntilInSeconds}");
-            print(setButtonHeight);
           }
         },
         onTapDown: (details) {
