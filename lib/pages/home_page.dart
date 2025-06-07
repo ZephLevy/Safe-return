@@ -14,6 +14,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'package:circular_countdown_timer/circular_countdown_timer.dart';
+import 'package:safe_return/logic/screen_logic.dart';
 
 final ValueNotifier<bool> isCancelableNotifier = ValueNotifier(false);
 
@@ -132,16 +133,7 @@ class _TimerAndClockState extends State<TimerAndClock>
         duration: Duration(milliseconds: 100),
         child: Stack(
           children: [
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Palette.blue1,
-                  width: 1.5,
-                ),
-              ),
-            ),
+            bgBox(),
             Column(
               children: [
                 _bhb(),
@@ -157,6 +149,19 @@ class _TimerAndClockState extends State<TimerAndClock>
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Container bgBox() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Palette.blue1,
+          width: 1.5,
         ),
       ),
     );
@@ -242,130 +247,57 @@ class TimeSetButtonState extends State<TimeSetButton> {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    double adjustedScreenWidth = screenWidth - (8 * 2);
-    double spaceBetweenButtons = adjustedScreenWidth / 10;
+    double screenHeight = ScreenLogic.screenHeight(context);
+    double setButtonHeight = ((50 * screenHeight) / 852);
     return SizedBox(
-      height: 60,
-      child: Row(
-        children: [
-          //The left button - to update the time
-          Material(
-              child: IgnorePointer(
-            ignoring: !isCancelableNotifier.value,
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  updateSelected = !updateSelected;
-                });
-                checkValidTime(context);
-              },
-              onTapDown: (details) {
-                setState(() {
-                  updateSelected = true;
-                });
-              },
-              onTapUp: (details) {
-                setState(() {
-                  updateSelected = !updateSelected;
-                });
-              },
-              onTapCancel: () {
-                setState(() {
-                  updateSelected = false;
-                });
-              },
-              child: Stack(
-                children: [
-                  Container(
-                    width:
-                        (adjustedScreenWidth / 2) - (spaceBetweenButtons / 2),
-                    margin: EdgeInsets.all(0),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Palette.blue1,
-                        width: 1.5,
-                      ),
-                      color: (updateSelected ? Palette.blue3 : Palette.blue4),
-                    ),
-                    child: Center(
-                      child: AutoSizeText(
-                        "Update Time",
-                        maxLines: 2,
-                        minFontSize: 14,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    width:
-                        (adjustedScreenWidth / 2) - (spaceBetweenButtons / 2),
-                    decoration: BoxDecoration(
-                        color: isCancelableNotifier.value
-                            ? Colors.transparent
-                            : Colors.white30),
-                  )
-                ],
-              ),
+      height: setButtonHeight,
+      child: GestureDetector(
+        onTap: () {
+          if (isCancelableNotifier.value == true) {
+            cancelEvent();
+          } else if (isCancelableNotifier.value == false) {
+            checkValidTime(context);
+            print("duration: ${TimeManager.timeUntilInSeconds}");
+            print(setButtonHeight);
+          }
+        },
+        onTapDown: (details) {
+          setState(() {
+            startSelected = true;
+          });
+        },
+        onTapUp: (details) {
+          setState(() {
+            validTime ? startSelected = true : startSelected = false;
+          });
+        },
+        onTapCancel: () {
+          setState(() {
+            !isCancelableNotifier.value
+                ? startSelected = false
+                : startSelected = true;
+          });
+        },
+        child: Container(
+          //TODO get screen height
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Palette.blue1,
+              width: 1.5,
             ),
-          )),
-          SizedBox(width: spaceBetweenButtons),
-          //Right button - to start and cancel the time
-          Material(
-            child: GestureDetector(
-              onTap: () {
-                if (isCancelableNotifier.value == true) {
-                  cancelEvent();
-                } else if (isCancelableNotifier.value == false) {
-                  checkValidTime(context);
-                  print("duration: ${TimeManager.timeUntilInSeconds}");
-                }
-              },
-              onTapDown: (details) {
-                setState(() {
-                  startSelected = true;
-                });
-              },
-              onTapUp: (details) {
-                setState(() {
-                  validTime ? startSelected = true : startSelected = false;
-                });
-              },
-              onTapCancel: () {
-                setState(() {
-                  !isCancelableNotifier.value
-                      ? startSelected = false
-                      : startSelected = true;
-                });
-              },
-              child: Container(
-                width: (adjustedScreenWidth / 2) - (spaceBetweenButtons / 2),
-                margin: EdgeInsets.all(0),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: Palette.blue1,
-                    width: 1.5,
-                  ),
-                  color: startSelected ? Palette.blue3 : Palette.blue4,
-                ),
-                child: Center(
-                  child: Text(
-                    startSelected ? 'Cancel' : 'Set Time',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+            color: startSelected ? Palette.blue3 : Palette.blue4,
+          ),
+          child: Center(
+            child: Text(
+              startSelected ? 'Cancel' : 'Set Time',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
