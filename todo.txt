@@ -24,8 +24,4 @@ app flow:
 	it reads the password, and checks if it's correct.
 	in the view passcodes page, it send https request to server to be able to see the codes
 
-
-	REMOVE EMAIL USE CHECK AFTER THE EMAIL HAS ALREADY BEEN CHECKED - IT THINKS THE EMAIL IS ALREADY IN USE
-ok i just commented it out, but it still thinks that there is one or more values null when i click verify which i checked arent null
-
 throw exceptions when connection refuses, with ui saying no internet or smth
