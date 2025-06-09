@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:safe_return/login_page.dart';
+import 'package:safe_return/pages/home_page.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/persons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,16 +10,16 @@ class StoredSettings {
   static final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
   static bool biometricsValue = false;
 
-  static Future<void> save({
-    List<Person>? personList,
-    int? selectedIndex,
-    int? clickN,
-    bool? biometricsValue,
-    String? userEmail,
-    bool? isLoggedIn,
-    String? firstName,
-    String? lastName,
-  }) async {
+  static Future<void> save(
+      {List<Person>? personList,
+      int? selectedIndex,
+      int? clickN,
+      bool? biometricsValue,
+      String? userEmail,
+      bool? isLoggedIn,
+      String? firstName,
+      String? lastName,
+      bool? isCancelableNotifier}) async {
     if (personList != null) {
       Person.encodePerson(personList);
     }
@@ -44,6 +45,9 @@ class StoredSettings {
     if (lastName != null) {
       await asyncPrefs.setString('lastName', lastName);
     }
+    if (isCancelableNotifier != null) {
+      await asyncPrefs.setBool('isCancelableNotifier', isCancelableNotifier);
+    }
   }
 
   static Future<void> loadAll() async {
@@ -64,6 +68,8 @@ class StoredSettings {
     final bool zIsLoggedIn = await asyncPrefs.getBool('isLoggedIn') ?? false;
     final String zFirstName = await asyncPrefs.getString('firstName') ?? "";
     final String zLastName = await asyncPrefs.getString('lastName') ?? "";
+    final bool zisCancelableNotifier =
+        await asyncPrefs.getBool('isCancelableNotifier') ?? false;
 
     selectedIndex = zSelectedIndex;
     SosManager.clickN = zClickN;
@@ -72,6 +78,7 @@ class StoredSettings {
     LoginPageState.isLoggedIn = zIsLoggedIn;
     SignUpState.firstName = zFirstName;
     SignUpState.lastName = zLastName;
+    isCancelableNotifier.value = zisCancelableNotifier;
   }
 
   static Future<void> logOut() async {
@@ -89,5 +96,6 @@ class StoredSettings {
     SignUpState.newPassword = ""; //TODO not sure to keep this, just for safety
     SignUpState.firstName = "";
     SignUpState.lastName = "";
+    isCancelableNotifier.value = false;
   }
 }

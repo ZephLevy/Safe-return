@@ -1,20 +1,19 @@
-// ignore_for_file: unnecessary_null_comparison
+import 'dart:async';
 
-import 'package:auto_size_text/auto_size_text.dart';
+import 'package:circular_countdown_timer/circular_countdown_timer.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/logic/location.dart';
+import 'package:safe_return/logic/screen_logic.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
+import 'package:safe_return/utils/stored_settings.dart';
 import 'package:safe_return/utils/time_manager.dart';
-import 'package:safe_return/Visuals/palette.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:http/http.dart' as http;
-import 'dart:async';
-import 'package:circular_countdown_timer/circular_countdown_timer.dart';
-import 'package:safe_return/logic/screen_logic.dart';
 
 final ValueNotifier<bool> isCancelableNotifier = ValueNotifier(false);
 
@@ -24,9 +23,9 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: SosButton(
-        onTap: () => sosClicked(),
-      ),
+      // floatingActionButton: SosButton(
+      //   onTap: () => sosClicked(),
+      // ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Column(
@@ -48,74 +47,74 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class SosButton extends StatefulWidget {
-  final Function onTap;
-  final Duration tapTimeThreshold;
+// class SosButton extends StatefulWidget {
+//   final Function onTap;
+//   final Duration tapTimeThreshold;
 
-  const SosButton({
-    required this.onTap,
-    this.tapTimeThreshold = const Duration(milliseconds: 500),
-    super.key,
-  });
+//   const SosButton({
+//     required this.onTap,
+//     this.tapTimeThreshold = const Duration(milliseconds: 500),
+//     super.key,
+//   });
 
-  @override
-  State<SosButton> createState() => _SosButtonState();
-}
+//   @override
+//   State<SosButton> createState() => _SosButtonState();
+// }
 
-class _SosButtonState extends State<SosButton> {
-  Timer? _tapTimer;
-  int _tapCount = 0;
+// class _SosButtonState extends State<SosButton> {
+//   Timer? _tapTimer;
+//   int _tapCount = 0;
 
-  void _handleTapUp(TapUpDetails details) {
-    int tapN = SosManager.clickN;
-    if (_tapTimer != null && _tapTimer!.isActive) {
-      _tapCount++;
-    } else {
-      _tapCount = 1;
-    }
+//   void _handleTapUp(TapUpDetails details) {
+//     int tapN = SosManager.clickN;
+//     if (_tapTimer != null && _tapTimer!.isActive) {
+//       _tapCount++;
+//     } else {
+//       _tapCount = 1;
+//     }
 
-    _tapTimer?.cancel();
+//     _tapTimer?.cancel();
 
-    _tapTimer = Timer(widget.tapTimeThreshold, () {
-      if (_tapCount >= tapN) {
-        widget.onTap();
-      }
-      _tapCount;
-    });
-  }
+//     _tapTimer = Timer(widget.tapTimeThreshold, () {
+//       if (_tapCount >= tapN) {
+//         widget.onTap();
+//       }
+//       _tapCount;
+//     });
+//   }
 
-  @override
-  void dispose() {
-    _tapTimer?.cancel();
-    super.dispose();
-  }
+//   @override
+//   void dispose() {
+//     _tapTimer?.cancel();
+//     super.dispose();
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 96,
-      height: 96,
-      child: Material(
-        color: Color(0xffde001a),
-        shape: CircleBorder(
-          side: BorderSide(
-            color: Palette.blue2,
-            width: 2,
-          ),
-        ),
-        child: InkWell(
-          customBorder: CircleBorder(),
-          onTapUp: (details) => _handleTapUp(details),
-          child: Icon(
-            Icons.sos,
-            size: 55,
-            color: Color(0xfffef5ff),
-          ),
-        ),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return SizedBox(
+//       width: 96,
+//       height: 96,
+//       child: Material(
+//         color: Color(0xffde001a),
+//         shape: CircleBorder(
+//           side: BorderSide(
+//             color: Palette.blue2,
+//             width: 2,
+//           ),
+//         ),
+//         child: InkWell(
+//           customBorder: CircleBorder(),
+//           onTapUp: (details) => _handleTapUp(details),
+//           child: Icon(
+//             Icons.sos,
+//             size: 55,
+//             color: Color(0xfffef5ff),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 class TimerAndClock extends StatefulWidget {
   const TimerAndClock({super.key});
@@ -126,22 +125,103 @@ class TimerAndClock extends StatefulWidget {
 
 class _TimerAndClockState extends State<TimerAndClock>
     with TickerProviderStateMixin {
+  late Future<void> _loadingFuture;
+  final CountDownController timerController = CountDownController();
   final GlobalKey mainContainerKey = GlobalKey();
   final GlobalKey bHBkey = GlobalKey();
   double mainContainerHeight = 0;
   double bHBHeight = 0;
   Duration animationDuration = Duration(milliseconds: 200);
   Curve animationCurve = Curves.easeOut;
+  Timer? periodicTimer;
 
   @override
   void initState() {
-    setState(() {
-      TimeSetButtonState.firstLoad = true;
-    });
+    print("${TimeManager.selectedTime}, \n${isCancelableNotifier.value}");
+
+    _loadingFuture = initStateAsync();
     _getMainContainerHeight();
     _getBHBHeight();
-
+    startTimerUpdated();
     super.initState();
+  }
+
+  Future<void> initStateAsync() async {
+    await StoredSettings.loadAll();
+    TimeSetButtonState.firstLoad = true;
+  }
+
+  void startTimerUpdated() {
+    periodicTimer?.cancel();
+    periodicTimer = Timer.periodic(Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      updateRemainingTime();
+    });
+  }
+
+  void updateRemainingTime() {
+    final now = DateTime.now();
+    DateTime target = TimeManager.selectedTime;
+    final diff = target.difference(now).inSeconds;
+
+    if (diff <= 0) {
+      print("diff <=0: diff = $diff");
+      periodicTimer?.cancel();
+      setState(() {
+        TimeManager.remainingTime = 0;
+        isCancelableNotifier.value = false;
+      });
+    } else {
+      setState(() {
+        TimeManager.remainingTime = diff;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    periodicTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+        future: _loadingFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          return AnimatedSize(
+            curve: animationCurve,
+            duration: animationDuration,
+            alignment: Alignment.topCenter,
+            child: Stack(
+              children: [
+                bgBox(),
+                Column(
+                  children: [
+                    _bhb(),
+                    ValueListenableBuilder<bool>(
+                        valueListenable: isCancelableNotifier,
+                        builder: (context, isCancelable, child) {
+                          _getMainContainerHeight();
+                          _getBHBHeight();
+                          return Container(
+                            key: mainContainerKey,
+                            child: isCancelableNotifier.value
+                                ? _timer()
+                                : _timeSetter(),
+                          );
+                        })
+                  ],
+                ),
+              ],
+            ),
+          );
+        });
   }
 
   void _getMainContainerHeight() {
@@ -174,39 +254,8 @@ class _TimerAndClockState extends State<TimerAndClock>
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedSize(
-      curve: animationCurve,
-      duration: animationDuration,
-      alignment: Alignment.topCenter,
-      child: Stack(
-        children: [
-          bgBox(),
-          Column(
-            children: [
-              _bhb(),
-              ValueListenableBuilder<bool>(
-                  valueListenable: isCancelableNotifier,
-                  builder: (context, isCancelable, child) {
-                    _getMainContainerHeight();
-                    _getBHBHeight();
-
-                    return Container(
-                      key: mainContainerKey,
-                      child:
-                          isCancelableNotifier.value ? _timer() : _timeSetter(),
-                    );
-                  })
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget bgBox() {
-    if (TimeSetButtonState.firstLoad) {
+    if (TimeSetButtonState.firstLoad && !isCancelableNotifier.value) {
       return Container(
         width: double.infinity,
         height: bHBHeight + mainContainerHeight,
@@ -221,8 +270,7 @@ class _TimerAndClockState extends State<TimerAndClock>
     } else {
       return AnimatedContainer(
         curve: animationCurve,
-        duration:
-            TimeSetButtonState.firstLoad ? Duration.zero : animationDuration,
+        duration: animationDuration,
         width: double.infinity,
         height: bHBHeight + mainContainerHeight,
         decoration: BoxDecoration(
@@ -270,6 +318,10 @@ class _TimerAndClockState extends State<TimerAndClock>
         height: 150,
         child: CupertinoDatePicker(
           onDateTimeChanged: (value) {
+            final now = DateTime.now();
+            if (value.isBefore(now)) {
+              value = value.add(Duration(days: 1));
+            }
             TimeManager.selectedTime = value;
           },
           mode: CupertinoDatePickerMode.time,
@@ -280,12 +332,11 @@ class _TimerAndClockState extends State<TimerAndClock>
   }
 
   Widget _timer() {
-    final CountDownController timerController = CountDownController();
     TimeManager.timerCalculations();
     return Padding(
       padding: const EdgeInsets.all(40),
       child: CircularCountDownTimer(
-        duration: TimeManager.timeUntilInSeconds,
+        duration: TimeManager.remainingTime,
         initialDuration: 0,
         controller: timerController,
         width: 200, //TODO get screen height
@@ -335,7 +386,7 @@ class TimeSetButtonState extends State<TimeSetButton> {
             cancelEvent();
           } else if (isCancelableNotifier.value == false) {
             checkValidTime(context);
-            print("duration: ${TimeManager.timeUntilInSeconds}");
+            print("duration: ${TimeManager.remainingTime}");
           }
         },
         onTapDown: (details) {
@@ -385,29 +436,24 @@ class TimeSetButtonState extends State<TimeSetButton> {
       startSelected = false;
       TimeManager.now = DateTime.now();
       TimeManager.selectedTime = DateTime.now();
+      StoredSettings.save(isCancelableNotifier: isCancelableNotifier.value);
     });
   }
 
   void checkValidTime(BuildContext context) {
-    Future.delayed(
-      Duration(seconds: 5),
-      () async {
-        setState(
-          () {
-            date = TimeManager.selectedTime;
-            codeAttempts = 3;
-          },
-        );
-        _scheduleCheck();
-        HapticFeedback.mediumImpact();
+    setState(
+      () {
+        date = TimeManager.selectedTime;
+        codeAttempts = 3;
       },
     );
+    _scheduleCheck();
+    HapticFeedback.mediumImpact();
 
     // This makes me not want to open source this project purely out of shame
-    var timesAreDifferent = (TimeManager.selectedTime != null)
-        ? !((TimeManager.selectedTime.hour == DateTime.now().hour &&
-            (TimeManager.selectedTime.minute == DateTime.now().minute)))
-        : false;
+    var timesAreDifferent =
+        !((TimeManager.selectedTime.hour == DateTime.now().hour &&
+            (TimeManager.selectedTime.minute == DateTime.now().minute)));
     bool codesNull =
         SosManager.fakeCode == null || SosManager.secretCode == null;
 
@@ -420,7 +466,7 @@ class TimeSetButtonState extends State<TimeSetButton> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: SnackBarContent(),
-          duration: Duration(seconds: 5, milliseconds: 100),
+          duration: Duration(milliseconds: 500),
         ),
       );
       TimeManager.timerCalculations();
