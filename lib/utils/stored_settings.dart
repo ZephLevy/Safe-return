@@ -10,16 +10,17 @@ class StoredSettings {
   static final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
   static bool biometricsValue = false;
 
-  static Future<void> save(
-      {List<Person>? personList,
-      int? selectedIndex,
-      int? clickN,
-      bool? biometricsValue,
-      String? userEmail,
-      bool? isLoggedIn,
-      String? firstName,
-      String? lastName,
-      bool? isCancelableNotifier}) async {
+  static Future<void> save({
+    List<Person>? personList,
+    int? selectedIndex,
+    int? clickN,
+    bool? biometricsValue,
+    String? userEmail,
+    bool? isLoggedIn,
+    String? firstName,
+    String? lastName,
+    bool? showTimer,
+  }) async {
     if (personList != null) {
       Person.encodePerson(personList);
     }
@@ -45,8 +46,8 @@ class StoredSettings {
     if (lastName != null) {
       await asyncPrefs.setString('lastName', lastName);
     }
-    if (isCancelableNotifier != null) {
-      await asyncPrefs.setBool('isCancelableNotifier', isCancelableNotifier);
+    if (showTimer != null) {
+      await asyncPrefs.setBool('showTimer', showTimer);
     }
   }
 
@@ -68,8 +69,7 @@ class StoredSettings {
     final bool zIsLoggedIn = await asyncPrefs.getBool('isLoggedIn') ?? false;
     final String zFirstName = await asyncPrefs.getString('firstName') ?? "";
     final String zLastName = await asyncPrefs.getString('lastName') ?? "";
-    final bool zisCancelableNotifier =
-        await asyncPrefs.getBool('isCancelableNotifier') ?? false;
+    final bool zShowTimer = await asyncPrefs.getBool('showTimer') ?? false;
 
     selectedIndex = zSelectedIndex;
     SosManager.clickN = zClickN;
@@ -78,7 +78,7 @@ class StoredSettings {
     LoginPageState.isLoggedIn = zIsLoggedIn;
     SignUpState.firstName = zFirstName;
     SignUpState.lastName = zLastName;
-    isCancelableNotifier.value = zisCancelableNotifier;
+    TimerAndClockState.showTimer = zShowTimer;
   }
 
   static Future<void> logOut() async {
@@ -96,6 +96,6 @@ class StoredSettings {
     SignUpState.newPassword = ""; //TODO not sure to keep this, just for safety
     SignUpState.firstName = "";
     SignUpState.lastName = "";
-    isCancelableNotifier.value = false;
+    TimerAndClockState.showTimer = false;
   }
 }

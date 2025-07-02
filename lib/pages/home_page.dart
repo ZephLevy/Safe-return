@@ -15,8 +15,6 @@ import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/stored_settings.dart';
 import 'package:safe_return/utils/time_manager.dart';
 
-final ValueNotifier<bool> isCancelableNotifier = ValueNotifier(false);
-
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -33,8 +31,6 @@ class HomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             TimerAndClock(),
-            SizedBox(height: 8),
-            TimeSetButton(),
           ],
         ),
       ),
@@ -120,12 +116,11 @@ class TimerAndClock extends StatefulWidget {
   const TimerAndClock({super.key});
 
   @override
-  State<TimerAndClock> createState() => _TimerAndClockState();
+  State<TimerAndClock> createState() => TimerAndClockState();
 }
 
-class _TimerAndClockState extends State<TimerAndClock>
+class TimerAndClockState extends State<TimerAndClock>
     with TickerProviderStateMixin {
-  late Future<void> _loadingFuture;
   final CountDownController timerController = CountDownController();
   final GlobalKey mainContainerKey = GlobalKey();
   final GlobalKey bHBkey = GlobalKey();
@@ -134,47 +129,82 @@ class _TimerAndClockState extends State<TimerAndClock>
   Duration animationDuration = Duration(milliseconds: 200);
   Curve animationCurve = Curves.easeOut;
   Timer? periodicTimer;
+  static bool showTimer = false;
+
+  static bool firstLoad = false;
+  bool validTime = false;
+  bool updateSelected = false;
+  bool startSelected = false;
+  bool timeIsSet = false;
+  DateTime date = DateTime.now();
+  static int codeAttempts = 3;
 
   @override
   void initState() {
-    print("${TimeManager.selectedTime}, \n${isCancelableNotifier.value}");
-
-    _loadingFuture = initStateAsync();
-    _getMainContainerHeight();
-    _getBHBHeight();
-    startTimerUpdated();
+    print("${TimeManager.selectedTime}, showtimer: ${showTimer}");
+    initStateAsync();
     super.initState();
   }
 
   Future<void> initStateAsync() async {
     await StoredSettings.loadAll();
-    TimeSetButtonState.firstLoad = true;
+    firstLoad = true;
+    _getMainContainerHeight();
+    _getBHBHeight();
+    loadTimer();
   }
 
-  void startTimerUpdated() {
+  void loadTimer() {
     periodicTimer?.cancel();
-    periodicTimer = Timer.periodic(Duration(seconds: 1), (_) {
-      if (!mounted) return;
-      updateRemainingTime();
-    });
+    if (showTimer) {
+      periodicTimer = Timer.periodic(Duration(seconds: 1), (_) {
+        if (!mounted) return;
+        updateRemainingTime();
+      });
+    }
+  }
+
+  Future<void> startTimer() async {
+    await getTimerLogic();
+    loadTimer();
+  }
+
+  Future<void> getTimerLogic() async {
+    if (TimeManager.selectedTime != null) {
+      bool timeIsNextDay = TimeManager.selectedTime!.isBefore(DateTime.now());
+      if (timeIsNextDay) {
+        TimeManager.selectedTime =
+            TimeManager.selectedTime!.add(Duration(days: 1));
+      }
+      TimeManager.now = DateTime.now();
+      TimeManager.timeElapsed = 0;
+      TimeManager.timeOfTap = DateTime.now();
+      TimeManager.totalTime =
+          TimeManager.selectedTime!.difference(DateTime.now()).inSeconds;
+    }
   }
 
   void updateRemainingTime() {
-    final now = DateTime.now();
-    DateTime target = TimeManager.selectedTime;
-    final diff = target.difference(now).inSeconds;
-
-    if (diff <= 0) {
-      print("diff <=0: diff = $diff");
-      periodicTimer?.cancel();
-      setState(() {
-        TimeManager.remainingTime = 0;
-        isCancelableNotifier.value = false;
-      });
-    } else {
-      setState(() {
-        TimeManager.remainingTime = diff;
-      });
+    if (TimeManager.selectedTime != null && TimeManager.timeOfTap != null) {
+      DateTime now = DateTime.now();
+      int diff = TimeManager.selectedTime!.difference(now).inSeconds;
+      TimeManager.timeElapsed =
+          now.difference(TimeManager.timeOfTap!).inSeconds;
+      print("${TimeManager.selectedTime}    selected time");
+      print("$now     now");
+      print(" diff = $diff");
+      if (diff <= 0) {
+        periodicTimer?.cancel();
+        setState(() {
+          TimeManager.remainingTime = 0;
+          showTimer = false;
+          startSelected = false;
+        });
+      } else {
+        setState(() {
+          TimeManager.remainingTime = diff;
+        });
+      }
     }
   }
 
@@ -186,42 +216,31 @@ class _TimerAndClockState extends State<TimerAndClock>
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: _loadingFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-          return AnimatedSize(
-            curve: animationCurve,
-            duration: animationDuration,
-            alignment: Alignment.topCenter,
-            child: Stack(
-              children: [
-                bgBox(),
-                Column(
-                  children: [
-                    _bhb(),
-                    ValueListenableBuilder<bool>(
-                        valueListenable: isCancelableNotifier,
-                        builder: (context, isCancelable, child) {
-                          _getMainContainerHeight();
-                          _getBHBHeight();
-                          return Container(
-                            key: mainContainerKey,
-                            child: isCancelableNotifier.value
-                                ? _timer()
-                                : _timeSetter(),
-                          );
-                        })
-                  ],
-                ),
-              ],
-            ),
-          );
-        });
+    return Column(
+      children: [
+        AnimatedSize(
+          curve: animationCurve,
+          duration: animationDuration,
+          alignment: Alignment.topCenter,
+          child: Stack(
+            children: [
+              bgBox(),
+              Column(
+                children: [
+                  _bhb(),
+                  Container(
+                    key: mainContainerKey,
+                    child: showTimer ? _timer() : _timeSetter(),
+                  )
+                ],
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 8),
+        setButton(context)
+      ],
+    );
   }
 
   void _getMainContainerHeight() {
@@ -255,7 +274,8 @@ class _TimerAndClockState extends State<TimerAndClock>
   }
 
   Widget bgBox() {
-    if (TimeSetButtonState.firstLoad && !isCancelableNotifier.value) {
+    if (firstLoad && !showTimer) {
+      print("firstload");
       return Container(
         width: double.infinity,
         height: bHBHeight + mainContainerHeight,
@@ -301,7 +321,7 @@ class _TimerAndClockState extends State<TimerAndClock>
       ),
       child: Center(
         child: Text(
-          isCancelableNotifier.value ? 'You must be home by:' : 'Be Home By:',
+          showTimer ? 'You must be home by:' : 'Be Home By:',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w500,
@@ -317,11 +337,8 @@ class _TimerAndClockState extends State<TimerAndClock>
       child: SizedBox(
         height: 150,
         child: CupertinoDatePicker(
+          initialDateTime: DateTime.now(),
           onDateTimeChanged: (value) {
-            final now = DateTime.now();
-            if (value.isBefore(now)) {
-              value = value.add(Duration(days: 1));
-            }
             TimeManager.selectedTime = value;
           },
           mode: CupertinoDatePickerMode.time,
@@ -332,11 +349,10 @@ class _TimerAndClockState extends State<TimerAndClock>
   }
 
   Widget _timer() {
-    TimeManager.timerCalculations();
     return Padding(
       padding: const EdgeInsets.all(40),
       child: CircularCountDownTimer(
-        duration: TimeManager.remainingTime,
+        duration: TimeManager.totalTime,
         initialDuration: 0,
         controller: timerController,
         width: 200, //TODO get screen height
@@ -352,26 +368,8 @@ class _TimerAndClockState extends State<TimerAndClock>
       ),
     );
   }
-}
 
-class TimeSetButton extends StatefulWidget {
-  const TimeSetButton({super.key});
-
-  @override
-  State<TimeSetButton> createState() => TimeSetButtonState();
-}
-
-class TimeSetButtonState extends State<TimeSetButton> {
-  static bool firstLoad = false;
-  bool validTime = false;
-  bool updateSelected = false;
-  bool startSelected = false;
-  bool timeIsSet = false;
-  DateTime date = DateTime.now();
-  static int codeAttempts = 3;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget setButton(BuildContext context) {
     double screenHeight = ScreenLogic.screenHeight(context);
     double setButtonHeight = ((50 * screenHeight) / 852);
 
@@ -379,13 +377,17 @@ class TimeSetButtonState extends State<TimeSetButton> {
       height: setButtonHeight,
       child: GestureDetector(
         onTap: () {
+          _getBHBHeight();
+          _getMainContainerHeight();
           setState(() {
             firstLoad = false;
           });
-          if (isCancelableNotifier.value == true) {
+          if (showTimer) {
             cancelEvent();
-          } else if (isCancelableNotifier.value == false) {
+          } else {
+            TimeManager.timeOfTap = DateTime.now();
             checkValidTime(context);
+
             print("duration: ${TimeManager.remainingTime}");
           }
         },
@@ -401,9 +403,7 @@ class TimeSetButtonState extends State<TimeSetButton> {
         },
         onTapCancel: () {
           setState(() {
-            !isCancelableNotifier.value
-                ? startSelected = false
-                : startSelected = true;
+            showTimer ? startSelected = true : startSelected = false;
           });
         },
         child: Container(
@@ -432,70 +432,76 @@ class TimeSetButtonState extends State<TimeSetButton> {
 
   void cancelEvent() {
     setState(() {
-      isCancelableNotifier.value = false;
+      showTimer = false;
       startSelected = false;
       TimeManager.now = DateTime.now();
       TimeManager.selectedTime = DateTime.now();
-      StoredSettings.save(isCancelableNotifier: isCancelableNotifier.value);
     });
   }
 
   void checkValidTime(BuildContext context) {
-    setState(
-      () {
-        date = TimeManager.selectedTime;
-        codeAttempts = 3;
-      },
-    );
-    _scheduleCheck();
-    HapticFeedback.mediumImpact();
+    if (TimeManager.selectedTime != null) {
+      setState(
+        () {
+          date = TimeManager.selectedTime!;
+        },
+      );
+      _scheduleCheck();
+      HapticFeedback.mediumImpact();
 
-    // This makes me not want to open source this project purely out of shame
-    var timesAreDifferent =
-        !((TimeManager.selectedTime.hour == DateTime.now().hour &&
-            (TimeManager.selectedTime.minute == DateTime.now().minute)));
-    bool codesNull =
-        SosManager.fakeCode == null || SosManager.secretCode == null;
+      // This makes me not want to open source this project purely out of shame
+      var timesAreSame =
+          ((TimeManager.selectedTime!.hour == DateTime.now().hour &&
+              (TimeManager.selectedTime!.minute == DateTime.now().minute)));
+      bool codesNull =
+          SosManager.fakeCode == null || SosManager.secretCode == null;
+      bool validForStart = !codesNull && !timesAreSame;
+      bool notValidForStart = codesNull || timesAreSame;
 
-    validTimecheck(timesAreDifferent, codesNull, context);
+      validTimecheck(
+          notValidForStart, validForStart, timesAreSame, codesNull, context);
+    }
   }
 
-  void validTimecheck(
-      bool timesAreDifferent, bool codesNull, BuildContext context) {
-    if (timesAreDifferent && !codesNull) {
+  void validTimecheck(bool notValidForStart, bool validForStart,
+      bool timesAreSame, bool codesNull, BuildContext context) async {
+    if (validForStart) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: SnackBarContent(),
           duration: Duration(milliseconds: 500),
         ),
       );
-      TimeManager.timerCalculations();
       setState(() {
-        isCancelableNotifier.value = true;
+        codeAttempts = 3;
+        showTimer = true;
         validTime = true;
         startSelected = true;
       });
-    } else if (!timesAreDifferent || !codesNull) {
+      await startTimer();
+    } else {
       setState(() {
         validTime = false;
         startSelected = false;
-        isCancelableNotifier.value = false;
+        showTimer = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Center(
-            child: Text("Please select a time that is not now!"),
+      if (timesAreSame) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Center(
+              child: Text("Please select a time that is not now!"),
+            ),
           ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Center(
-            child: Text("Please configure your codes in the settings page"),
+        );
+      } else if (codesNull) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Center(
+              child: Text("Please configure your codes in the settings page"),
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
   }
 
