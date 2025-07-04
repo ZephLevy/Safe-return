@@ -10,6 +10,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/logic/location.dart';
 import 'package:safe_return/logic/screen_logic.dart';
+import 'package:safe_return/main.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/stored_settings.dart';
@@ -124,11 +125,9 @@ class TimerAndClockState extends State<TimerAndClock>
   final CountDownController timerController = CountDownController();
   final GlobalKey mainContainerKey = GlobalKey();
   final GlobalKey bHBkey = GlobalKey();
-  double mainContainerHeight = 0;
-  double bHBHeight = 0;
+
   Duration animationDuration = Duration(milliseconds: 200);
   Curve animationCurve = Curves.easeOut;
-  Timer? periodicTimer;
   static bool showTimer = false;
 
   static bool firstLoad = false;
@@ -138,6 +137,18 @@ class TimerAndClockState extends State<TimerAndClock>
   bool timeIsSet = false;
   DateTime date = DateTime.now();
   static int codeAttempts = 3;
+
+  double bHBHeight(BuildContext context) {
+    return 52.75;
+  }
+
+  double mainContainerHeight(BuildContext context) {
+    return showTimer ? 280 : 190;
+  }
+
+  double setButtonHeight(BuildContext context) {
+    return 50;
+  }
 
   @override
   void initState() {
@@ -149,68 +160,10 @@ class TimerAndClockState extends State<TimerAndClock>
   Future<void> initStateAsync() async {
     await StoredSettings.loadAll();
     firstLoad = true;
-    _getMainContainerHeight();
-    _getBHBHeight();
-    loadTimer();
-  }
-
-  void loadTimer() {
-    periodicTimer?.cancel();
-    if (showTimer) {
-      periodicTimer = Timer.periodic(Duration(seconds: 1), (_) {
-        if (!mounted) return;
-        updateRemainingTime();
-      });
-    }
-  }
-
-  Future<void> startTimer() async {
-    await getTimerLogic();
-    loadTimer();
-  }
-
-  Future<void> getTimerLogic() async {
-    if (TimeManager.selectedTime != null) {
-      bool timeIsNextDay = TimeManager.selectedTime!.isBefore(DateTime.now());
-      if (timeIsNextDay) {
-        TimeManager.selectedTime =
-            TimeManager.selectedTime!.add(Duration(days: 1));
-      }
-      TimeManager.now = DateTime.now();
-      TimeManager.timeElapsed = 0;
-      TimeManager.timeOfTap = DateTime.now();
-      TimeManager.totalTime =
-          TimeManager.selectedTime!.difference(DateTime.now()).inSeconds;
-    }
-  }
-
-  void updateRemainingTime() {
-    if (TimeManager.selectedTime != null && TimeManager.timeOfTap != null) {
-      DateTime now = DateTime.now();
-      int diff = TimeManager.selectedTime!.difference(now).inSeconds;
-      TimeManager.timeElapsed =
-          now.difference(TimeManager.timeOfTap!).inSeconds;
-      print("${TimeManager.selectedTime}    selected time");
-      print("$now     now");
-      print(" diff = $diff");
-      if (diff <= 0) {
-        periodicTimer?.cancel();
-        setState(() {
-          TimeManager.remainingTime = 0;
-          showTimer = false;
-          startSelected = false;
-        });
-      } else {
-        setState(() {
-          TimeManager.remainingTime = diff;
-        });
-      }
-    }
   }
 
   @override
   void dispose() {
-    periodicTimer?.cancel();
     super.dispose();
   }
 
@@ -243,42 +196,37 @@ class TimerAndClockState extends State<TimerAndClock>
     );
   }
 
-  void _getMainContainerHeight() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final context = mainContainerKey.currentContext;
-      if (context != null) {
-        final box = context.findRenderObject() as RenderBox;
-        if (box.size.height != mainContainerHeight) {
-          setState(() {
-            mainContainerHeight = box.size.height;
-          });
-          print('Container height: $mainContainerHeight');
-        }
-      }
-    });
-  }
-
-  void _getBHBHeight() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final context = bHBkey.currentContext;
-      if (context != null) {
-        final box = context.findRenderObject() as RenderBox;
-        if (box.size.height != bHBHeight) {
-          setState(() {
-            bHBHeight = box.size.height;
-          });
-          print('bhb height: $bHBHeight');
-        }
-      }
-    });
+  Widget _bhb() {
+    return Container(
+      key: bHBkey,
+      height: bHBHeight(context),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Palette.blue1,
+          width: 1.5,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          showTimer ? 'You must be home by:' : 'Be Home By:',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
   }
 
   Widget bgBox() {
+    print("bhb: ${bHBHeight(context)}");
+    print("mainc: ${mainContainerHeight(context)}");
     if (firstLoad && !showTimer) {
       print("firstload");
       return Container(
         width: double.infinity,
-        height: bHBHeight + mainContainerHeight,
+        height: bHBHeight(context) + mainContainerHeight(context),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
@@ -292,7 +240,7 @@ class TimerAndClockState extends State<TimerAndClock>
         curve: animationCurve,
         duration: animationDuration,
         width: double.infinity,
-        height: bHBHeight + mainContainerHeight,
+        height: bHBHeight(context) + mainContainerHeight(context),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
@@ -302,33 +250,6 @@ class TimerAndClockState extends State<TimerAndClock>
         ),
       );
     }
-  }
-
-  Widget _bhb() {
-    double screenHeight = ScreenLogic.screenHeight(context);
-    double bhbHeight = ((52.75 * screenHeight) / 852);
-
-    return Container(
-      key: bHBkey,
-      height: bhbHeight,
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Palette.blue1,
-          width: 1.5,
-        ),
-      ),
-      child: Center(
-        child: Text(
-          showTimer ? 'You must be home by:' : 'Be Home By:',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _timeSetter() {
@@ -370,15 +291,10 @@ class TimerAndClockState extends State<TimerAndClock>
   }
 
   Widget setButton(BuildContext context) {
-    double screenHeight = ScreenLogic.screenHeight(context);
-    double setButtonHeight = ((50 * screenHeight) / 852);
-
     return SizedBox(
-      height: setButtonHeight,
+      height: setButtonHeight(context),
       child: GestureDetector(
         onTap: () {
-          _getBHBHeight();
-          _getMainContainerHeight();
           setState(() {
             firstLoad = false;
           });
@@ -478,7 +394,6 @@ class TimerAndClockState extends State<TimerAndClock>
         validTime = true;
         startSelected = true;
       });
-      await startTimer();
     } else {
       setState(() {
         validTime = false;
