@@ -1,8 +1,21 @@
 class TimeManager {
   static DateTime? selectedTime;
-  static DateTime now = DateTime.now();
-  static int remainingTime = 0;
-  static int totalTime = 90;
   static DateTime? timeOfTap;
-  static int? timeElapsed;
+  // static int? timeElapsed;
+
+  static int? totalTime() {
+    if (timeOfTap != null) {
+      return selectedTime?.difference(timeOfTap!).inSeconds;
+    }
+    print("totalT - timetap null");
+    return null;
+  }
+
+  static int? timeElapsed() {
+    if (timeOfTap != null) {
+      return DateTime.now().difference(timeOfTap!).inSeconds;
+    }
+    print("timetap null");
+    return null;
+  }
 }

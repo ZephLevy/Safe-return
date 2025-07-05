@@ -86,6 +86,7 @@ class StoredSettings {
     SosManager.fakeCode = "";
     SosManager.secretCode = "";
     Person.encodedPersonString = "";
+    Person.persons = [];
     selectedIndex = 1;
     SosManager.clickN = selectedIndex + 1;
     biometricsValue = false;

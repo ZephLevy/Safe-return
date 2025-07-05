@@ -9,8 +9,6 @@ import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/logic/location.dart';
-import 'package:safe_return/logic/screen_logic.dart';
-import 'package:safe_return/main.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/stored_settings.dart';
@@ -138,21 +136,20 @@ class TimerAndClockState extends State<TimerAndClock>
   DateTime date = DateTime.now();
   static int codeAttempts = 3;
 
-  double bHBHeight(BuildContext context) {
-    return 52.75;
-  }
-
-  double mainContainerHeight(BuildContext context) {
+  double bHBHeight = 52.75;
+  double mainContainerHeight() {
     return showTimer ? 280 : 190;
   }
 
-  double setButtonHeight(BuildContext context) {
-    return 50;
-  }
+  double setButtonHeight = 50;
 
   @override
   void initState() {
-    print("${TimeManager.selectedTime}, showtimer: ${showTimer}");
+    print("${TimeManager.selectedTime}");
+    print("${TimeManager.timeOfTap}");
+    print("${TimeManager.timeElapsed()}");
+    print("${TimeManager.totalTime()}");
+
     initStateAsync();
     super.initState();
   }
@@ -160,11 +157,7 @@ class TimerAndClockState extends State<TimerAndClock>
   Future<void> initStateAsync() async {
     await StoredSettings.loadAll();
     firstLoad = true;
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
+    // TimeManager.selectedTime = DateTime.now();
   }
 
   @override
@@ -183,7 +176,9 @@ class TimerAndClockState extends State<TimerAndClock>
                   _bhb(),
                   Container(
                     key: mainContainerKey,
-                    child: showTimer ? _timer() : _timeSetter(),
+                    child: showTimer
+                        ? HomeTimer(timerController: timerController)
+                        : _timeSetter(),
                   )
                 ],
               ),
@@ -199,9 +194,9 @@ class TimerAndClockState extends State<TimerAndClock>
   Widget _bhb() {
     return Container(
       key: bHBkey,
-      height: bHBHeight(context),
+      height: bHBHeight,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: Palette.blue1,
           width: 1.5,
@@ -220,15 +215,14 @@ class TimerAndClockState extends State<TimerAndClock>
   }
 
   Widget bgBox() {
-    print("bhb: ${bHBHeight(context)}");
-    print("mainc: ${mainContainerHeight(context)}");
+    // print("bhb: $bHBHeight");
+    // print("mainc: ${mainContainerHeight()}");
     if (firstLoad && !showTimer) {
-      print("firstload");
       return Container(
         width: double.infinity,
-        height: bHBHeight(context) + mainContainerHeight(context),
+        height: bHBHeight + mainContainerHeight(),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: Palette.blue1,
             width: 1.5,
@@ -240,9 +234,9 @@ class TimerAndClockState extends State<TimerAndClock>
         curve: animationCurve,
         duration: animationDuration,
         width: double.infinity,
-        height: bHBHeight(context) + mainContainerHeight(context),
+        height: bHBHeight + mainContainerHeight(),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: Palette.blue1,
             width: 1.5,
@@ -269,42 +263,43 @@ class TimerAndClockState extends State<TimerAndClock>
     );
   }
 
-  Widget _timer() {
-    return Padding(
-      padding: const EdgeInsets.all(40),
-      child: CircularCountDownTimer(
-        duration: TimeManager.totalTime,
-        initialDuration: 0,
-        controller: timerController,
-        width: 200, //TODO get screen height
-        height: 200,
-        ringColor: Colors.grey,
-        fillColor: Colors.orange,
-        backgroundColor: Colors.white,
-        strokeWidth: 10,
-        strokeCap: StrokeCap.round,
-        textStyle: TextStyle(fontSize: 24),
-        isReverse: true,
-        isReverseAnimation: true,
-      ),
-    );
+  Future<void> setTimerLogic() async {
+    print("${TimeManager.selectedTime}");
+    if (TimeManager.selectedTime == null) {
+      TimeManager.selectedTime = DateTime.now();
+    } else {
+      if (TimeManager.selectedTime != null) {
+        print("total time before calc: ${TimeManager.totalTime()}");
+        bool timeIsNextDay = TimeManager.selectedTime!.isBefore(DateTime.now());
+        if (timeIsNextDay) {
+          TimeManager.selectedTime =
+              TimeManager.selectedTime!.add(Duration(days: 1));
+        }
+        TimeManager.timeOfTap = DateTime.now();
+        // TimeManager.totalTime =
+        //     TimeManager.selectedTime!.difference(DateTime.now()).inSeconds;
+      }
+      print("total time after calculations: ${TimeManager.totalTime()}");
+      print("timetap: ${TimeManager.timeOfTap}");
+    }
   }
 
   Widget setButton(BuildContext context) {
     return SizedBox(
-      height: setButtonHeight(context),
+      height: setButtonHeight,
       child: GestureDetector(
-        onTap: () {
+        onTap: () async {
           setState(() {
             firstLoad = false;
           });
           if (showTimer) {
             cancelEvent();
           } else {
-            TimeManager.timeOfTap = DateTime.now();
-            checkValidTime(context);
-
-            print("duration: ${TimeManager.remainingTime}");
+            setState(() {
+              showTimer = true;
+            });
+            await setTimerLogic();
+            checkValidTime();
           }
         },
         onTapDown: (details) {
@@ -323,7 +318,6 @@ class TimerAndClockState extends State<TimerAndClock>
           });
         },
         child: Container(
-          //TODO get screen height
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
@@ -350,12 +344,12 @@ class TimerAndClockState extends State<TimerAndClock>
     setState(() {
       showTimer = false;
       startSelected = false;
-      TimeManager.now = DateTime.now();
-      TimeManager.selectedTime = DateTime.now();
+      // TimeManager.selectedTime = DateTime.now();
+      TimeManager.timeOfTap = null;
     });
   }
 
-  void checkValidTime(BuildContext context) {
+  void checkValidTime() {
     if (TimeManager.selectedTime != null) {
       setState(
         () {
@@ -515,6 +509,48 @@ class TimerAndClockState extends State<TimerAndClock>
     //This is called when we are sure the user is in danger.
     //TODO: implement something
     print("alerted");
+  }
+}
+
+class HomeTimer extends StatefulWidget {
+  const HomeTimer({
+    super.key,
+    required this.timerController,
+  });
+
+  final CountDownController timerController;
+
+  @override
+  State<HomeTimer> createState() => _HomeTimerState();
+}
+
+class _HomeTimerState extends State<HomeTimer> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Center(
+          child: Container(
+            padding: EdgeInsets.all(10),
+            child: CircularCountDownTimer(
+              duration: TimeManager.totalTime() ?? 0,
+              initialDuration: 0,
+              controller: widget.timerController,
+              width: 200, //TODO get screen height
+              height: 200,
+              ringColor: Colors.grey,
+              fillColor: Colors.orange,
+              backgroundColor: Colors.white,
+              strokeWidth: 10,
+              strokeCap: StrokeCap.round,
+              textStyle: TextStyle(fontSize: 24),
+              isReverse: true,
+              isReverseAnimation: true,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 

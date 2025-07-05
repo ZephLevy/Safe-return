@@ -25,3 +25,8 @@ app flow:
 	in the view passcodes page, it send https request to server to be able to see the codes
 
 throw exceptions when connection refuses, with ui saying no internet or smth
+
+
+
+new possible features:
+- add option to change app icon so you can disguise the app.

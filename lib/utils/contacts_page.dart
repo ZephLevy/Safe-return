@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:safe_return/Visuals/palette.dart';
+import 'package:safe_return/logic/screen_logic.dart';
 import 'package:safe_return/pages/settings_page.dart';
 import 'package:safe_return/utils/stored_settings.dart';
 import 'package:safe_return/utils/persons.dart';
@@ -12,6 +14,8 @@ class ContactsPage extends StatefulWidget {
 }
 
 class _ContactsPageState extends State<ContactsPage> {
+  bool _contactsLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,21 +29,22 @@ class _ContactsPageState extends State<ContactsPage> {
               radius: 24,
               borderRadius: BorderRadius.circular(20),
               onTap: _selectContacts,
-              child: Icon(
-                Icons.add,
-                size: 28,
-              ),
+              child: _contactsLoading
+                  ? CircularProgressIndicator()
+                  : Icon(
+                      Icons.add,
+                      size: 28,
+                    ),
             ),
           ),
         ],
         title: Text("Emergency contacts"),
       ),
       //TODO bottomNavigationBar: BottomAppBar(), not sure if to keep this anymore
-      //TODO add an edit button or something so the user has another way to delete the contacts since swiping is too intuitive
+      //TODO add an edit button or something so the user has another way to delete the contacts since swiping is too unintuitive
       body: Column(
-        children: <Widget>[
-          SizedBox(
-            height: 600,
+        children: [
+          Expanded(
             child: ListView.separated(
               itemCount: Person.persons.length,
               separatorBuilder: (BuildContext context, int index) => Divider(),
@@ -75,16 +80,48 @@ class _ContactsPageState extends State<ContactsPage> {
               },
             ),
           ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              padding: EdgeInsets.only(left: 30),
+              width: double.infinity,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Palette.backgroundColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black54,
+                    offset: Offset(0, -1),
+                    blurRadius: 5,
+                    spreadRadius: 1,
+                  )
+                ],
+              ),
+              child: Row(
+                spacing: 5,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(Icons.info_outline),
+                  Text("Swipe the contacts left to delete"),
+                ],
+              ),
+            ),
+          )
         ],
       ),
     );
   }
 
   void _selectContacts() async {
+    setState(() {
+      _contactsLoading = true;
+    });
     if (await FlutterContacts.requestPermission()) {
-      StoredSettings.loadAll();
 //*declared contact info when selected
       final contact = await FlutterContacts.openExternalPick();
+      setState(() {
+        _contactsLoading = false;
+      });
 
       if (contact != null) {
         for (var phone in contact.phones) {
@@ -109,7 +146,6 @@ class _ContactsPageState extends State<ContactsPage> {
           }
         }
       }
-      setState(() {}); //TODO remove this, not sure if it even helps.
     }
   }
 }

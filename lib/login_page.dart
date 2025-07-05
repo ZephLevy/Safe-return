@@ -48,6 +48,8 @@ class LoginPageState extends State<LoginPage> {
               onPressed: () {
                 skipLoginAlert(
                   () {
+                    isLoggedIn = true;
+                    StoredSettings.save(isLoggedIn: isLoggedIn);
                     StoredSettings.logOut();
                     Navigator.pushReplacement(context,
                         MaterialPageRoute(builder: (context) => HomeScreen()));

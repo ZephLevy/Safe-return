@@ -6,6 +6,15 @@ class Palette {
   static const Color blue3 = Color(0xff65a4a3);
   static const Color blue4 = Color(0xffa4d2d5);
   static const Color yellow = Color(0xfff9e79f);
-  static const Color purple = Color.fromARGB(255, 71, 52, 133);
-  static const colorList = [blue1, blue2, blue3, blue4, yellow, purple];
+  static const Color purple = Color(0xFF473485);
+  static const Color backgroundColor = Color(0xFFFDF7FE);
+  static const colorList = [
+    blue1,
+    blue2,
+    blue3,
+    blue4,
+    yellow,
+    purple,
+    backgroundColor
+  ];
 }

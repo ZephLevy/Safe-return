@@ -18,6 +18,7 @@ import 'package:safe_return/utils/persons.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/stored_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:random_string/random_string.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -50,7 +51,9 @@ class SettingsState extends State<Settings> {
                 contentPadding: EdgeInsets.only(left: 10),
                 leading: Icon(Icons.account_circle, size: 50),
                 minLeadingWidth: 50,
-                title: Text("${SignUpState.firstName} ${SignUpState.lastName}"),
+                title: SignUpState.firstName.isNotEmpty
+                    ? Text("${SignUpState.firstName} ${SignUpState.lastName}")
+                    : Text("User#${randomAlphaNumeric(7).toUpperCase()}"),
                 subtitle: StatefulBuilder(builder: (context, setState) {
                   return Text(LoginPageState.email);
                 }),
