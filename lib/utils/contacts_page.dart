@@ -3,7 +3,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/logic/screen_logic.dart';
 import 'package:safe_return/pages/settings_page.dart';
-import 'package:safe_return/utils/stored_settings.dart';
+import 'package:safe_return/shared_prefs/stored_settings.dart';
 import 'package:safe_return/utils/persons.dart';
 
 class ContactsPage extends StatefulWidget {

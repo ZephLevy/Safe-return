@@ -16,7 +16,7 @@ import 'package:safe_return/utils/contacts_page.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/persons.dart';
 import 'package:safe_return/utils/sos_manager.dart';
-import 'package:safe_return/utils/stored_settings.dart';
+import 'package:safe_return/shared_prefs/stored_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:random_string/random_string.dart';
 

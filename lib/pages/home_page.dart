@@ -11,7 +11,7 @@ import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/logic/location.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
-import 'package:safe_return/utils/stored_settings.dart';
+import 'package:safe_return/shared_prefs/stored_settings.dart';
 import 'package:safe_return/utils/time_manager.dart';
 
 class HomePage extends StatelessWidget {
@@ -252,7 +252,7 @@ class TimerAndClockState extends State<TimerAndClock>
       child: SizedBox(
         height: 150,
         child: CupertinoDatePicker(
-          initialDateTime: DateTime.now(),
+          initialDateTime: TimeManager.selectedTime ?? DateTime.now(),
           onDateTimeChanged: (value) {
             TimeManager.selectedTime = value;
           },
@@ -323,7 +323,6 @@ class TimerAndClockState extends State<TimerAndClock>
     setState(() {
       showTimer = false;
       startSelected = false;
-      TimeManager.selectedTime = DateTime.now();
       TimeManager.timeOfTap = null;
     });
   }
@@ -508,46 +507,65 @@ class _HomeTimerState extends State<HomeTimer> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Center(
-          child: Container(
-            padding: EdgeInsets.all(10),
-            child: CircularCountDownTimer(
-              duration: TimeManager.totalTime() ?? 0,
-              initialDuration: 0,
-              controller: widget.timerController,
-              width: 200, //TODO get screen height
-              height: 200,
-              ringColor: Colors.grey,
-              fillColor: Colors.orange,
-              backgroundColor: Colors.white,
-              strokeWidth: 10,
-              strokeCap: StrokeCap.round,
-              textStyle: TextStyle(fontSize: 24),
-              isReverse: true,
-              isReverseAnimation: true,
-            ),
-          ),
-        ),
+        showBeHomeTime(),
+        timerUI(),
       ],
     );
   }
 
+  Widget showBeHomeTime() {
+    Icon bellIcon = Icon(Icons.notifications_rounded, size: 18.5);
+    return Padding(
+      padding: EdgeInsets.only(top: 10, bottom: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          bellIcon,
+          Text(
+            TimeManager.shortSelectedTime()!,
+            style: TextStyle(fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container timerUI() {
+    return Container(
+      padding: EdgeInsets.all(10),
+      child: CircularCountDownTimer(
+        duration: TimeManager.totalTime() ?? 0,
+        initialDuration: 0,
+        controller: widget.timerController,
+        width: 200,
+        height: 200,
+        ringColor: Colors.grey,
+        fillColor: Colors.orange,
+        backgroundColor: Palette.backgroundColor,
+        strokeWidth: 10,
+        strokeCap: StrokeCap.round,
+        textStyle: TextStyle(fontSize: 24),
+        isReverse: true,
+        isReverseAnimation: true,
+      ),
+    );
+  }
+
   static Future<void> setTimerLogic() async {
-    print("${TimeManager.selectedTime}");
+    print("selected: ${TimeManager.selectedTime}");
     if (TimeManager.selectedTime == null) {
       TimeManager.selectedTime = DateTime.now();
     } else {
-      if (TimeManager.selectedTime != null) {
-        print("total time before calc: ${TimeManager.totalTime()}");
-        bool timeIsNextDay = TimeManager.selectedTime!.isBefore(DateTime.now());
-        if (timeIsNextDay) {
-          TimeManager.selectedTime =
-              TimeManager.selectedTime!.add(Duration(days: 1));
-        }
-        TimeManager.timeOfTap = DateTime.now();
-        // TimeManager.totalTime =
-        //     TimeManager.selectedTime!.difference(DateTime.now()).inSeconds;
+      print("total time before calc: ${TimeManager.totalTime()}");
+      bool timeIsNextDay = TimeManager.selectedTime!.isBefore(DateTime.now());
+      if (timeIsNextDay) {
+        TimeManager.selectedTime =
+            TimeManager.selectedTime!.add(Duration(days: 1));
       }
+      TimeManager.timeOfTap = DateTime.now();
+      // TimeManager.totalTime =
+      //     TimeManager.selectedTime!.difference(DateTime.now()).inSeconds;
+
       print("total time after calculations: ${TimeManager.totalTime()}");
       print("timetap: ${TimeManager.timeOfTap}");
     }

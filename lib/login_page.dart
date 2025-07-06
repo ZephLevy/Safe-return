@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:safe_return/main.dart';
 import 'package:http/http.dart' as http;
-import 'package:safe_return/utils/stored_settings.dart';
+import 'package:safe_return/shared_prefs/stored_settings.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'dart:math';
 

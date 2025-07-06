@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class TimeManager {
   static DateTime? selectedTime;
   static DateTime? timeOfTap;
@@ -17,5 +19,11 @@ class TimeManager {
     }
     print("timetap null");
     return null;
+  }
+
+  static String? shortSelectedTime() {
+    if (selectedTime != null) {
+      return DateFormat.Hm().format(selectedTime!);
+    }
   }
 }
