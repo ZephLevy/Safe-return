@@ -263,27 +263,6 @@ class TimerAndClockState extends State<TimerAndClock>
     );
   }
 
-  Future<void> setTimerLogic() async {
-    print("${TimeManager.selectedTime}");
-    if (TimeManager.selectedTime == null) {
-      TimeManager.selectedTime = DateTime.now();
-    } else {
-      if (TimeManager.selectedTime != null) {
-        print("total time before calc: ${TimeManager.totalTime()}");
-        bool timeIsNextDay = TimeManager.selectedTime!.isBefore(DateTime.now());
-        if (timeIsNextDay) {
-          TimeManager.selectedTime =
-              TimeManager.selectedTime!.add(Duration(days: 1));
-        }
-        TimeManager.timeOfTap = DateTime.now();
-        // TimeManager.totalTime =
-        //     TimeManager.selectedTime!.difference(DateTime.now()).inSeconds;
-      }
-      print("total time after calculations: ${TimeManager.totalTime()}");
-      print("timetap: ${TimeManager.timeOfTap}");
-    }
-  }
-
   Widget setButton(BuildContext context) {
     return SizedBox(
       height: setButtonHeight,
@@ -298,7 +277,7 @@ class TimerAndClockState extends State<TimerAndClock>
             setState(() {
               showTimer = true;
             });
-            await setTimerLogic();
+            await _HomeTimerState.setTimerLogic();
             checkValidTime();
           }
         },
@@ -344,7 +323,7 @@ class TimerAndClockState extends State<TimerAndClock>
     setState(() {
       showTimer = false;
       startSelected = false;
-      // TimeManager.selectedTime = DateTime.now();
+      TimeManager.selectedTime = DateTime.now();
       TimeManager.timeOfTap = null;
     });
   }
@@ -551,6 +530,27 @@ class _HomeTimerState extends State<HomeTimer> {
         ),
       ],
     );
+  }
+
+  static Future<void> setTimerLogic() async {
+    print("${TimeManager.selectedTime}");
+    if (TimeManager.selectedTime == null) {
+      TimeManager.selectedTime = DateTime.now();
+    } else {
+      if (TimeManager.selectedTime != null) {
+        print("total time before calc: ${TimeManager.totalTime()}");
+        bool timeIsNextDay = TimeManager.selectedTime!.isBefore(DateTime.now());
+        if (timeIsNextDay) {
+          TimeManager.selectedTime =
+              TimeManager.selectedTime!.add(Duration(days: 1));
+        }
+        TimeManager.timeOfTap = DateTime.now();
+        // TimeManager.totalTime =
+        //     TimeManager.selectedTime!.difference(DateTime.now()).inSeconds;
+      }
+      print("total time after calculations: ${TimeManager.totalTime()}");
+      print("timetap: ${TimeManager.timeOfTap}");
+    }
   }
 }
 
