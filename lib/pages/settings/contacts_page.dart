@@ -141,6 +141,7 @@ class ContactsPageState extends State<ContactsPage> {
           context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
+            duration: Duration(seconds: 2),
             content: Text(
               "The phone number ${phone.number} has already been added for ${contact.displayName}",
               softWrap: true,
@@ -152,12 +153,16 @@ class ContactsPageState extends State<ContactsPage> {
         setState(
           () {
             Person.persons.add(Person(contact.displayName, phone.number));
+            Person.persons.sort(
+              (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+            );
             StoredSettings.save(personList: Person.persons);
             sendPersonsList;
           },
         );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
+            duration: Duration(seconds: 2),
             content: Text(
               "Added: ${contact.displayName}, ${phone.number}",
               softWrap: true,
@@ -282,6 +287,7 @@ class ContactsPageState extends State<ContactsPage> {
             context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
+              duration: Duration(seconds: 2),
               content: Text(
                 "The phone number ${phone.number} has already been added for ${contact.displayName}",
                 softWrap: true,
@@ -293,12 +299,16 @@ class ContactsPageState extends State<ContactsPage> {
           setState(
             () {
               Person.persons.add(Person(contact.displayName, phone.number));
+              Person.persons.sort(
+                (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+              );
               StoredSettings.save(personList: Person.persons);
               sendPersonsList;
             },
           );
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
+              duration: Duration(seconds: 2),
               content: Text(
                 "Added: ${contact.displayName}, ${phone.number}",
                 softWrap: true,

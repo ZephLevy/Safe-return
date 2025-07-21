@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:safe_return/Visuals/theme.dart';
 import 'package:safe_return/pages/settings_page.dart';
 import 'package:safe_return/shared_prefs/stored_settings.dart';
 import 'package:safe_return/utils/auth_service.dart';
@@ -14,77 +16,96 @@ class SecurityCodesPage extends StatefulWidget {
 }
 
 class _SecurityCodesPageState extends State<SecurityCodesPage> {
+  bool noRealCode() => SosManager.secretCode?.isEmpty ?? true;
+  bool noDecoyCode() => SosManager.fakeCode?.isEmpty ?? true;
+  final codeKey = GlobalKey<FormState>();
+  bool showReal = false;
+  bool showDecoy = false;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Security Codes"),
-      ),
-      body: ListView(
-        physics: NeverScrollableScrollPhysics(),
-        children: [
-          ListTile(
-            title: Text(SosManager.secretCode == null
-                ? "Set Real Code"
-                : "Change Real Code"),
-            leading: Icon(
-                SosManager.secretCode == null ? Icons.input : Icons.lock_reset),
-            onTap: () {
-              useBiometricsTo(
-                () => SettingsState.adaptiveAlert(
-                  context,
-                  () {
-                    Navigator.pop(context);
-                    getCodeInput(true);
-                  },
-                  title: "Are you sure?",
-                  content: SosManager.secretCode == null
-                      ? "This will set your real code."
-                      : "This will change your real code.",
-                ),
-              );
-            },
-          ),
-          ListTile(
-            title: Text(SosManager.fakeCode == null
-                ? "Set Decoy Code"
-                : "Change Decoy Code"),
-            leading: Icon(
-                SosManager.fakeCode == null ? Icons.input : Icons.lock_reset),
-            onTap: () {
-              useBiometricsTo(
-                () => SettingsState.adaptiveAlert(
-                  context,
-                  () {
-                    Navigator.pop(context);
-                    getCodeInput(false);
-                  },
-                  title: "Are you sure?",
-                  content: SosManager.fakeCode == null
-                      ? "This will set your decoy code."
-                      : "This will change your decoy code.",
-                ),
-              );
-            },
-          ),
-          ListTile(
-            title: Text("View Codes"),
-            leading: Icon(Icons.visibility),
-            onTap: () async {
-              useBiometricsTo(
-                () {
-                  Navigator.push(
-                    context,
-                    CupertinoPageRoute(
-                      builder: (BuildContext context) => viewCodes(),
-                    ),
+    return Theme(
+      data: Themes.settingsThemeData,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("Security Codes"),
+        ),
+        body: ListView(
+          physics: NeverScrollableScrollPhysics(),
+          children: [
+            Card(
+              child: Column(
+                children: [
+                  ListTile(
+                    title: Text(
+                        noRealCode() ? "Set Real Code" : "Change Real Code"),
+                    leading:
+                        Icon(noRealCode() ? Icons.input : Icons.lock_reset),
+                    onTap: () {
+                      useBiometricsTo(
+                        () => SettingsState.adaptiveAlert(
+                          context,
+                          () {
+                            Navigator.pop(context);
+                            getCodeInput(true);
+                          },
+                          title: "Are you sure?",
+                          content: noRealCode()
+                              ? "This will set your real code."
+                              : "This will change your real code.",
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    title: Text(
+                        noDecoyCode() ? "Set Decoy Code" : "Change Decoy Code"),
+                    leading:
+                        Icon(noDecoyCode() ? Icons.input : Icons.lock_reset),
+                    onTap: () {
+                      useBiometricsTo(
+                        () => SettingsState.adaptiveAlert(
+                          context,
+                          () {
+                            Navigator.pop(context);
+                            getCodeInput(false);
+                          },
+                          title: "Are you sure?",
+                          content: noDecoyCode()
+                              ? "This will set your decoy code."
+                              : "This will change your decoy code.",
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Card(
+              child: ListTile(
+                title: Text("View Codes"),
+                leading: Icon(Icons.visibility),
+                onTap: () async {
+                  useBiometricsTo(
+                    () {
+                      Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                          builder: (BuildContext context) {
+                            showReal = false;
+                            showDecoy = false;
+                            return viewCodes();
+                          },
+                        ),
+                      );
+                    },
                   );
                 },
-              );
-            },
-            trailing: Icon(Icons.arrow_forward_ios_rounded),
-          )
-        ],
+                trailing: Icon(Icons.arrow_forward_ios_rounded),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -98,60 +119,137 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
   }
 
   Widget viewCodes() {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Your Codes"),
-      ),
-      body: ListView(
-        physics: NeverScrollableScrollPhysics(),
-        children: [
-          ListTile(
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text("Your real code:"),
-                Text(
-                  SosManager.secretCode ?? "No real code set",
-                  style: TextStyle(color: Color.fromARGB(255, 100, 100, 100)),
-                ),
-              ],
+    print("real: ${SosManager.secretCode}");
+    print("fake: ${SosManager.fakeCode}");
+
+    return StatefulBuilder(builder: (context, setModalState) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text("Your Codes"),
+        ),
+        body: ListView(
+          physics: NeverScrollableScrollPhysics(),
+          children: [
+            ListTile(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Your real code:"),
+                  GestureDetector(
+                    onTap: () => setModalState(
+                      () {
+                        showReal = !showReal;
+                        showDecoy ? (showDecoy = !showDecoy) : null;
+                      },
+                    ),
+                    child: Text(
+                      showReal
+                          ? (noRealCode()
+                              ? "No real code set"
+                              : SosManager.secretCode!)
+                          : ('\u2022' * 15),
+                      style:
+                          TextStyle(color: Color.fromARGB(255, 100, 100, 100)),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          ListTile(
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text("Your decoy code:"),
-                Text(
-                  SosManager.fakeCode ?? "No decoy code set",
-                  style: TextStyle(
-                      color: const Color.fromARGB(255, 100, 100, 100)),
-                ),
-              ],
+            Divider(
+              indent: 12,
+              endIndent: 12,
+              height: 0,
             ),
-          )
-        ],
-      ),
-    );
+            ListTile(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Your decoy code:"),
+                  GestureDetector(
+                    onTap: () => setModalState(
+                      () {
+                        showDecoy = !showDecoy;
+                        showReal ? (showReal = !showReal) : null;
+                      },
+                    ),
+                    child: Text(
+                      showDecoy
+                          ? (noDecoyCode()
+                              ? "No decoy code set"
+                              : SosManager.fakeCode!)
+                          : ('\u2022' * 15),
+                      style: TextStyle(
+                          color: const Color.fromARGB(255, 100, 100, 100)),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
+      );
+    });
   }
 
-  void getCodeInput(bool fakeCode) {
+  void getCodeInput(bool realCode) {
     TextEditingController textController = TextEditingController();
-    final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
+    TextEditingController confirmController = TextEditingController();
+
     showDialog(
       barrierDismissible: false,
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(!fakeCode
-              ? "Enter a code: if threatened to enter a code, this will silently call an alert"
-              : "Enter a code"),
-          content: TextField(
-            controller: textController,
-            decoration: InputDecoration(
-                hintText: !fakeCode
-                    ? "Enter your decoy code..."
-                    : "Enter your real code"),
+          title: Text(realCode
+              ? "Enter a code"
+              : "Enter a code: if threatened to enter a code, this will silently call an alert"),
+          content: Form(
+            key: codeKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  maxLength: 20,
+                  autocorrect: false,
+                  autofillHints: [AutofillHints.newPassword],
+                  controller: textController,
+                  decoration: InputDecoration(
+                      hintText: realCode
+                          ? "Enter your real code"
+                          : "Enter your decoy code"),
+                  validator: (value) {
+                    if (realCode) {
+                      if (value == SosManager.fakeCode) {
+                        return 'Real code must be different from decoy code';
+                      }
+                    }
+                    if (value == SosManager.secretCode) {
+                      return 'Decoy code must be different from real code';
+                    }
+                    return checkValidNewCode(value);
+                  },
+                ),
+                TextFormField(
+                  maxLength: 20,
+                  autocorrect: false,
+                  autofillHints: [AutofillHints.newPassword],
+                  controller: confirmController,
+                  decoration: InputDecoration(
+                      hintText: realCode
+                          ? "Confirm your real code"
+                          : "Confirm your decoy code"),
+                  validator: (value) {
+                    if (value != textController.text) {
+                      return 'Codes do not match';
+                    }
+                    if (value == null || value.isEmpty) {
+                      return 'Please confirm your code';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -164,17 +262,8 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
               ),
             ),
             TextButton(
-              onPressed: () async {
-                if (fakeCode) {
-                  SosManager.secretCode = textController.text;
-                  await asyncPrefs.setString("secretCode", textController.text);
-                } else {
-                  SosManager.fakeCode = textController.text;
-                  await asyncPrefs.setString("fakeCode", textController.text);
-                }
-                if (context.mounted) {
-                  Navigator.of(context).pop(); // Close dialog
-                }
+              onPressed: () {
+                setCodes(realCode, textController);
               },
               child: Text("OK"),
             ),
@@ -182,5 +271,56 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
         );
       },
     );
+  }
+
+  void setCodes(bool realCode, TextEditingController textController) async {
+    final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
+
+    if (codeKey.currentState!.validate()) {
+      if (realCode) {
+        setState(() {
+          SosManager.secretCode = textController.text;
+        });
+        await asyncPrefs.setString("secretCode", textController.text);
+        if (!noRealCode()) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Your real code has been set!")));
+        }
+      } else {
+        setState(() {
+          SosManager.fakeCode = textController.text;
+        });
+        await asyncPrefs.setString("fakeCode", textController.text);
+        if (!noDecoyCode()) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Your decoy code has been set!")));
+        }
+      }
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close dialog
+      }
+    }
+  }
+
+  checkValidNewCode(value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter a Code';
+    }
+    if (value.length < 6) {
+      return 'Code must be at least 6 characters';
+    }
+    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+      return 'Include at least one uppercase letter';
+    }
+    if (!RegExp(r'[a-z]').hasMatch(value)) {
+      return 'Include at least one lowercase letter';
+    }
+    if (value.length > 20) {
+      return 'Code must be under 20 characters';
+    }
+    if (value.contains(' ')) {
+      return 'No spaces allowed';
+    }
+    return null;
   }
 }

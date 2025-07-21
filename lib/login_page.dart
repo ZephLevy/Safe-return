@@ -67,6 +67,8 @@ class LoginPageState extends State<LoginPage> {
             child: Column(
               children: [
                 TextFormField(
+                  autocorrect: false,
+                  autofillHints: [AutofillHints.email],
                   controller: emailController,
                   decoration: InputDecoration(labelText: "Email"),
                   keyboardType: TextInputType.emailAddress,
@@ -81,6 +83,9 @@ class LoginPageState extends State<LoginPage> {
                   },
                 ),
                 TextFormField(
+                  maxLength: 30,
+                  autocorrect: false,
+                  autofillHints: [AutofillHints.password],
                   controller: passwordController,
                   decoration: InputDecoration(labelText: "Password"),
                   obscureText: true,
@@ -88,9 +93,7 @@ class LoginPageState extends State<LoginPage> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a password';
                     }
-                    if (value.length > 50) {
-                      return 'Password must be under 50 characters';
-                    }
+
                     return null;
                   },
                 ),
@@ -248,9 +251,11 @@ class SignUpState extends State<SignUp> {
             child: Column(
               children: [
                 TextFormField(
+                  autocorrect: true,
+                  autofillHints: [AutofillHints.givenName],
                   controller: firstNcontroller,
                   decoration: InputDecoration(labelText: "First Name"),
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType: TextInputType.name,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a first name';
@@ -263,6 +268,8 @@ class SignUpState extends State<SignUp> {
                 ),
                 SizedBox(height: 10),
                 TextFormField(
+                  autocorrect: true,
+                  autofillHints: [AutofillHints.familyName],
                   controller: lastNcontroller,
                   decoration: InputDecoration(
                       labelText: "Last Name", helperText: "Optional"),
@@ -277,6 +284,8 @@ class SignUpState extends State<SignUp> {
                 ),
                 SizedBox(height: 10),
                 TextFormField(
+                  autocorrect: false,
+                  autofillHints: [AutofillHints.email],
                   controller: newEmailController,
                   decoration: InputDecoration(labelText: "Email"),
                   keyboardType: TextInputType.emailAddress,
@@ -292,6 +301,9 @@ class SignUpState extends State<SignUp> {
                 ),
                 SizedBox(height: 10),
                 TextFormField(
+                  maxLength: 30,
+                  autocorrect: false,
+                  autofillHints: [AutofillHints.newPassword],
                   controller: newPasswordController,
                   decoration: InputDecoration(labelText: "Password"),
                   obscureText: true,
@@ -311,9 +323,7 @@ class SignUpState extends State<SignUp> {
                     if (!RegExp(r'[0-9]').hasMatch(value)) {
                       return 'Include at least one digit';
                     }
-                    if (value.length > 50) {
-                      return 'Password must be under 50 characters';
-                    }
+
                     if (value.contains(' ')) {
                       return 'No spaces allowed';
                     }
@@ -323,6 +333,9 @@ class SignUpState extends State<SignUp> {
                 ),
                 SizedBox(height: 10),
                 TextFormField(
+                  maxLength: 30,
+                  autocorrect: false,
+                  autofillHints: null,
                   controller: confirmPasswordController,
                   decoration: InputDecoration(labelText: "Confirm Password"),
                   obscureText: true,

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class Themes {
   static final settingsThemeData = ThemeData(
     cardTheme: CardThemeData(
-      margin: EdgeInsets.symmetric(horizontal: 15),
+      margin: EdgeInsets.only(left: 15, right: 15, bottom: 10),
       clipBehavior: Clip.antiAlias,
       elevation: 0.5,
     ),

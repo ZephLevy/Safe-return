@@ -83,8 +83,8 @@ class StoredSettings {
 
   static Future<void> logOut() async {
     await asyncPrefs.clear();
-    SosManager.fakeCode = "";
-    SosManager.secretCode = "";
+    SosManager.fakeCode = null;
+    SosManager.secretCode = null;
     Person.encodedPersonString = "";
     Person.persons = [];
     selectedIndex = 1;

@@ -69,7 +69,6 @@ class SettingsState extends State<Settings> {
                       ),
                     );
                   })),
-          SizedBox(height: 10),
           Card(
             child: Column(
               children: [
@@ -111,7 +110,6 @@ class SettingsState extends State<Settings> {
               ],
             ),
           ),
-          SizedBox(height: 10),
           Card(
             child: Column(
               children: [
@@ -157,7 +155,6 @@ class SettingsState extends State<Settings> {
               ],
             ),
           ),
-          SizedBox(height: 10),
           Card(
             child: Column(
               children: [

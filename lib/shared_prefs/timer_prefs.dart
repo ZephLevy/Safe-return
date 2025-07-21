@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:safe_return/utils/time_manager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TimerPrefs {
   final asyncPrefs = SharedPreferencesAsync();
