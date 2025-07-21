@@ -3,13 +3,11 @@ import 'package:intl/intl.dart';
 class TimeManager {
   static DateTime? selectedTime;
   static DateTime? timeOfTap;
-  // static int? timeElapsed;
 
   static int? totalTime() {
     if (timeOfTap != null) {
       return selectedTime?.difference(timeOfTap!).inSeconds;
     }
-    print("totalT - timetap null");
     return null;
   }
 
@@ -17,7 +15,6 @@ class TimeManager {
     if (timeOfTap != null) {
       return DateTime.now().difference(timeOfTap!).inSeconds;
     }
-    print("timetap null");
     return null;
   }
 
@@ -25,5 +22,6 @@ class TimeManager {
     if (selectedTime != null) {
       return DateFormat.Hm().format(selectedTime!);
     }
+    return null;
   }
 }
