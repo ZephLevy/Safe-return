@@ -6,6 +6,7 @@ import 'package:safe_return/pages/home_page.dart';
 import 'package:safe_return/pages/map_page.dart';
 import 'package:safe_return/pages/settings_page.dart';
 import 'package:safe_return/Visuals/palette.dart';
+import 'package:safe_return/shared_prefs/timer_prefs.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/shared_prefs/stored_settings.dart';
@@ -24,8 +25,8 @@ Future<void> main() async {
   if (latitude != null && longitude != null) {
     Location.homePosition = LatLng(latitude, longitude);
   }
-
   await StoredSettings.loadAll();
+  await TimerPrefs.loadTimer();
   runApp(MyApp());
 }
 

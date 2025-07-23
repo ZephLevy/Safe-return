@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:http/http.dart' as http;
@@ -18,164 +21,239 @@ class ContactsPageState extends State<ContactsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        //todo center add icon with title and back button
-        //? modify back button
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 32),
-            child: InkWell(
-              radius: 24,
-              borderRadius: BorderRadius.circular(20),
-              onTap: _selectContacts,
-              child: _contactsLoading
-                  ? CircularProgressIndicator()
-                  : Icon(
-                      Icons.add,
-                      size: 28,
-                    ),
+        appBar: AppBar(
+          //todo center add icon with title and back button
+          //? modify back button
+          actions: [
+            Padding(
+                padding: EdgeInsets.only(right: 32),
+                child: SizedBox(
+                  height: 48,
+                  width: 48,
+                  child: Center(
+                    child: _contactsLoading
+                        ? CircularProgressIndicator.adaptive()
+                        : IconButton(
+                            tooltip:
+                                "How on earth do you not know what a + button does \n[add_emergency_contact]",
+                            onPressed: () => _selectContacts(),
+                            icon: Icon(
+                              Icons.add,
+                              size: 28,
+                            ),
+                          ),
+                  ),
+                )),
+          ],
+          title: Text("Emergency contacts"),
+        ),
+        //TODO bottomNavigationBar: BottomAppBar(), not sure if to keep this anymore
+        //TODO add an edit button or something so the user has another way to delete the contacts since swiping is too unintuitive
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: Duration(milliseconds: 200),
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: child,
+                ),
+                child: Person.persons.isEmpty ? contactListInfo() : listView(),
+              ),
             ),
-          ),
-        ],
-        title: Text("Emergency contacts"),
+            deleteInfo()
+          ],
+        ));
+  }
+
+  Widget contactListInfo() {
+    return Padding(
+      key: ValueKey('visible'),
+      padding: const EdgeInsets.only(top: 70),
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          children: [
+            Text(
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                textAlign: TextAlign.center,
+                softWrap: true,
+                'This is your Emergency Contacts list.'),
+            SizedBox(height: 8),
+            Text(
+                style: TextStyle(fontSize: 15),
+                textAlign: TextAlign.center,
+                softWrap: true,
+                'Click the "+" button on the top-right to add Emergency Contacts. \n\nIf you are not home by the time you select, all these contacts will be alerted (varies based on your configuration).'),
+          ],
+        ),
       ),
-      //TODO bottomNavigationBar: BottomAppBar(), not sure if to keep this anymore
-      //TODO add an edit button or something so the user has another way to delete the contacts since swiping is too unintuitive
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.separated(
-              itemCount: Person.persons.length,
-              separatorBuilder: (BuildContext context, int index) => Divider(),
-              itemBuilder: (BuildContext context, int index) {
-                return Dismissible(
-                  key: Key(Person.persons[index].phone),
-                  background: Container(
-                    color: Colors.red,
-                    alignment: Alignment.centerRight,
-                    padding: EdgeInsets.only(right: 20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          "Delete",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  ),
-                  direction: DismissDirection.endToStart,
-                  onDismissed: (direction) {
-                    setState(() {
-                      Person.persons.removeAt(index);
-                      StoredSettings.save(personList: Person.persons);
-                    });
-                  },
-                  child: ListTile(
-                    title: Text(Person.persons[index].name),
-                    trailing: Text(Person.persons[index].phone),
-                  ),
-                );
-              },
+    );
+    // : listView();
+  }
+
+  Widget listView() {
+    return ListView.separated(
+      physics: Person.persons.isEmpty
+          ? NeverScrollableScrollPhysics()
+          : AlwaysScrollableScrollPhysics(),
+      itemCount: Person.persons.length,
+      separatorBuilder: (BuildContext context, int index) => Divider(
+        height: 0,
+      ),
+      itemBuilder: (BuildContext context, int index) {
+        return Dismissible(
+          key: Key(Person.persons[index].phone),
+          background: Container(
+            color: Colors.red,
+            alignment: Alignment.centerRight,
+            padding: EdgeInsets.only(right: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text(
+                  "Delete",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
             ),
           ),
-          Align(
-            alignment: Alignment.center,
-            child: Container(
-              padding: EdgeInsets.only(left: 30, top: 10),
-              width: double.infinity,
-              height: 60,
-              decoration: BoxDecoration(
-                color: Palette.backgroundColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black54,
-                    offset: Offset(0, -1),
-                    blurRadius: 5,
-                    spreadRadius: 1,
-                  )
-                ],
-              ),
-              child: Row(
-                spacing: 5,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.info_outline),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text("Swipe the contacts left to delete"),
-                  ),
-                ],
-              ),
+          direction: DismissDirection.endToStart,
+          onDismissed: (direction) {
+            setState(() {
+              Person.persons.removeAt(index);
+              StoredSettings.save(personList: Person.persons);
+            });
+          },
+          child: Padding(
+            padding: const EdgeInsets.only(top: 5),
+            child: ListTile(
+              title: Text(Person.persons[index].name),
+              trailing: Text(Person.persons[index].phone),
             ),
-          )
-        ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget deleteInfo() {
+    return Align(
+      alignment: Alignment.center,
+      child: AnimatedSwitcher(
+        duration: Duration(milliseconds: 200),
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: child,
+        ),
+        child: Person.persons.isNotEmpty
+            ? Container(
+                key: ValueKey(
+                    'visible'), // Required for AnimatedSwitcher to work properly
+                padding: EdgeInsets.only(left: 30, top: 10),
+                width: double.infinity,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Palette.backgroundColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black54,
+                      offset: Offset(0, -1),
+                      blurRadius: 5,
+                      spreadRadius: 1,
+                    )
+                  ],
+                ),
+                child: Row(
+                  spacing: 5,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_outline),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text("Swipe the contacts left to delete"),
+                    ),
+                  ],
+                ),
+              )
+            : SizedBox.shrink(
+                key: ValueKey('hidden')), //Empty widget when not visible,
       ),
     );
   }
 
-  void _selectContacts() async {
-    setState(() {
-      _contactsLoading = true;
-    });
-    if (await FlutterContacts.requestPermission()) {
-//*declared contact info when selected
-      final contact = await FlutterContacts.openExternalPick();
-      setState(() {
-        _contactsLoading = false;
-      });
+  Future<void> _selectContacts() async {
+    if (Platform.isIOS) {
+      setState(() => _contactsLoading = true);
+      final allContacts = await FlutterContacts.getContacts(
+          withPhoto: true, withThumbnail: true, withProperties: true);
 
-      if (contact != null) {
-        if (contact.phones.length >= 2) {
-          multiplePhones(contact);
-        } else {
-          onePhone(contact);
+      setState(() => _contactsLoading = false);
+      pushToAndroidContacts(allContacts);
+    } else {
+      setState(() {
+        _contactsLoading = true;
+      });
+      if (await FlutterContacts.requestPermission()) {
+        if (Platform.isIOS) {
+          final contact = await FlutterContacts.openExternalPick();
+
+          setState(() {
+            _contactsLoading = false;
+          });
+
+          handleNumPhones(contact);
         }
       }
     }
   }
 
-  void onePhone(Contact contact) {
-    for (var phone in contact.phones) {
-      if (Person.persons.any((person) => person.phone == phone.number) &&
-          context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            duration: Duration(seconds: 2),
-            content: Text(
-              "The phone number ${phone.number} has already been added for ${contact.displayName}",
-              softWrap: true,
-            ),
-            showCloseIcon: true,
-          ),
-        );
+  void handleNumPhones(Contact? contact) {
+    if (contact != null) {
+      if (contact.phones.length >= 2) {
+        multiplePhones(contact);
       } else {
-        setState(
-          () {
-            Person.persons.add(Person(contact.displayName, phone.number));
-            Person.persons.sort(
-              (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
-            );
-            StoredSettings.save(personList: Person.persons);
-            sendPersonsList;
-          },
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            duration: Duration(seconds: 2),
-            content: Text(
-              "Added: ${contact.displayName}, ${phone.number}",
-              softWrap: true,
-            ),
-            showCloseIcon: true,
-          ),
-        );
+        handleAddContacts(contact, null, addAll: true);
       }
     }
   }
 
+  pushToAndroidContacts(List<Contact> allContacts) {
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        fullscreenDialog: true,
+        barrierDismissible: true,
+        builder: (BuildContext context) {
+          return androidContactList(allContacts);
+        },
+      ),
+    );
+  }
+
+  Widget androidContactList(List<Contact> allContacts) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Contacts"),
+      ),
+      body: ListView.separated(
+          itemBuilder: (context, index) {
+            final contact = allContacts[index];
+            return ListTile(
+              title: Text(contact.displayName),
+              onTap: () {
+                Navigator.pop(context);
+                handleNumPhones(contact);
+              },
+            );
+          },
+          separatorBuilder: (context, index) => Divider(),
+          itemCount: allContacts.length),
+    );
+  }
+
   void multiplePhones(Contact contact) {
-    bool? addAll;
     if (!mounted) return;
     final selectedPhones = <Phone>{};
     showDialog(
@@ -256,8 +334,7 @@ class ContactsPageState extends State<ContactsPage> {
             actions: [
               TextButton(
                   onPressed: () {
-                    addAll = true;
-                    handleAddMultipleContacts(contact, selectedPhones, addAll);
+                    handleAddContacts(contact, selectedPhones, addAll: true);
                     if (context.mounted) {
                       Navigator.of(context).pop(); // Close dialog
                     }
@@ -265,8 +342,7 @@ class ContactsPageState extends State<ContactsPage> {
                   child: Text("Add all")),
               TextButton(
                   onPressed: () {
-                    addAll = false;
-                    handleAddMultipleContacts(contact, selectedPhones, addAll);
+                    handleAddContacts(contact, selectedPhones, addAll: false);
                     if (context.mounted) {
                       Navigator.of(context).pop(); // Close dialog
                     }
@@ -279,10 +355,11 @@ class ContactsPageState extends State<ContactsPage> {
     );
   }
 
-  void handleAddMultipleContacts(
-      Contact contact, Set<Phone> selectedPhones, bool? addAll) {
+  void handleAddContacts(Contact contact, Set<Phone>? selectedPhones,
+      {bool? addAll}) {
     if (addAll != null) {
-      for (var phone in addAll ? contact.phones : selectedPhones) {
+      for (Phone phone
+          in (addAll ? contact.phones : selectedPhones ?? contact.phones)) {
         if (Person.persons.any((person) => person.phone == phone.number) &&
             context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

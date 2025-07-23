@@ -1,7 +1,8 @@
 import 'package:intl/intl.dart';
+import 'package:safe_return/pages/home_page.dart';
 
 class TimeManager {
-  static DateTime? selectedTime;
+  static DateTime? selectedTime = DateTime.now();
   static DateTime? timeOfTap;
 
   static int? totalTime() {
@@ -20,7 +21,9 @@ class TimeManager {
 
   static String? shortSelectedTime() {
     if (selectedTime != null) {
-      return DateFormat.Hm().format(selectedTime!);
+      return TimeSetterState.isTomorrow
+          ? "${DateFormat.Hm().format(selectedTime!)}, Tomorrow"
+          : DateFormat.Hm().format(selectedTime!);
     }
     return null;
   }

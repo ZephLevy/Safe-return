@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/logic/location.dart';
+import 'package:safe_return/shared_prefs/timer_prefs.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/shared_prefs/stored_settings.dart';
@@ -127,18 +128,17 @@ class TimerAndClockState extends State<TimerAndClock>
   Duration animationDuration = Duration(milliseconds: 200);
   Curve animationCurve = Curves.easeOut;
   static bool showTimer = false;
-
   static bool firstLoad = false;
-  bool validTime = false;
-  bool updateSelected = false;
-  bool startSelected = false;
+  static bool validTime = false;
+
+  static bool startSelected = false;
   bool timeIsSet = false;
   DateTime date = DateTime.now();
   static int codeAttempts = 3;
 
   double bHBHeight = 52.75;
   double mainContainerHeight() {
-    return showTimer ? 280 : 190;
+    return showTimer ? 280 : 220; //. asldkfjlak sdjfklas
   }
 
   double setButtonHeight = 50;
@@ -157,7 +157,6 @@ class TimerAndClockState extends State<TimerAndClock>
   Future<void> initStateAsync() async {
     await StoredSettings.loadAll();
     firstLoad = true;
-    // TimeManager.selectedTime = DateTime.now();
   }
 
   @override
@@ -174,11 +173,12 @@ class TimerAndClockState extends State<TimerAndClock>
               Column(
                 children: [
                   _bhb(),
-                  Container(
+                  SizedBox(
                     key: mainContainerKey,
+                    height: mainContainerHeight(),
                     child: showTimer
                         ? HomeTimer(timerController: timerController)
-                        : _timeSetter(),
+                        : TimeSetter(),
                   )
                 ],
               ),
@@ -202,14 +202,18 @@ class TimerAndClockState extends State<TimerAndClock>
           width: 1.5,
         ),
       ),
-      child: Center(
-        child: Text(
-          showTimer ? 'You must be home by:' : 'Be Home By:',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+      child: SizedBox(
+        height: mainContainerHeight(),
+        child: Center(
+            child: showTimer
+                ? _HomeTimerState.showBeHomeTime()
+                : Text(
+                    'Be Home By:',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  )),
       ),
     );
   }
@@ -244,23 +248,6 @@ class TimerAndClockState extends State<TimerAndClock>
         ),
       );
     }
-  }
-
-  Widget _timeSetter() {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 20),
-      child: SizedBox(
-        height: 150,
-        child: CupertinoDatePicker(
-          initialDateTime: TimeManager.selectedTime ?? DateTime.now(),
-          onDateTimeChanged: (value) {
-            TimeManager.selectedTime = value;
-          },
-          mode: CupertinoDatePickerMode.time,
-          use24hFormat: true,
-        ),
-      ),
-    );
   }
 
   Widget setButton(BuildContext context) {
@@ -324,7 +311,17 @@ class TimerAndClockState extends State<TimerAndClock>
       showTimer = false;
       startSelected = false;
       TimeManager.timeOfTap = null;
+      TimeSetterState.isTomorrow = false;
+      TimeManager.selectedTime = DateTime(
+          DateTime.now().year,
+          DateTime.now().month,
+          DateTime.now().day,
+          TimeManager.selectedTime!.hour,
+          TimeManager.selectedTime!.minute,
+          TimeManager.selectedTime!.second,
+          TimeManager.selectedTime!.millisecond);
     });
+    TimerPrefs.saveTimer();
   }
 
   void checkValidTime() {
@@ -490,6 +487,88 @@ class TimerAndClockState extends State<TimerAndClock>
   }
 }
 
+class TimeSetter extends StatefulWidget {
+  const TimeSetter({super.key});
+
+  @override
+  State<TimeSetter> createState() => TimeSetterState();
+}
+
+class TimeSetterState extends State<TimeSetter> {
+  bool timeIsNextDay() => TimeManager.selectedTime!.isBefore(DateTime.now());
+
+  static bool isTomorrow = false;
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      spacing: 0,
+      children: [
+        timeIsTomorrowCheckBox(),
+        Divider(
+          indent: 20,
+          endIndent: 20,
+          height: 3,
+        ),
+        setterUi(),
+      ],
+    );
+  }
+
+  Widget timeIsTomorrowCheckBox() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Checkbox.adaptive(
+          side: BorderSide(
+              color: const Color.fromARGB(255, 114, 114, 114), width: 1),
+          visualDensity: VisualDensity.compact,
+          materialTapTargetSize: MaterialTapTargetSize
+              .shrinkWrap, // Shrinks tap target (Android only)
+
+          value: isTomorrow,
+          onChanged: (value) {
+            setState(
+              () => isTomorrow = value!,
+            );
+            print("check: ${TimeManager.selectedTime}");
+          },
+        ),
+        GestureDetector(
+            onTap: () => setState(() => isTomorrow = !isTomorrow),
+            child: Text("I will be back tomorrow"))
+      ],
+    );
+  }
+
+  Widget setterUi() {
+    return Container(
+      margin: EdgeInsets.only(top: 5),
+      child: SizedBox(
+        height: 150,
+        child: CupertinoDatePicker(
+          initialDateTime: TimeManager.selectedTime ?? DateTime.now(),
+          onDateTimeChanged: (value) {
+            print("changed: ${TimeManager.selectedTime}");
+
+            TimeManager.selectedTime = value;
+            if (timeIsNextDay()) {
+              setState(() {
+                isTomorrow = true;
+              });
+            } else {
+              setState(() {
+                isTomorrow = false;
+              });
+            }
+          },
+          mode: CupertinoDatePickerMode.time,
+          use24hFormat: true,
+        ),
+      ),
+    );
+  }
+}
+
 class HomeTimer extends StatefulWidget {
   const HomeTimer({
     super.key,
@@ -505,15 +584,29 @@ class HomeTimer extends StatefulWidget {
 class _HomeTimerState extends State<HomeTimer> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        showBeHomeTime(),
-        timerUI(),
-      ],
+    return Center(
+      child: Container(
+        padding: EdgeInsets.all(10),
+        child: CircularCountDownTimer(
+          duration: TimeManager.totalTime() ?? 0,
+          initialDuration: TimeManager.timeElapsed() ?? 0,
+          controller: widget.timerController,
+          width: 200,
+          height: 200,
+          ringColor: Colors.grey,
+          fillColor: Colors.orange,
+          backgroundColor: Palette.backgroundColor,
+          strokeWidth: 10,
+          strokeCap: StrokeCap.round,
+          textStyle: TextStyle(fontSize: 24),
+          isReverse: true,
+          isReverseAnimation: true,
+        ),
+      ),
     );
   }
 
-  Widget showBeHomeTime() {
+  static Widget showBeHomeTime() {
     Icon bellIcon = Icon(Icons.notifications_rounded, size: 18.5);
     return Padding(
       padding: EdgeInsets.only(top: 10, bottom: 8),
@@ -530,45 +623,34 @@ class _HomeTimerState extends State<HomeTimer> {
     );
   }
 
-  Container timerUI() {
-    return Container(
-      padding: EdgeInsets.all(10),
-      child: CircularCountDownTimer(
-        duration: TimeManager.totalTime() ?? 0,
-        initialDuration: 0,
-        controller: widget.timerController,
-        width: 200,
-        height: 200,
-        ringColor: Colors.grey,
-        fillColor: Colors.orange,
-        backgroundColor: Palette.backgroundColor,
-        strokeWidth: 10,
-        strokeCap: StrokeCap.round,
-        textStyle: TextStyle(fontSize: 24),
-        isReverse: true,
-        isReverseAnimation: true,
-      ),
-    );
-  }
-
   static Future<void> setTimerLogic() async {
-    print("selected: ${TimeManager.selectedTime}");
-    if (TimeManager.selectedTime == null) {
-      TimeManager.selectedTime = DateTime.now();
-    } else {
-      print("total time before calc: ${TimeManager.totalTime()}");
-      bool timeIsNextDay = TimeManager.selectedTime!.isBefore(DateTime.now());
-      if (timeIsNextDay) {
-        TimeManager.selectedTime =
-            TimeManager.selectedTime!.add(Duration(days: 1));
-      }
+    TimeManager.selectedTime ??= DateTime.now();
+    if (TimeManager.selectedTime != null) {
+      DateTime? dateTomorrow = TimeManager.selectedTime!.add(Duration(days: 1));
+      // bool timeIsNextDay() =>
+      //     TimeManager.selectedTime!.isBefore(DateTime.now());
+
       TimeManager.timeOfTap = DateTime.now();
+
+      if (TimeSetterState.isTomorrow) {
+        TimeManager.selectedTime = DateTime(
+            dateTomorrow.year,
+            dateTomorrow.month,
+            dateTomorrow.day,
+            TimeManager.selectedTime!.hour,
+            TimeManager.selectedTime!.minute,
+            TimeManager.selectedTime!.second,
+            TimeManager.selectedTime!.millisecond);
+      }
+
       // TimeManager.totalTime =
       //     TimeManager.selectedTime!.difference(DateTime.now()).inSeconds;
 
-      print("total time after calculations: ${TimeManager.totalTime()}");
-      print("timetap: ${TimeManager.timeOfTap}");
+      // print("total time after calculations: ${TimeManager.totalTime()}");
+      // print("timetap: ${TimeManager.timeOfTap}");
     }
+    print("selected: ${TimeManager.selectedTime}");
+    TimerPrefs.saveTimer();
   }
 }
 
