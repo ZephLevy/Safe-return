@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:http/http.dart' as http;
 import 'package:safe_return/Visuals/palette.dart';
+import 'package:safe_return/pages/settings/preferred_viewer.dart';
 import 'package:safe_return/shared_prefs/stored_settings.dart';
 import 'package:safe_return/utils/persons.dart';
 
@@ -184,7 +185,8 @@ class ContactsPageState extends State<ContactsPage> {
   }
 
   Future<void> _selectContacts() async {
-    if (Platform.isIOS) {
+    if (Platform.isAndroid && //.sldjflksajf klasjdf k;sjd fklasjd fkllsdjfklsdj
+        PreferredViewerState.viewType == ViewType.flutterList) {
       setState(() => _contactsLoading = true);
       final allContacts = await FlutterContacts.getContacts(
           withPhoto: true, withThumbnail: true, withProperties: true);

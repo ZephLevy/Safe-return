@@ -14,6 +14,7 @@ import 'package:safe_return/Visuals/theme.dart';
 import 'package:safe_return/login_page.dart';
 import 'package:safe_return/pages/settings/account_page.dart';
 import 'package:safe_return/pages/settings/contacts_page.dart';
+import 'package:safe_return/pages/settings/preferred_viewer.dart';
 import 'package:safe_return/pages/settings/security_codes_page.dart';
 import 'package:safe_return/pages/settings/sos_activation.dart';
 import 'package:safe_return/shared_prefs/stored_settings.dart';
@@ -70,6 +71,12 @@ class SettingsState extends State<Settings> {
                     );
                   })),
           Card(
+            margin: EdgeInsets.only(
+                left: 15,
+                right: 15,
+                bottom: Platform.isAndroid
+                    ? 1
+                    : 10), //.j aksdjfklasj dlkfaj s;dlfjklasdjf
             child: Column(
               children: [
                 ListTile(
@@ -110,6 +117,29 @@ class SettingsState extends State<Settings> {
               ],
             ),
           ),
+          if (Platform
+              .isAndroid) //.jdsflka s;dklfj ;alksdfj klasdjf ;lasjd f;lks djfd
+            Card(
+              margin: EdgeInsets.only(left: 40, right: 15, bottom: 10),
+              child: ListTile(
+                contentPadding: EdgeInsets.only(left: 15, right: 20),
+                minTileHeight: 45,
+                titleTextStyle: TextStyle(fontSize: 15, color: Colors.black),
+                title: Text("Preferred Contact Viewer"),
+                leading: Icon(
+                  Icons.view_carousel_outlined,
+                  size: 22,
+                ),
+                trailing: Icon(Icons.arrow_forward_ios_rounded),
+                onTap: () => Navigator.push(
+                  context,
+                  CupertinoPageRoute<Widget>(
+                    builder: (BuildContext context) =>
+                        PreferredViewer(), //* OPEN VIEWTYPE MENU PAGE
+                  ),
+                ),
+              ),
+            ),
           Card(
             child: Column(
               children: [
@@ -164,7 +194,7 @@ class SettingsState extends State<Settings> {
                       "What will be sent if you are not home by the set time."),
                   leading: Icon(Icons.notifications),
                   onTap: () {
-                    NotiService().notHomeNotif();
+                    NotiService().notHomeNotif(); //* SEND TEST NOTIFICATION
                     ContactsPageState
                         .sendPersonsList(); //TODO remove this in production, only for debugging so far, no point in having it for test notif
                   },

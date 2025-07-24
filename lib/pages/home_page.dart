@@ -161,6 +161,11 @@ class TimerAndClockState extends State<TimerAndClock>
 
   @override
   Widget build(BuildContext context) {
+    print(TimeManager.selectedTime);
+    print(TimeManager.timeOfTap);
+    print("${TimeManager.timeElapsed()}");
+    print("${TimeManager.totalTime()}");
+
     return Column(
       children: [
         AnimatedSize(
@@ -333,23 +338,19 @@ class TimerAndClockState extends State<TimerAndClock>
       );
       _scheduleCheck();
       HapticFeedback.mediumImpact();
-
-      // This makes me not want to open source this project purely out of shame
-      var timesAreSame =
-          ((TimeManager.selectedTime!.hour == DateTime.now().hour &&
-              (TimeManager.selectedTime!.minute == DateTime.now().minute)));
+      bool validTime = TimeManager.selectedTime!.isAfter(DateTime.now());
       bool codesNull =
           SosManager.fakeCode == null || SosManager.secretCode == null;
-      bool validForStart = !codesNull && !timesAreSame;
-      bool notValidForStart = codesNull || timesAreSame;
+      bool validForStart = !codesNull && validTime;
+      bool notValidForStart = codesNull || !validTime;
 
       validTimecheck(
-          notValidForStart, validForStart, timesAreSame, codesNull, context);
+          notValidForStart, validForStart, validTime, codesNull, context);
     }
   }
 
-  void validTimecheck(bool notValidForStart, bool validForStart,
-      bool timesAreSame, bool codesNull, BuildContext context) async {
+  void validTimecheck(bool notValidForStart, bool validForStart, bool validTime,
+      bool codesNull, BuildContext context) async {
     if (validForStart) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -369,11 +370,11 @@ class TimerAndClockState extends State<TimerAndClock>
         startSelected = false;
         showTimer = false;
       });
-      if (timesAreSame) {
+      if (!validTime) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Center(
-              child: Text("Please select a time that is not now!"),
+              child: Text("Please select a time that is after now!"),
             ),
           ),
         );
@@ -650,6 +651,7 @@ class _HomeTimerState extends State<HomeTimer> {
       // print("timetap: ${TimeManager.timeOfTap}");
     }
     print("selected: ${TimeManager.selectedTime}");
+
     TimerPrefs.saveTimer();
   }
 }

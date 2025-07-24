@@ -50,16 +50,13 @@ class StoredSettings {
   }
 
   static Future<void> loadAll() async {
-    final String zEncodedPersonString =
-        await asyncPrefs.getString('persons') ?? "";
-    Person.encodedPersonString = zEncodedPersonString;
+    Person.encodedPersonString = await asyncPrefs.getString('persons') ?? "";
 
     Person.encodedPersonString.isNotEmpty
         ? Person.decodePerson(
             toDecode: Person.encodedPersonString, targetList: Person.persons)
         : null;
 
-    // final int zSelectedIndex = await asyncPrefs.getInt('selectedIndex') ?? 1;
     selectedIndex = await asyncPrefs.getInt('selectedIndex') ?? 1;
 
     SosManager.clickN = await asyncPrefs.getInt('clickN') ?? selectedIndex + 1;
