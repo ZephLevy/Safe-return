@@ -9,10 +9,10 @@ import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/logic/location.dart';
+import 'package:safe_return/shared_prefs/stored_settings.dart';
 import 'package:safe_return/shared_prefs/timer_prefs.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
-import 'package:safe_return/shared_prefs/stored_settings.dart';
 import 'package:safe_return/utils/time_manager.dart';
 
 class HomePage extends StatelessWidget {
@@ -264,11 +264,15 @@ class TimerAndClockState extends State<TimerAndClock>
             firstLoad = false;
           });
           if (showTimer) {
-            cancelEvent();
+            setState(() {
+              cancelEvent();
+            });
           } else {
             setState(() {
               showTimer = true;
             });
+            HapticFeedback.mediumImpact();
+            HapticFeedback.selectionClick();
             await _HomeTimerState.setTimerLogic();
             checkValidTime();
           }
@@ -311,46 +315,56 @@ class TimerAndClockState extends State<TimerAndClock>
     );
   }
 
-  void cancelEvent() {
-    setState(() {
-      showTimer = false;
-      startSelected = false;
-      TimeManager.timeOfTap = null;
-      TimeSetterState.isTomorrow = false;
-      TimeManager.selectedTime = DateTime(
-          DateTime.now().year,
-          DateTime.now().month,
-          DateTime.now().day,
-          TimeManager.selectedTime!.hour,
-          TimeManager.selectedTime!.minute,
-          TimeManager.selectedTime!.second,
-          TimeManager.selectedTime!.millisecond);
-    });
+  static void cancelEvent() {
+    showTimer = false;
+    startSelected = false;
+    TimeManager.timeOfTap = null;
+    TimeSetterState.isTomorrow = false;
+    TimeManager.selectedTime = DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+        DateTime.now().day,
+        TimeManager.selectedTime.hour,
+        TimeManager.selectedTime.minute,
+        TimeManager.selectedTime.second,
+        TimeManager.selectedTime.millisecond);
+
     TimerPrefs.saveTimer();
   }
 
   void checkValidTime() {
-    if (TimeManager.selectedTime != null) {
-      setState(
-        () {
-          date = TimeManager.selectedTime!;
-        },
-      );
-      _scheduleCheck();
-      HapticFeedback.mediumImpact();
-      bool validTime = TimeManager.selectedTime!.isAfter(DateTime.now());
-      bool codesNull =
-          SosManager.fakeCode == null || SosManager.secretCode == null;
-      bool validForStart = !codesNull && validTime;
-      bool notValidForStart = codesNull || !validTime;
+    setState(
+      () {
+        date = TimeManager.selectedTime;
+      },
+    );
+    _scheduleCheck();
 
-      validTimecheck(
-          notValidForStart, validForStart, validTime, codesNull, context);
+    bool timeIsNow(DateTime a, DateTime b) {
+      return a.year == b.year &&
+          a.month == b.month &&
+          a.day == b.day &&
+          a.hour == b.hour &&
+          a.minute == b.minute;
     }
+
+    bool validTime = TimeManager.selectedTime.isAfter(DateTime.now());
+    bool codesNull =
+        SosManager.fakeCode == null || SosManager.secretCode == null;
+    bool validForStart = !codesNull && validTime;
+    bool notValidForStart = codesNull ||
+        !validTime ||
+        timeIsNow(TimeManager.selectedTime, DateTime.now());
+
+    checkWhetherToStart(
+        notValidForStart, validForStart, validTime, codesNull, context);
   }
 
-  void validTimecheck(bool notValidForStart, bool validForStart, bool validTime,
-      bool codesNull, BuildContext context) async {
+  void checkWhetherToStart(bool notValidForStart, bool validForStart,
+      bool validTime, bool codesNull, BuildContext context) async {
+    print(".$validForStart");
+    print(".$validTime");
+    print(".$codesNull");
     if (validForStart) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -370,7 +384,7 @@ class TimerAndClockState extends State<TimerAndClock>
         startSelected = false;
         showTimer = false;
       });
-      if (!validTime) {
+      if (notValidForStart) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Center(
@@ -496,7 +510,7 @@ class TimeSetter extends StatefulWidget {
 }
 
 class TimeSetterState extends State<TimeSetter> {
-  bool timeIsNextDay() => TimeManager.selectedTime!.isBefore(DateTime.now());
+  bool timeIsNextDay() => TimeManager.selectedTime.isBefore(DateTime.now());
 
   static bool isTomorrow = false;
   @override
@@ -547,7 +561,7 @@ class TimeSetterState extends State<TimeSetter> {
       child: SizedBox(
         height: 150,
         child: CupertinoDatePicker(
-          initialDateTime: TimeManager.selectedTime ?? DateTime.now(),
+          initialDateTime: TimeManager.selectedTime,
           onDateTimeChanged: (value) {
             print("changed: ${TimeManager.selectedTime}");
 
@@ -585,26 +599,59 @@ class HomeTimer extends StatefulWidget {
 class _HomeTimerState extends State<HomeTimer> {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        padding: EdgeInsets.all(10),
-        child: CircularCountDownTimer(
-          duration: TimeManager.totalTime() ?? 0,
-          initialDuration: TimeManager.timeElapsed() ?? 0,
-          controller: widget.timerController,
-          width: 200,
-          height: 200,
-          ringColor: Colors.grey,
-          fillColor: Colors.orange,
-          backgroundColor: Palette.backgroundColor,
-          strokeWidth: 10,
-          strokeCap: StrokeCap.round,
-          textStyle: TextStyle(fontSize: 24),
-          isReverse: true,
-          isReverseAnimation: true,
+    print("reloaded");
+    if ((TimeManager.timeElapsed() ?? 0) <= (TimeManager.totalTime() ?? 0)) {
+      return Center(
+        child: Container(
+          padding: EdgeInsets.all(10),
+          child: CircularCountDownTimer(
+            duration: TimeManager.totalTime() ?? 0,
+            initialDuration: TimeManager.timeElapsed() ?? 0,
+            controller: widget.timerController,
+            width: 200,
+            height: 200,
+            ringColor: Colors.grey,
+            fillColor: Colors.orange,
+            backgroundColor: Palette.backgroundColor,
+            strokeWidth: 10,
+            strokeCap: StrokeCap.round,
+            textStyle: TextStyle(fontSize: 24),
+            isReverse: true,
+            isReverseAnimation: true,
+            onComplete: () {
+              setState(() {
+                TimerAndClockState.showTimer = false;
+              });
+            },
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      return Column(
+        spacing: 10,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            "An error occured, please try again.",
+            style: TextStyle(fontSize: 16.5),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                TimerAndClockState.showTimer = false;
+                TimerAndClockState.showTimer = true;
+                TimerAndClockState.codeAttempts = 3;
+                TimerAndClockState.startSelected = true;
+              });
+            },
+            child: Text(
+              "Try Again",
+              style: TextStyle(fontSize: 18),
+            ),
+          ),
+        ],
+      );
+    }
   }
 
   static Widget showBeHomeTime() {
@@ -616,7 +663,7 @@ class _HomeTimerState extends State<HomeTimer> {
         children: [
           bellIcon,
           Text(
-            TimeManager.shortSelectedTime()!,
+            TimeManager.shortSelectedTime(),
             style: TextStyle(fontSize: 16),
           ),
         ],
@@ -625,31 +672,28 @@ class _HomeTimerState extends State<HomeTimer> {
   }
 
   static Future<void> setTimerLogic() async {
-    TimeManager.selectedTime ??= DateTime.now();
-    if (TimeManager.selectedTime != null) {
-      DateTime? dateTomorrow = TimeManager.selectedTime!.add(Duration(days: 1));
-      // bool timeIsNextDay() =>
-      //     TimeManager.selectedTime!.isBefore(DateTime.now());
+    DateTime? dateTomorrow = TimeManager.selectedTime.add(Duration(days: 1));
+    // bool timeIsNextDay() =>
+    //     TimeManager.selectedTime!.isBefore(DateTime.now());
 
-      TimeManager.timeOfTap = DateTime.now();
+    TimeManager.timeOfTap = DateTime.now();
 
-      if (TimeSetterState.isTomorrow) {
-        TimeManager.selectedTime = DateTime(
-            dateTomorrow.year,
-            dateTomorrow.month,
-            dateTomorrow.day,
-            TimeManager.selectedTime!.hour,
-            TimeManager.selectedTime!.minute,
-            TimeManager.selectedTime!.second,
-            TimeManager.selectedTime!.millisecond);
-      }
-
-      // TimeManager.totalTime =
-      //     TimeManager.selectedTime!.difference(DateTime.now()).inSeconds;
-
-      // print("total time after calculations: ${TimeManager.totalTime()}");
-      // print("timetap: ${TimeManager.timeOfTap}");
+    if (TimeSetterState.isTomorrow) {
+      TimeManager.selectedTime = DateTime(
+          dateTomorrow.year,
+          dateTomorrow.month,
+          dateTomorrow.day,
+          TimeManager.selectedTime.hour,
+          TimeManager.selectedTime.minute,
+          TimeManager.selectedTime.second,
+          TimeManager.selectedTime.millisecond);
     }
+
+    // TimeManager.totalTime =
+    //     TimeManager.selectedTime!.difference(DateTime.now()).inSeconds;
+
+    // print("total time after calculations: ${TimeManager.totalTime()}");
+    // print("timetap: ${TimeManager.timeOfTap}");
     print("selected: ${TimeManager.selectedTime}");
 
     TimerPrefs.saveTimer();

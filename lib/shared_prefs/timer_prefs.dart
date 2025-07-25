@@ -5,10 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class TimerPrefs {
   static Future<void> saveTimer() async {
     final asyncPrefs = SharedPreferencesAsync();
-    if (TimeManager.selectedTime != null) {
-      await asyncPrefs.setString(
-          'selectedTime', TimeManager.selectedTime!.toIso8601String());
-    }
+    await asyncPrefs.setString(
+        'selectedTime', TimeManager.selectedTime.toIso8601String());
 
     if (TimeManager.timeOfTap != null) {
       await asyncPrefs.setString(
@@ -24,10 +22,6 @@ class TimerPrefs {
 
   static Future<void> loadTimer() async {
     final asyncPrefs = SharedPreferencesAsync();
-    String? stringSelectedTime = await asyncPrefs.getString('selectedTime');
-    if (stringSelectedTime != null) {
-      TimeManager.selectedTime = DateTime.tryParse(stringSelectedTime);
-    }
 
     String? stringTimeOfTap = await asyncPrefs.getString('timeOfTap');
     if (stringTimeOfTap != null) {
@@ -45,5 +39,12 @@ class TimerPrefs {
 
     TimeSetterState.isTomorrow =
         await asyncPrefs.getBool('isTomorrow') ?? false;
+
+    if (TimerAndClockState.showTimer) {
+      String? stringSelectedTime = await asyncPrefs.getString('selectedTime');
+      if (stringSelectedTime != null) {
+        TimeManager.selectedTime = DateTime.parse(stringSelectedTime);
+      }
+    }
   }
 }

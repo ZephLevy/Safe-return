@@ -85,7 +85,7 @@ class StoredSettings {
     SignUpState.lastName = "";
     TimerAndClockState.showTimer = false;
     TimeSetterState.isTomorrow = false;
-    TimeManager.selectedTime = null;
+    TimeManager.selectedTime = DateTime.now();
     TimeManager.timeOfTap = null;
   }
 }
