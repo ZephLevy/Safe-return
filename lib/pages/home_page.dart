@@ -43,6 +43,29 @@ class HomePage extends StatelessWidget {
   }
 }
 
+class HomeTimer extends StatefulWidget {
+  final CountDownController timerController;
+
+  final VoidCallback onTimerComplete;
+  const HomeTimer({
+    super.key,
+    required this.timerController,
+    required this.onTimerComplete,
+  });
+
+  @override
+  State<HomeTimer> createState() => _HomeTimerState();
+}
+
+class SnackBarContent extends StatefulWidget {
+  const SnackBarContent({
+    super.key,
+  });
+
+  @override
+  State<SnackBarContent> createState() => _SnackBarContentState();
+}
+
 // class SosButton extends StatefulWidget {
 //   final Function onTap;
 //   final Duration tapTimeThreshold;
@@ -121,111 +144,25 @@ class TimerAndClock extends StatefulWidget {
 
 class TimerAndClockState extends State<TimerAndClock>
     with TickerProviderStateMixin {
+  static bool showTimer = false;
+  static bool firstLoad = false;
+  static bool validTime = false;
+
+  static bool startSelected = false;
+  // DateTime date = DateTime.now();
+  static int codeAttempts = 3;
   final CountDownController timerController = CountDownController();
   final GlobalKey mainContainerKey = GlobalKey();
   final GlobalKey bHBkey = GlobalKey();
 
   Duration animationDuration = Duration(milliseconds: 200);
   Curve animationCurve = Curves.easeOut;
-  static bool showTimer = false;
-  static bool firstLoad = false;
-  static bool validTime = false;
-
-  static bool startSelected = false;
   bool timeIsSet = false;
-  DateTime date = DateTime.now();
-  static int codeAttempts = 3;
 
   double bHBHeight = 52.75;
-  double mainContainerHeight() {
-    return showTimer ? 280 : 220; //. asldkfjlak sdjfklas
-  }
-
   double setButtonHeight = 50;
 
-  @override
-  void initState() {
-    print("${TimeManager.selectedTime}");
-    print("${TimeManager.timeOfTap}");
-    print("${TimeManager.timeElapsed()}");
-    print("${TimeManager.totalTime()}");
-
-    initStateAsync();
-    super.initState();
-  }
-
-  Future<void> initStateAsync() async {
-    await StoredSettings.loadAll();
-    firstLoad = true;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    print(TimeManager.selectedTime);
-    print(TimeManager.timeOfTap);
-    print("${TimeManager.timeElapsed()}");
-    print("${TimeManager.totalTime()}");
-
-    return Column(
-      children: [
-        AnimatedSize(
-          curve: animationCurve,
-          duration: animationDuration,
-          alignment: Alignment.topCenter,
-          child: Stack(
-            children: [
-              bgBox(),
-              Column(
-                children: [
-                  _bhb(),
-                  SizedBox(
-                    key: mainContainerKey,
-                    height: mainContainerHeight(),
-                    child: showTimer
-                        ? HomeTimer(timerController: timerController)
-                        : TimeSetter(),
-                  )
-                ],
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: 8),
-        setButton(context)
-      ],
-    );
-  }
-
-  Widget _bhb() {
-    return Container(
-      key: bHBkey,
-      height: bHBHeight,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Palette.blue1,
-          width: 1.5,
-        ),
-      ),
-      child: SizedBox(
-        height: mainContainerHeight(),
-        child: Center(
-            child: showTimer
-                ? _HomeTimerState.showBeHomeTime()
-                : Text(
-                    'Be Home By:',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  )),
-      ),
-    );
-  }
-
   Widget bgBox() {
-    // print("bhb: $bHBHeight");
-    // print("mainc: ${mainContainerHeight()}");
     if (firstLoad && !showTimer) {
       return Container(
         width: double.infinity,
@@ -253,6 +190,133 @@ class TimerAndClockState extends State<TimerAndClock>
         ),
       );
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    print(
+      "s time: ${TimeManager.selectedTime};   T of tap: ${TimeManager.timeOfTap};   elpsed: ${TimeManager.timeElapsed()};   totalT: ${TimeManager.totalTime()}",
+    );
+
+    return Column(
+      children: [
+        AnimatedSize(
+          curve: animationCurve,
+          duration: animationDuration,
+          alignment: Alignment.topCenter,
+          child: Stack(
+            children: [
+              bgBox(),
+              Column(
+                children: [
+                  _bhb(),
+                  SizedBox(
+                    key: mainContainerKey,
+                    height: mainContainerHeight(),
+                    child: showTimer
+                        ? HomeTimer(
+                            timerController: timerController,
+                            onTimerComplete: () {
+                              setState(() {
+                                cancelEvent();
+                              });
+                            },
+                          )
+                        : TimeSetter(),
+                  )
+                ],
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 8),
+        setButton(context)
+      ],
+    );
+  }
+
+  void checkValidTime() {
+    // setState(
+    //   () {
+    //     date = TimeManager.selectedTime;
+    //   },
+    // );
+
+    bool timeIsNow(DateTime a, DateTime b) {
+      return a.year == b.year &&
+          a.month == b.month &&
+          a.day == b.day &&
+          a.hour == b.hour &&
+          a.minute == b.minute;
+    }
+
+    bool validTime = TimeManager.selectedTime.isAfter(DateTime.now());
+    bool codesNull =
+        SosManager.fakeCode == null || SosManager.secretCode == null;
+    bool validForStart = !codesNull && validTime;
+    bool notValidForStart = codesNull ||
+        !validTime ||
+        timeIsNow(TimeManager.selectedTime, DateTime.now());
+
+    checkWhetherToStart(
+        notValidForStart, validForStart, validTime, codesNull, context);
+  }
+
+  void checkWhetherToStart(bool notValidForStart, bool validForStart,
+      bool validTime, bool codesNull, BuildContext context) async {
+    if (validForStart) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: SnackBarContent(),
+          duration: Duration(milliseconds: 500),
+        ),
+      );
+      setState(() {
+        codeAttempts = 3;
+        showTimer = true;
+        validTime = true;
+        startSelected = true;
+      });
+      _scheduleCheck();
+    } else {
+      setState(() {
+        validTime = false;
+        startSelected = false;
+        showTimer = false;
+      });
+      if (notValidForStart) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Center(
+              child: Text("Please select a time that is after now!"),
+            ),
+          ),
+        );
+      } else if (codesNull) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Center(
+              child: Text("Please configure your codes in the settings page"),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    initStateAsync();
+    super.initState();
+  }
+
+  Future<void> initStateAsync() async {
+    await StoredSettings.loadAll();
+    firstLoad = true;
+  }
+
+  double mainContainerHeight() {
+    return showTimer ? 280 : 220;
   }
 
   Widget setButton(BuildContext context) {
@@ -315,135 +379,31 @@ class TimerAndClockState extends State<TimerAndClock>
     );
   }
 
-  static void cancelEvent() {
-    showTimer = false;
-    startSelected = false;
-    TimeManager.timeOfTap = null;
-    TimeSetterState.isTomorrow = false;
-    TimeManager.selectedTime = DateTime(
-        DateTime.now().year,
-        DateTime.now().month,
-        DateTime.now().day,
-        TimeManager.selectedTime.hour,
-        TimeManager.selectedTime.minute,
-        TimeManager.selectedTime.second,
-        TimeManager.selectedTime.millisecond);
-
-    TimerPrefs.saveTimer();
-  }
-
-  void checkValidTime() {
-    setState(
-      () {
-        date = TimeManager.selectedTime;
-      },
-    );
-    _scheduleCheck();
-
-    bool timeIsNow(DateTime a, DateTime b) {
-      return a.year == b.year &&
-          a.month == b.month &&
-          a.day == b.day &&
-          a.hour == b.hour &&
-          a.minute == b.minute;
-    }
-
-    bool validTime = TimeManager.selectedTime.isAfter(DateTime.now());
-    bool codesNull =
-        SosManager.fakeCode == null || SosManager.secretCode == null;
-    bool validForStart = !codesNull && validTime;
-    bool notValidForStart = codesNull ||
-        !validTime ||
-        timeIsNow(TimeManager.selectedTime, DateTime.now());
-
-    checkWhetherToStart(
-        notValidForStart, validForStart, validTime, codesNull, context);
-  }
-
-  void checkWhetherToStart(bool notValidForStart, bool validForStart,
-      bool validTime, bool codesNull, BuildContext context) async {
-    print(".$validForStart");
-    print(".$validTime");
-    print(".$codesNull");
-    if (validForStart) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: SnackBarContent(),
-          duration: Duration(milliseconds: 500),
+  Widget _bhb() {
+    return Container(
+      key: bHBkey,
+      height: bHBHeight,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Palette.blue1,
+          width: 1.5,
         ),
-      );
-      setState(() {
-        codeAttempts = 3;
-        showTimer = true;
-        validTime = true;
-        startSelected = true;
-      });
-    } else {
-      setState(() {
-        validTime = false;
-        startSelected = false;
-        showTimer = false;
-      });
-      if (notValidForStart) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Center(
-              child: Text("Please select a time that is after now!"),
-            ),
-          ),
-        );
-      } else if (codesNull) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Center(
-              child: Text("Please configure your codes in the settings page"),
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  void _scheduleCheck() {
-    _sendTime(date);
-    Duration timeTo = date.difference(DateTime.now());
-    Future.delayed(timeTo, () async {
-      if (Location.homePosition == null) return;
-      final LatLng homePosition = Location.homePosition!;
-      final Position currentPosition = await Location.determinePosition();
-      final double distance = Geolocator.distanceBetween(
-          homePosition.latitude,
-          homePosition.longitude,
-          currentPosition.latitude,
-          currentPosition.longitude);
-      final accuracy = await Geolocator.getLocationAccuracy();
-      late int radius;
-      if (accuracy == LocationAccuracyStatus.reduced) {
-        radius = 5000;
-      } else {
-        radius = 20;
-      }
-      if (distance > radius) _handleAwayFromhome();
-    });
-  }
-
-  Future<void> _sendTime(DateTime time) async {
-    // IMPORTANT: Use "flutter run --dart-define=IP=[ip]" to set this before running
-    // ALSO IMPORTANT: @Grayerhack700 if you don't use nginx then specify port 8080 (eg. localhost:8080)
-    // If you are using nginx then it *should* default to port 80
-    const String ip = String.fromEnvironment('IP');
-
-    if (ip == "") {
-      print("No ip passed to CLI when run");
-      return;
-    }
-    Uri url = Uri.parse('http://$ip/setTime');
-    final response = await http.post(url, body: {'time': date.toString()});
-    if (response.statusCode == 200) {
-      print('Success: ${response.body}');
-    } else {
-      print('Failed with status: ${response.statusCode}');
-    }
+      ),
+      child: SizedBox(
+        height: mainContainerHeight(),
+        child: Center(
+            child: showTimer
+                ? _HomeTimerState.showBeHomeTime()
+                : Text(
+                    'Be Home By:',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  )),
+      ),
+    );
   }
 
   void _handleAwayFromhome() {
@@ -495,10 +455,80 @@ class TimerAndClockState extends State<TimerAndClock>
     );
   }
 
+  void _scheduleCheck() {
+    _sendTime(TimeManager.selectedTime);
+    if (TimeManager.timeOfTap != null) {
+      Duration timeTo = TimeManager.totalTimeDuration()!;
+
+      // Duration? timeTo = TimeManager.selectedTime.difference(DateTime.now());
+      Future.delayed(timeTo, () async {
+        if (Location.homePosition == null) return;
+        final LatLng homePosition = Location.homePosition!;
+        final Position currentPosition = await Location.determinePosition();
+        final double distance = Geolocator.distanceBetween(
+            homePosition.latitude,
+            homePosition.longitude,
+            currentPosition.latitude,
+            currentPosition.longitude);
+        final accuracy = await Geolocator.getLocationAccuracy();
+        late int radius;
+        if (accuracy == LocationAccuracyStatus.reduced) {
+          radius = 5000;
+        } else {
+          radius = 20;
+        }
+        if (distance > radius) _handleAwayFromhome();
+      });
+    }
+  }
+
+  Future<void> _sendTime(DateTime time) async {
+    // IMPORTANT: Use "flutter run --dart-define=IP=[ip]" to set this before running
+    // ALSO IMPORTANT: @Grayerhack700 if you don't use nginx then specify port 8080 (eg. localhost:8080)
+    // If you are using nginx then it *should* default to port 80
+    const String ip = String.fromEnvironment('IP');
+
+    if (ip == "") {
+      print("No ip passed to CLI when run");
+      return;
+    }
+
+    try {
+      Uri url = Uri.parse('http://$ip/user-status/set-time');
+
+      final response = await http.post(url, body: {'time': time.toString()});
+      if (response.statusCode == 200) {
+        print('Success: ${response.body}');
+      } else {
+        print('Failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print("Could not connect to server/server not running");
+    }
+  }
+
   static void alert() {
     //This is called when we are sure the user is in danger.
     //TODO: implement something
     print("alerted");
+  }
+
+  static void cancelEvent() {
+    showTimer = false;
+    startSelected = false;
+    TimeManager.timeOfTap = null;
+    // TimeSetterState.isTomorrow = false;
+    // TimeManager.selectedTime = DateTime(
+    //     DateTime.now().year,
+    //     DateTime.now().month,
+    //     DateTime.now().day,
+    //     TimeManager.selectedTime.hour,
+    //     TimeManager.selectedTime.minute,
+    //     TimeManager.selectedTime.second,
+    //     TimeManager.selectedTime.millisecond);
+    TimeManager.selectedTime = DateTime.now();
+
+    TimerPrefs.saveTimer();
   }
 }
 
@@ -510,9 +540,8 @@ class TimeSetter extends StatefulWidget {
 }
 
 class TimeSetterState extends State<TimeSetter> {
-  bool timeIsNextDay() => TimeManager.selectedTime.isBefore(DateTime.now());
-
   static bool isTomorrow = false;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -529,32 +558,6 @@ class TimeSetterState extends State<TimeSetter> {
     );
   }
 
-  Widget timeIsTomorrowCheckBox() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Checkbox.adaptive(
-          side: BorderSide(
-              color: const Color.fromARGB(255, 114, 114, 114), width: 1),
-          visualDensity: VisualDensity.compact,
-          materialTapTargetSize: MaterialTapTargetSize
-              .shrinkWrap, // Shrinks tap target (Android only)
-
-          value: isTomorrow,
-          onChanged: (value) {
-            setState(
-              () => isTomorrow = value!,
-            );
-            print("check: ${TimeManager.selectedTime}");
-          },
-        ),
-        GestureDetector(
-            onTap: () => setState(() => isTomorrow = !isTomorrow),
-            child: Text("I will be back tomorrow"))
-      ],
-    );
-  }
-
   Widget setterUi() {
     return Container(
       margin: EdgeInsets.only(top: 5),
@@ -563,8 +566,6 @@ class TimeSetterState extends State<TimeSetter> {
         child: CupertinoDatePicker(
           initialDateTime: TimeManager.selectedTime,
           onDateTimeChanged: (value) {
-            print("changed: ${TimeManager.selectedTime}");
-
             TimeManager.selectedTime = value;
             if (timeIsNextDay()) {
               setState(() {
@@ -582,25 +583,50 @@ class TimeSetterState extends State<TimeSetter> {
       ),
     );
   }
-}
 
-class HomeTimer extends StatefulWidget {
-  const HomeTimer({
-    super.key,
-    required this.timerController,
-  });
+  bool timeIsNextDay() => TimeManager.selectedTime.isBefore(DateTime.now());
 
-  final CountDownController timerController;
+  Widget timeIsTomorrowCheckBox() {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Checkbox.adaptive(
+              side: BorderSide(
+                  color: const Color.fromARGB(255, 114, 114, 114), width: 1),
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize
+                  .shrinkWrap, // Shrinks tap target (Android only)
 
-  @override
-  State<HomeTimer> createState() => _HomeTimerState();
+              value: isTomorrow,
+              onChanged: (value) {
+                setState(
+                  () => isTomorrow = value!,
+                );
+              },
+            ),
+            GestureDetector(
+                onTap: () => setState(() => isTomorrow = !isTomorrow),
+                child: Text("I will be back tomorrow"))
+          ],
+        );
+      },
+    );
+  }
 }
 
 class _HomeTimerState extends State<HomeTimer> {
+  bool tryingAgain = false;
   @override
   Widget build(BuildContext context) {
-    print("reloaded");
-    if ((TimeManager.timeElapsed() ?? 0) <= (TimeManager.totalTime() ?? 0)) {
+    final int elapsed = TimeManager.timeElapsed() ?? 0;
+    final int total = TimeManager.totalTime() ?? 0;
+
+    try {
+      if (total <= 0 || elapsed > total) {
+        throw Exception("Invalid time range: elapsed=$elapsed, total=$total");
+      }
       return Center(
         child: Container(
           padding: EdgeInsets.all(10),
@@ -619,39 +645,80 @@ class _HomeTimerState extends State<HomeTimer> {
             isReverse: true,
             isReverseAnimation: true,
             onComplete: () {
-              setState(() {
-                TimerAndClockState.showTimer = false;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  setState(() {
+                    widget.onTimerComplete();
+                  });
+                }
               });
             },
           ),
         ),
       );
-    } else {
-      return Column(
-        spacing: 10,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            "An error occured, please try again.",
-            style: TextStyle(fontSize: 16.5),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                TimerAndClockState.showTimer = false;
-                TimerAndClockState.showTimer = true;
-                TimerAndClockState.codeAttempts = 3;
-                TimerAndClockState.startSelected = true;
-              });
-            },
-            child: Text(
-              "Try Again",
-              style: TextStyle(fontSize: 18),
-            ),
-          ),
-        ],
-      );
+    } catch (e) {
+      print("Error in timer build: $e");
+
+      return tryingAgain
+          ? Center(child: CircularProgressIndicator.adaptive())
+          : Column(
+              spacing: 10,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "An error occured, please try again.",
+                  style: TextStyle(fontSize: 17.5),
+                ),
+                Text(
+                  "If the error persists, restart the app.",
+                  style: TextStyle(fontSize: 16),
+                ),
+                TextButton(
+                  onPressed: () {
+                    tryAgain();
+                  },
+                  child: Text(
+                    "Try Again",
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ),
+              ],
+            );
     }
+  }
+
+  void tryAgain() async {
+    setState(() {
+      tryingAgain = true;
+    });
+
+    TimerAndClockState.cancelEvent();
+
+    await Future.wait([
+      TimerPrefs.loadTimer(),
+      Future.delayed(Duration(seconds: 1)),
+    ]);
+    setState(() {
+      tryingAgain = false;
+    });
+  }
+
+  static Future<void> setTimerLogic() async {
+    DateTime? dateTomorrow = TimeManager.selectedTime.add(Duration(days: 1));
+    TimeManager.timeOfTap = DateTime.now();
+
+    if (TimeSetterState.isTomorrow) {
+      TimeManager.selectedTime = DateTime(
+          dateTomorrow.year,
+          dateTomorrow.month,
+          dateTomorrow.day,
+          TimeManager.selectedTime.hour,
+          TimeManager.selectedTime.minute,
+          TimeManager.selectedTime.second,
+          TimeManager.selectedTime.millisecond);
+    }
+
+    TimerPrefs.saveTimer();
   }
 
   static Widget showBeHomeTime() {
@@ -670,43 +737,6 @@ class _HomeTimerState extends State<HomeTimer> {
       ),
     );
   }
-
-  static Future<void> setTimerLogic() async {
-    DateTime? dateTomorrow = TimeManager.selectedTime.add(Duration(days: 1));
-    // bool timeIsNextDay() =>
-    //     TimeManager.selectedTime!.isBefore(DateTime.now());
-
-    TimeManager.timeOfTap = DateTime.now();
-
-    if (TimeSetterState.isTomorrow) {
-      TimeManager.selectedTime = DateTime(
-          dateTomorrow.year,
-          dateTomorrow.month,
-          dateTomorrow.day,
-          TimeManager.selectedTime.hour,
-          TimeManager.selectedTime.minute,
-          TimeManager.selectedTime.second,
-          TimeManager.selectedTime.millisecond);
-    }
-
-    // TimeManager.totalTime =
-    //     TimeManager.selectedTime!.difference(DateTime.now()).inSeconds;
-
-    // print("total time after calculations: ${TimeManager.totalTime()}");
-    // print("timetap: ${TimeManager.timeOfTap}");
-    print("selected: ${TimeManager.selectedTime}");
-
-    TimerPrefs.saveTimer();
-  }
-}
-
-class SnackBarContent extends StatefulWidget {
-  const SnackBarContent({
-    super.key,
-  });
-
-  @override
-  State<SnackBarContent> createState() => _SnackBarContentState();
 }
 
 class _SnackBarContentState extends State<SnackBarContent> {
@@ -718,6 +748,17 @@ class _SnackBarContentState extends State<SnackBarContent> {
   ];
   int index = 0;
   late Timer timer;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text(loadingStates[index]));
+  }
+
+  @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -736,16 +777,5 @@ class _SnackBarContentState extends State<SnackBarContent> {
         }
       },
     );
-  }
-
-  @override
-  void dispose() {
-    timer.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text(loadingStates[index]));
   }
 }

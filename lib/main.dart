@@ -54,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
   static const double iconSize = 28.0;
   final List<Widget> _pages = [
     HomePage(),
-    MapPage(),
+    MapsPage(),
     SettingsPage(),
   ];
 

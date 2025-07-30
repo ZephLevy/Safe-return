@@ -19,8 +19,12 @@ class TimeManager {
   }
 
   static int? totalTime() {
+    return totalTimeDuration()?.inSeconds;
+  }
+
+  static Duration? totalTimeDuration() {
     if (timeOfTap != null) {
-      return selectedTime.difference(timeOfTap!).inSeconds;
+      return selectedTime.difference(timeOfTap!);
     }
     return null;
   }

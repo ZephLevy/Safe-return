@@ -49,6 +49,7 @@ dependencies:
   circular_countdown_timer: ^0.2.4
   random_string: ^2.3.1
   intl: ^0.20.2
+  connectivity_plus: ^6.1.4
   
 
 dev_dependencies:

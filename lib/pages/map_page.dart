@@ -1,24 +1,97 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:safe_return/logic/location.dart';
-import 'package:flutter_map/flutter_map.dart';
 
-class MapPage extends StatelessWidget {
-  const MapPage({super.key});
+class MapsPage extends StatefulWidget {
+  const MapsPage({super.key});
+  @override
+  State<MapsPage> createState() => MapsPageState();
+}
+
+class MapsPageState extends State<MapsPage> {
+  bool reConnecting = false;
+
+  Future<bool> hasInternet() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    print("hasInternet: ${connectivityResult}");
+    return connectivityResult.any((r) => r != ConnectivityResult.none);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: FutureBuilder(
-      future: Location.determinePosition(),
+      future: Future.wait([Location.determinePosition(), hasInternet()]),
       builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Center(child: Text("${snapshot.error}"));
-        } else if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator.adaptive());
+        } else if (!snapshot.hasData || snapshot.data == null) {
+          return Center(
+            child: reConnecting
+                ? CircularProgressIndicator.adaptive()
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.warning_amber_rounded, size: 30),
+                      Text("An error occured"),
+                      TextButton(
+                          onPressed: (() async {
+                            setState(() {
+                              reConnecting = true;
+                            });
+
+                            await Future.wait([
+                              hasInternet(),
+                              Location.determinePosition(),
+                              Future.delayed(Duration(seconds: 1))
+                            ]);
+
+                            setState(() {
+                              reConnecting = false;
+                            });
+                          }),
+                          child: Text("Try Again"))
+                    ],
+                  ),
+          );
+        }
+
+        final position = snapshot.data![0] as Position;
+        final internetAvailable = snapshot.data![1] as bool;
+
+        if (snapshot.hasError || !internetAvailable) {
+          return Center(
+            child: reConnecting
+                ? CircularProgressIndicator.adaptive()
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.warning_amber_rounded, size: 30),
+                      Text("No internet connection"),
+                      TextButton(
+                          onPressed: (() async {
+                            setState(() {
+                              reConnecting = true;
+                            });
+                            await Future.wait([
+                              hasInternet(),
+                              Location.determinePosition(),
+                              Future.delayed(Duration(seconds: 1))
+                            ]);
+
+                            setState(() {
+                              reConnecting = false;
+                            });
+                          }),
+                          child: Text("Try Again"))
+                    ],
+                  ),
+          );
         } else if (snapshot.hasData) {
-          return _mainBody(snapshot.data!);
+          return _mainBody(position);
         } else {
           throw Exception("No location returned");
         }
@@ -59,6 +132,7 @@ class MapPage extends StatelessWidget {
         markers.removeAt(0); //Home and current location don't overlap
       }
     }
+
     return FlutterMap(
       options: MapOptions(initialCenter: position, initialZoom: 20),
       children: [
