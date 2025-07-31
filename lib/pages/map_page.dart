@@ -1,9 +1,9 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:safe_return/logic/location.dart';
+import 'package:safe_return/utils/connection.dart';
 
 class MapsPage extends StatefulWidget {
   const MapsPage({super.key});
@@ -14,17 +14,12 @@ class MapsPage extends StatefulWidget {
 class MapsPageState extends State<MapsPage> {
   bool reConnecting = false;
 
-  Future<bool> hasInternet() async {
-    var connectivityResult = await Connectivity().checkConnectivity();
-    print("hasInternet: ${connectivityResult}");
-    return connectivityResult.any((r) => r != ConnectivityResult.none);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: FutureBuilder(
-      future: Future.wait([Location.determinePosition(), hasInternet()]),
+      future:
+          Future.wait([Location.determinePosition(), Connection.hasInternet()]),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator.adaptive());
@@ -44,7 +39,7 @@ class MapsPageState extends State<MapsPage> {
                             });
 
                             await Future.wait([
-                              hasInternet(),
+                              Connection.hasInternet(),
                               Location.determinePosition(),
                               Future.delayed(Duration(seconds: 1))
                             ]);
@@ -77,7 +72,7 @@ class MapsPageState extends State<MapsPage> {
                               reConnecting = true;
                             });
                             await Future.wait([
-                              hasInternet(),
+                              Connection.hasInternet(),
                               Location.determinePosition(),
                               Future.delayed(Duration(seconds: 1))
                             ]);
