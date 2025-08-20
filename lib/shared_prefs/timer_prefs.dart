@@ -1,3 +1,4 @@
+import 'package:safe_return/logic/timer_logic.dart';
 import 'package:safe_return/pages/home_page.dart';
 import 'package:safe_return/utils/time_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,14 +15,10 @@ class TimerPrefs {
       TimerAndClockState.showTimer =
           await asyncPrefs.getBool('showTimer') ?? false;
 
-      TimerAndClockState.validTime =
-          await asyncPrefs.getBool('validTime') ?? false;
-
       TimerAndClockState.startSelected =
           await asyncPrefs.getBool('startSelected') ?? false;
 
-      TimeSetterState.isTomorrow =
-          await asyncPrefs.getBool('isTomorrow') ?? false;
+      TimerLogic.isTomorrow = await asyncPrefs.getBool('isTomorrow') ?? false;
 
       if (TimerAndClockState.showTimer) {
         String? stringSelectedTime = await asyncPrefs.getString('selectedTime');
@@ -41,9 +38,8 @@ class TimerPrefs {
         'timeOfTap', TimeManager.timeOfTap?.toIso8601String() ?? "");
 
     await asyncPrefs.setBool('showTimer', TimerAndClockState.showTimer);
-    await asyncPrefs.setBool('validTime', TimerAndClockState.validTime);
     await asyncPrefs.setBool('startSelected', TimerAndClockState.startSelected);
-    await asyncPrefs.setBool('isTomorrow', TimeSetterState.isTomorrow);
+    await asyncPrefs.setBool('isTomorrow', TimerLogic.isTomorrow);
     // codeAttempts = 3; //? idk when to save these i'll handle these later
   }
 }

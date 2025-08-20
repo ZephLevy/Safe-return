@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:safe_return/logic/timer_logic.dart';
 import 'package:safe_return/login_page.dart';
 import 'package:safe_return/pages/home_page.dart';
 import 'package:safe_return/utils/sos_manager.dart';
@@ -84,7 +85,7 @@ class StoredSettings {
     SignUpState.firstName = "";
     SignUpState.lastName = "";
     TimerAndClockState.showTimer = false;
-    TimeSetterState.isTomorrow = false;
+    TimerLogic.isTomorrow = false;
     TimeManager.selectedTime = DateTime.now();
     TimeManager.timeOfTap = null;
   }

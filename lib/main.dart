@@ -10,6 +10,7 @@ import 'package:safe_return/pages/settings/preferred_viewer.dart';
 import 'package:safe_return/pages/settings_page.dart';
 import 'package:safe_return/shared_prefs/stored_settings.dart';
 import 'package:safe_return/shared_prefs/timer_prefs.dart';
+import 'package:safe_return/utils/location_updater.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,6 +30,7 @@ Future<void> main() async {
   await StoredSettings.loadAll();
   await TimerPrefs.loadTimer();
   await PreferredViewerState.loadViewType();
+
   runApp(MyApp());
 }
 
@@ -113,14 +115,26 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       actions: [
         (_selectedIndex == 1)
-            ? Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: IconButton(
-                    tooltip: "Update home location to current location",
-                    onPressed: () {
-                      _setHomeLocation();
+            ? Row(
+                children: [
+                  InkWell(
+                    child: Icon(Icons.abc),
+                    onTap: () async {
+                      if (await Location.checkLocationPermissions()) {
+                        LocationUpdaterState.startLocationService();
+                      }
                     },
-                    icon: Icon(Icons.home)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: IconButton(
+                        tooltip: "Update home location to current location",
+                        onPressed: () {
+                          _setHomeLocation();
+                        },
+                        icon: Icon(Icons.home)),
+                  ),
+                ],
               )
             : SizedBox.shrink(),
       ],

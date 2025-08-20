@@ -1,12 +1,12 @@
 import 'package:intl/intl.dart';
-import 'package:safe_return/pages/home_page.dart';
+import 'package:safe_return/logic/timer_logic.dart';
 
 class TimeManager {
   static DateTime selectedTime = DateTime.now();
   static DateTime? timeOfTap;
 
   static String shortSelectedTime() {
-    return TimeSetterState.isTomorrow
+    return TimerLogic.isTomorrow
         ? "${DateFormat.Hm().format(selectedTime)}, Tomorrow"
         : DateFormat.Hm().format(selectedTime);
   }

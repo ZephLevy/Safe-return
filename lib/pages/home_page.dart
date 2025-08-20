@@ -9,8 +9,10 @@ import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/logic/location.dart';
+import 'package:safe_return/logic/timer_logic.dart';
 import 'package:safe_return/shared_prefs/stored_settings.dart';
 import 'package:safe_return/shared_prefs/timer_prefs.dart';
+import 'package:safe_return/utils/connection.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/time_manager.dart';
@@ -144,13 +146,14 @@ class TimerAndClock extends StatefulWidget {
 
 class TimerAndClockState extends State<TimerAndClock>
     with TickerProviderStateMixin {
+  static Timer? awayTimer;
   static bool showTimer = false;
   static bool firstLoad = false;
-  static bool validTime = false;
-
   static bool startSelected = false;
+
   // DateTime date = DateTime.now();
   static int codeAttempts = 3;
+  bool waitingServerResponse = false;
   final CountDownController timerController = CountDownController();
   final GlobalKey mainContainerKey = GlobalKey();
   final GlobalKey bHBkey = GlobalKey();
@@ -194,9 +197,9 @@ class TimerAndClockState extends State<TimerAndClock>
 
   @override
   Widget build(BuildContext context) {
-    print(
-      "s time: ${TimeManager.selectedTime};   T of tap: ${TimeManager.timeOfTap};   elpsed: ${TimeManager.timeElapsed()};   totalT: ${TimeManager.totalTime()}",
-    );
+    // print(
+    //   "s time: ${TimeManager.selectedTime};   T of tap: ${TimeManager.timeOfTap};   elpsed: ${TimeManager.timeElapsed()};   totalT: ${TimeManager.totalTime()}",
+    // );
 
     return Column(
       children: [
@@ -230,73 +233,39 @@ class TimerAndClockState extends State<TimerAndClock>
           ),
         ),
         SizedBox(height: 8),
-        setButton(context)
+        setButton(context),
       ],
     );
   }
 
-  void checkValidTime() {
+  void checkWhetherToStart() async {
     // setState(
     //   () {
     //     date = TimeManager.selectedTime;
     //   },
     // );
 
-    bool timeIsNow(DateTime a, DateTime b) {
-      return a.year == b.year &&
-          a.month == b.month &&
-          a.day == b.day &&
-          a.hour == b.hour &&
-          a.minute == b.minute;
-    }
-
-    bool validTime = TimeManager.selectedTime.isAfter(DateTime.now());
-    bool codesNull =
-        SosManager.fakeCode == null || SosManager.secretCode == null;
-    bool validForStart = !codesNull && validTime;
-    bool notValidForStart = codesNull ||
-        !validTime ||
-        timeIsNow(TimeManager.selectedTime, DateTime.now());
-
-    checkWhetherToStart(
-        notValidForStart, validForStart, validTime, codesNull, context);
-  }
-
-  void checkWhetherToStart(bool notValidForStart, bool validForStart,
-      bool validTime, bool codesNull, BuildContext context) async {
-    if (validForStart) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: SnackBarContent(),
-          duration: Duration(milliseconds: 500),
-        ),
-      );
-      setState(() {
-        codeAttempts = 3;
-        showTimer = true;
-        validTime = true;
-        startSelected = true;
-      });
-      _scheduleCheck();
+    if (TimerLogic.validForStart()) {
+      print('attempting to contact server to send info');
+      _tryStartTimer();
     } else {
       setState(() {
-        validTime = false;
         startSelected = false;
         showTimer = false;
       });
-      if (notValidForStart) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Center(
-              child: Text("Please select a time that is after now!"),
-            ),
-          ),
-        );
-      } else if (codesNull) {
+      if (TimerLogic.codesNull()) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Center(
               child: Text("Please configure your codes in the settings page"),
+            ),
+          ),
+        );
+      } else if (TimerLogic.notValidForStart()) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Center(
+              child: Text("Please select a time that is after now!"),
             ),
           ),
         );
@@ -320,61 +289,107 @@ class TimerAndClockState extends State<TimerAndClock>
   }
 
   Widget setButton(BuildContext context) {
-    return SizedBox(
-      height: setButtonHeight,
-      child: GestureDetector(
-        onTap: () async {
-          setState(() {
-            firstLoad = false;
-          });
-          if (showTimer) {
-            setState(() {
-              cancelEvent();
-            });
-          } else {
-            setState(() {
-              showTimer = true;
-            });
-            HapticFeedback.mediumImpact();
-            HapticFeedback.selectionClick();
-            await _HomeTimerState.setTimerLogic();
-            checkValidTime();
-          }
-        },
-        onTapDown: (details) {
-          setState(() {
-            startSelected = true;
-          });
-        },
-        onTapUp: (details) {
-          setState(() {
-            validTime ? startSelected = true : startSelected = false;
-          });
-        },
-        onTapCancel: () {
-          setState(() {
-            showTimer ? startSelected = true : startSelected = false;
-          });
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Palette.blue1,
-              width: 1.5,
-            ),
-            color: startSelected ? Palette.blue3 : Palette.blue4,
-          ),
-          child: Center(
-            child: Text(
-              startSelected ? 'Cancel' : 'Set Time',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
+    return FutureBuilder<bool>(
+        future: Connection.hasInternet(),
+        builder: (context, snapshot) {
+          bool isOnline = snapshot.data ?? false;
+
+          return Column(
+            children: [
+              SizedBox(
+                height: setButtonHeight,
+                child: GestureDetector(
+                  onTap: () async {
+                    if (isOnline) {
+                      setState(() {
+                        firstLoad = false;
+                      });
+                      if (showTimer) {
+                        setState(() {
+                          cancelEvent();
+                        });
+                      } else {
+                        checkWhetherToStart();
+                      }
+                    }
+                  },
+                  onTapDown: (details) {
+                    HapticFeedback.selectionClick();
+                    if (isOnline) {
+                      setState(() {
+                        startSelected = true;
+                      });
+                    }
+                  },
+                  onTapUp: (details) {
+                    if (isOnline) {
+                      if (TimerLogic.validTime()) {
+                        setState(() => startSelected = true);
+                        HapticFeedback.heavyImpact();
+                      } else {
+                        HapticFeedback.selectionClick();
+                        setState(() => startSelected = false);
+                      }
+                    }
+                  },
+                  onTapCancel: () {
+                    if (isOnline) {
+                      setState(() {
+                        showTimer
+                            ? startSelected = true
+                            : startSelected = false;
+                      });
+                    }
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Palette.blue1,
+                        width: 1.5,
+                      ),
+                      color: isOnline
+                          ? (startSelected ? Palette.blue3 : Palette.blue4)
+                          : Colors.grey[400],
+                    ),
+                    child: Center(
+                      child: setButtonChild(isOnline),
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ),
+              if (!isOnline)
+                Padding(
+                  padding: const EdgeInsets.only(top: 5),
+                  child: Text("Waiting for internet connection"),
+                )
+            ],
+          );
+        });
+  }
+
+  Widget setButtonChild(bool isOnline) {
+    if (!isOnline) {
+      return CircularProgressIndicator.adaptive();
+    }
+    if (waitingServerResponse) {
+      return CircularProgressIndicator.adaptive();
+    }
+    if (startSelected) {
+      return Text(
+        'Cancel',
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w500,
         ),
+      );
+    }
+
+    return Text(
+      'Set Time',
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w500,
       ),
     );
   }
@@ -455,56 +470,127 @@ class TimerAndClockState extends State<TimerAndClock>
     );
   }
 
-  void _scheduleCheck() {
-    _sendTime(TimeManager.selectedTime);
-    if (TimeManager.timeOfTap != null) {
-      Duration timeTo = TimeManager.totalTimeDuration()!;
-
-      // Duration? timeTo = TimeManager.selectedTime.difference(DateTime.now());
-      Future.delayed(timeTo, () async {
-        if (Location.homePosition == null) return;
-        final LatLng homePosition = Location.homePosition!;
-        final Position currentPosition = await Location.determinePosition();
-        final double distance = Geolocator.distanceBetween(
-            homePosition.latitude,
-            homePosition.longitude,
-            currentPosition.latitude,
-            currentPosition.longitude);
-        final accuracy = await Geolocator.getLocationAccuracy();
-        late int radius;
-        if (accuracy == LocationAccuracyStatus.reduced) {
-          radius = 5000;
-        } else {
-          radius = 20;
-        }
-        if (distance > radius) _handleAwayFromhome();
-      });
-    }
-  }
-
-  Future<void> _sendTime(DateTime time) async {
+  Future<void> _sendTime(DateTime time,
+      {required Function onServerSuccess, required onServerFail}) async {
     // IMPORTANT: Use "flutter run --dart-define=IP=[ip]" to set this before running
     // ALSO IMPORTANT: @Grayerhack700 if you don't use nginx then specify port 8080 (eg. localhost:8080)
     // If you are using nginx then it *should* default to port 80
     const String ip = String.fromEnvironment('IP');
-
-    if (ip == "") {
-      print("No ip passed to CLI when run");
-      return;
-    }
-
     try {
+      if (ip == "") {
+        print("No ip passed to CLI when run");
+        return;
+      }
+
       Uri url = Uri.parse('http://$ip/user-status/set-time');
 
       final response = await http.post(url, body: {'time': time.toString()});
       if (response.statusCode == 200) {
         print('Success: ${response.body}');
+        onServerSuccess();
       } else {
         print('Failed with status: ${response.statusCode}');
+        onServerFail();
       }
     } catch (e) {
       print("Could not connect to server/server not running");
+      onServerFail();
     }
+  }
+
+  Future<void> _tryStartTimer() async {
+    setState(() => waitingServerResponse = true);
+
+    await _HomeTimerState.setTimerLogic();
+    await _sendTime(TimeManager.selectedTime, onServerSuccess: () {
+      setState(() {
+        showTimer = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: SnackBarContent(),
+          duration: Duration(milliseconds: 500),
+        ),
+      );
+      setState(() {
+        codeAttempts = 3;
+        showTimer = true;
+        startSelected = true;
+      });
+      if (TimeManager.timeOfTap != null) {
+        Duration timeTo = TimeManager.totalTimeDuration()!;
+
+        awayTimer = Timer(
+          timeTo,
+          () async {
+            if (Location.homePosition == null) return;
+            final LatLng homePosition = Location.homePosition!;
+            final Position currentPosition = await Location.determinePosition();
+            final double distance = Geolocator.distanceBetween(
+                homePosition.latitude,
+                homePosition.longitude,
+                currentPosition.latitude,
+                currentPosition.longitude);
+            final accuracy = await Geolocator.getLocationAccuracy();
+            late int radius;
+            if (accuracy == LocationAccuracyStatus.reduced) {
+              radius = 5000;
+            } else {
+              radius = 20;
+            }
+            if (distance > radius) _handleAwayFromhome();
+          },
+        );
+      }
+    }, onServerFail: () {
+      cancelEvent();
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 7,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 3),
+                    child: Icon(Icons.warning_amber_rounded),
+                  ),
+                  Text("An error occured"),
+                ],
+              ),
+              content: Text(
+                  "We were unable to connect to the server, please try again.\nIf the error persists, try restarting the app."),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      cancelEvent();
+                    },
+                    child: Text("Cancel")),
+                TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    setState(() {
+                      waitingServerResponse = true;
+                    });
+                    await Future.delayed(Duration(seconds: 1));
+                    await _tryStartTimer();
+                    print("waiting: $waitingServerResponse");
+                    setState(() {
+                      waitingServerResponse = false;
+                    });
+                  },
+                  child: Text("Try again"),
+                )
+              ],
+            );
+          });
+    });
+    setState(() {
+      waitingServerResponse = false;
+    });
   }
 
   static void alert() {
@@ -526,7 +612,8 @@ class TimerAndClockState extends State<TimerAndClock>
     //     TimeManager.selectedTime.minute,
     //     TimeManager.selectedTime.second,
     //     TimeManager.selectedTime.millisecond);
-    TimeManager.selectedTime = DateTime.now();
+
+    TimeManager.selectedTime = DateTime.now().add(Duration(seconds: 1));
 
     TimerPrefs.saveTimer();
   }
@@ -540,8 +627,6 @@ class TimeSetter extends StatefulWidget {
 }
 
 class TimeSetterState extends State<TimeSetter> {
-  static bool isTomorrow = false;
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -569,11 +654,11 @@ class TimeSetterState extends State<TimeSetter> {
             TimeManager.selectedTime = value;
             if (timeIsNextDay()) {
               setState(() {
-                isTomorrow = true;
+                TimerLogic.isTomorrow = true;
               });
             } else {
               setState(() {
-                isTomorrow = false;
+                TimerLogic.isTomorrow = false;
               });
             }
           },
@@ -599,15 +684,16 @@ class TimeSetterState extends State<TimeSetter> {
               materialTapTargetSize: MaterialTapTargetSize
                   .shrinkWrap, // Shrinks tap target (Android only)
 
-              value: isTomorrow,
+              value: TimerLogic.isTomorrow,
               onChanged: (value) {
                 setState(
-                  () => isTomorrow = value!,
+                  () => TimerLogic.isTomorrow = value!,
                 );
               },
             ),
             GestureDetector(
-                onTap: () => setState(() => isTomorrow = !isTomorrow),
+                onTap: () => setState(
+                    () => TimerLogic.isTomorrow = !TimerLogic.isTomorrow),
                 child: Text("I will be back tomorrow"))
           ],
         );
@@ -704,20 +790,7 @@ class _HomeTimerState extends State<HomeTimer> {
   }
 
   static Future<void> setTimerLogic() async {
-    DateTime? dateTomorrow = TimeManager.selectedTime.add(Duration(days: 1));
     TimeManager.timeOfTap = DateTime.now();
-
-    if (TimeSetterState.isTomorrow) {
-      TimeManager.selectedTime = DateTime(
-          dateTomorrow.year,
-          dateTomorrow.month,
-          dateTomorrow.day,
-          TimeManager.selectedTime.hour,
-          TimeManager.selectedTime.minute,
-          TimeManager.selectedTime.second,
-          TimeManager.selectedTime.millisecond);
-    }
-
     TimerPrefs.saveTimer();
   }
 

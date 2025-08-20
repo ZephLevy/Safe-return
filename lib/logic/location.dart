@@ -12,21 +12,27 @@ class Location {
       return Future.error('Location services are disabled.');
     }
 
+    // If permissions are granted, return the current location
+    if (await checkLocationPermissions()) {
+      return await Geolocator.getCurrentPosition();
+    }
+    return Future.error("An error occured, couldn't get location.");
+  }
+
+  static Future<bool> checkLocationPermissions() async {
     // Check location permissions
     LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
+    // print(permission);
+
+    if (permission != LocationPermission.always) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied');
+      if (permission != LocationPermission.always) {
+        return Future.error("permission required");
+      } else {
+        return true;
       }
+    } else {
+      return true;
     }
-
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error(
-          'Location permissions are permanently denied, we cannot request permissions.');
-    }
-
-    // If permissions are granted, return the current location
-    return await Geolocator.getCurrentPosition();
   }
 }

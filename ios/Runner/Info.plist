@@ -47,11 +47,18 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to location to make sure you get home safe!</string>
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>App needs foreground location access</string>
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>App needs background location access</string>
+<key>NSLocationAlwaysUsageDescription</key>
+<string>Always require location</string>
 
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>This app needs access to location to make sure you get home safe!</string>
+
+<key>UIBackgroundModes</key>
+<array>
+    <string>location</string>
+</array>
 
 	<key>NSContactsUsageDescription</key>
 <string>We need access to your contacts to select a recipient.</string>
