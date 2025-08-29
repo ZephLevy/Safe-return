@@ -1,0 +1,211 @@
+import 'dart:convert';
+import 'dart:isolate';
+import 'dart:ui';
+
+import 'package:background_locator_2/background_locator.dart';
+import 'package:background_locator_2/location_dto.dart';
+import 'package:background_locator_2/settings/android_settings.dart';
+import 'package:background_locator_2/settings/ios_settings.dart';
+import 'package:background_locator_2/settings/locator_settings.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:safe_return/location_logic/location.dart';
+import 'package:safe_return/logic/tokens.dart';
+import 'package:safe_return/utils/time_manager.dart';
+
+@pragma('vm:entry-point')
+class LocationCallbackHandler {
+  @pragma('vm:entry-point')
+  static void callback(LocationDto locationDto) async {
+    await LocationServiceRepository.callbackLogger(locationDto);
+  }
+
+  @pragma('vm:entry-point')
+  static void disposeCallback() async {
+    await LocationServiceRepository.dispose();
+    // Runs when service stops
+    print('Background locator disposed');
+  }
+
+  @pragma('vm:entry-point')
+  static void initCallback(Map<dynamic, dynamic> data) {
+    // Runs once when the service starts
+    print('Background locator initialized');
+  }
+
+  @pragma('vm:entry-point')
+  static void notificationCallback() {
+    print('User clicked on the notification');
+  }
+}
+
+class LocationServiceRepository {
+  static const String isolateName = "LocatorIsolate";
+
+  static Future<void> callbackLogger(LocationDto locationDto) async {
+    print(' location in dart: ${locationDto.toString()}');
+    final SendPort? send = IsolateNameServer.lookupPortByName(isolateName);
+    send?.send(locationDto.toJson());
+    await LocationUpdaterState.checkToRefreshToken();
+    logLocationDtoToServer(locationDto);
+  }
+
+  static Future<void> dispose() async {
+    print("***********Dispose callback handler");
+
+    final SendPort? send = IsolateNameServer.lookupPortByName(isolateName);
+    send?.send(null);
+  }
+
+  static Future<void> logLocationDtoToServer(LocationDto locationDto) async {
+    const String ip = String.fromEnvironment('IP');
+    try {
+      if (ip == "") {
+        print("No ip passed to CLI when run");
+      }
+      Uri url = Uri.parse('http://$ip/user-status/update');
+
+      final response =
+          await http.post(url, body: {'locationDto': jsonEncode(locationDto)});
+      if (response.statusCode == 200) {
+        print('Success: ${response.body}');
+      } else {
+        print('Failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print("Could not connect to server/server not running");
+      print("e: $e");
+    }
+  }
+}
+
+class LocationUpdater extends StatefulWidget {
+  const LocationUpdater({super.key});
+
+  @override
+  State<LocationUpdater> createState() => LocationUpdaterState();
+}
+
+class LocationUpdaterState extends State<LocationUpdater> {
+  static bool powerSaving = false;
+  static LocationAccuracy locationAccuracy = LocationAccuracy.HIGH;
+  static DateTime? lastTokenRefresh;
+  ReceivePort port = ReceivePort();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(
+          height: 20,
+          width: 20,
+          child: InkWell(
+            child: Icon(Icons.stop),
+            onTap: () async {
+              await BackgroundLocator.unRegisterLocationUpdate();
+            },
+          ),
+        ),
+        SizedBox(
+          height: 20,
+          width: 20,
+          child: InkWell(
+            child: Icon(Icons.abc),
+            onTap: () async {
+              if (await Location.checkLocationPermissions()) {
+                LocationUpdaterState.startLocationService();
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> initLocator() async {
+    await initPlatformState();
+  }
+
+  Future<void> initPlatformState() async {
+    await BackgroundLocator.initialize();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    IsolateNameServer.registerPortWithName(
+        port.sendPort, LocationServiceRepository.isolateName);
+    port.listen((dynamic data) {
+      // do something with data
+      print("dataf: $data");
+    });
+    initLocator();
+  }
+
+  static void startLocationService() {
+    BackgroundLocator.registerLocationUpdate(LocationCallbackHandler.callback,
+        initCallback: LocationCallbackHandler.initCallback,
+        // initDataCallback: data,
+        disposeCallback: LocationCallbackHandler.disposeCallback,
+        autoStop: false,
+        iosSettings: IOSSettings(
+            accuracy: locationAccuracy,
+            distanceFilter: 10,
+            stopWithTerminate: true),
+        androidSettings: AndroidSettings(
+            accuracy: LocationAccuracy
+                .BALANCED, //TODO not sure which accuracy to use yet. increase accuracy if closer to set time?
+            interval: 120,
+            distanceFilter: 10,
+            androidNotificationSettings: AndroidNotificationSettings(
+                notificationChannelName: 'Location tracking',
+                notificationTitle: 'Start Location Tracking',
+                notificationMsg: 'Track location in background',
+                notificationBigMsg:
+                    'Background location is on to keep the app up-to-date with your location. This is required for main features to work properly when the app is not running.',
+                notificationIcon: 'ic_launcher',
+                notificationIconColor: Colors.grey,
+                notificationTapCallback:
+                    LocationCallbackHandler.notificationCallback)));
+  }
+
+  static void setLocationLogic() {
+    lastTokenRefresh = TimeManager.timeOfTap;
+  }
+
+  static Future<void> checkToRefreshToken() async {
+    if (LocationUpdaterState.lastTokenRefresh != null) {
+      bool needsRefresh =
+          DateTime.now().difference(LocationUpdaterState.lastTokenRefresh!) >
+              Duration(minutes: 25);
+
+      if (needsRefresh) {
+        await getTokens();
+      } else {}
+    } else {}
+  }
+
+  static Future<void> getTokens() async {
+    const String ip = String.fromEnvironment('IP');
+    try {
+      if (ip == "") {
+        print("No ip passed to CLI when run");
+      }
+      Uri url = Uri.parse('http://$ip/user-status/update');
+
+      final response = await http.post(url, body: Tokens.refreshToken);
+      if (response.statusCode == 200) {
+        print('Success: ${response.body}');
+        Tokens.accessToken = jsonDecode(response.body)['access_token'];
+        Tokens.refreshToken = jsonDecode(response.body)['refresh_token'];
+      } else {
+        print('Failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print("Could not connect to server/server not running");
+      print("e: $e");
+    }
+    return;
+  }
+}
