@@ -53,6 +53,7 @@ dependencies:
 
   permission_handler: ^12.0.1
   background_locator_2: ^2.0.6
+  info_widget: ^1.0.0
   
 
 dev_dependencies:

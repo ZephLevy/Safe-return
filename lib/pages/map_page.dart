@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:safe_return/logic/location.dart';
+import 'package:safe_return/location_logic/location.dart';
 import 'package:safe_return/utils/connection.dart';
 
 class MapsPage extends StatefulWidget {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:safe_return/Visuals/palette.dart';
-import 'package:safe_return/logic/location.dart';
+import 'package:safe_return/location_logic/location.dart';
 import 'package:safe_return/login_page.dart';
 import 'package:safe_return/pages/home_page.dart';
 import 'package:safe_return/pages/map_page.dart';
@@ -10,7 +10,7 @@ import 'package:safe_return/pages/settings/preferred_viewer.dart';
 import 'package:safe_return/pages/settings_page.dart';
 import 'package:safe_return/shared_prefs/stored_settings.dart';
 import 'package:safe_return/shared_prefs/timer_prefs.dart';
-import 'package:safe_return/utils/location_updater.dart';
+import 'package:safe_return/location_logic/location_updater.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -117,14 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
         (_selectedIndex == 1)
             ? Row(
                 children: [
-                  InkWell(
-                    child: Icon(Icons.abc),
-                    onTap: () async {
-                      if (await Location.checkLocationPermissions()) {
-                        LocationUpdaterState.startLocationService();
-                      }
-                    },
-                  ),
+                  LocationUpdater(),
                   Padding(
                     padding: const EdgeInsets.only(right: 8.0),
                     child: IconButton(

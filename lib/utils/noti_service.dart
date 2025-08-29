@@ -41,7 +41,6 @@ class NotiService {
   }
 
   notHomeNotif() {
-    // StoredSettings.save();
     NotiService().showNotification(
       title: "Are you ok?",
       body:

@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:ui';
 
+import 'package:background_locator_2/background_locator.dart';
 import 'package:circular_countdown_timer/circular_countdown_timer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -8,11 +10,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:safe_return/Visuals/palette.dart';
-import 'package:safe_return/logic/location.dart';
+import 'package:safe_return/location_logic/location.dart';
 import 'package:safe_return/logic/timer_logic.dart';
 import 'package:safe_return/shared_prefs/stored_settings.dart';
 import 'package:safe_return/shared_prefs/timer_prefs.dart';
 import 'package:safe_return/utils/connection.dart';
+import 'package:safe_return/location_logic/location_updater.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/time_manager.dart';
@@ -163,7 +166,7 @@ class TimerAndClockState extends State<TimerAndClock>
   bool timeIsSet = false;
 
   double bHBHeight = 52.75;
-  double setButtonHeight = 50;
+  double setButtonHeight = 65;
 
   Widget bgBox() {
     if (firstLoad && !showTimer) {
@@ -232,7 +235,7 @@ class TimerAndClockState extends State<TimerAndClock>
             ],
           ),
         ),
-        SizedBox(height: 8),
+        SizedBox(height: 15),
         setButton(context),
       ],
     );
@@ -305,6 +308,10 @@ class TimerAndClockState extends State<TimerAndClock>
                         firstLoad = false;
                       });
                       if (showTimer) {
+                        IsolateNameServer.removePortNameMapping(
+                            LocationServiceRepository.isolateName);
+                        await BackgroundLocator.unRegisterLocationUpdate();
+
                         setState(() {
                           cancelEvent();
                         });
@@ -386,7 +393,7 @@ class TimerAndClockState extends State<TimerAndClock>
     }
 
     return Text(
-      'Set Time',
+      'Secure Me',
       style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w500,
@@ -479,7 +486,7 @@ class TimerAndClockState extends State<TimerAndClock>
     try {
       if (ip == "") {
         print("No ip passed to CLI when run");
-        return;
+        onServerFail();
       }
 
       Uri url = Uri.parse('http://$ip/user-status/set-time');
@@ -502,10 +509,10 @@ class TimerAndClockState extends State<TimerAndClock>
     setState(() => waitingServerResponse = true);
 
     await _HomeTimerState.setTimerLogic();
+    LocationUpdaterState.setLocationLogic();
     await _sendTime(TimeManager.selectedTime, onServerSuccess: () {
-      setState(() {
-        showTimer = true;
-      });
+      print("j");
+      LocationUpdaterState.startLocationService();
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -545,7 +552,7 @@ class TimerAndClockState extends State<TimerAndClock>
       }
     }, onServerFail: () {
       cancelEvent();
-      showDialog(
+      return showDialog(
           context: context,
           builder: (context) {
             return AlertDialog(

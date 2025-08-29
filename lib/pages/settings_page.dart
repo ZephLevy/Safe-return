@@ -6,12 +6,16 @@
 //. Fix the code
 import 'dart:io';
 
+import 'package:background_locator_2/settings/locator_settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:random_string/random_string.dart';
 import 'package:safe_return/Visuals/theme.dart';
+import 'package:safe_return/location_logic/location_updater.dart';
 import 'package:safe_return/login_page.dart';
+import 'package:safe_return/pages/home_page.dart';
+import 'package:safe_return/pages/log_sign_up/sign_up.dart';
 import 'package:safe_return/pages/settings/account_page.dart';
 import 'package:safe_return/pages/settings/contacts_page.dart';
 import 'package:safe_return/pages/settings/preferred_viewer.dart';
@@ -20,6 +24,7 @@ import 'package:safe_return/pages/settings/sos_activation.dart';
 import 'package:safe_return/shared_prefs/stored_settings.dart';
 import 'package:safe_return/utils/auth_service.dart';
 import 'package:safe_return/utils/noti_service.dart';
+import 'package:info_widget/info_widget.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -114,6 +119,28 @@ class SettingsState extends State<Settings> {
                     ),
                   ),
                 ),
+                ListTile(
+                  title: Text("Power Saving Mode"),
+                  subtitle: Text(
+                      "When switched on, location tracking will be reduced to save battery, decreasing your security."),
+                  leading: Icon(Icons.battery_charging_full),
+                  trailing: Switch.adaptive(
+                      value: LocationUpdaterState.powerSaving,
+                      onChanged: (value) {
+                        setState(() {
+                          LocationUpdaterState.powerSaving = value;
+                        });
+                        StoredSettings.save(
+                            powerSaving: LocationUpdaterState.powerSaving);
+                        if (LocationUpdaterState.powerSaving) {
+                          LocationUpdaterState.locationAccuracy =
+                              LocationAccuracy.BALANCED;
+                        } else {
+                          LocationUpdaterState.locationAccuracy =
+                              LocationAccuracy.HIGH;
+                        }
+                      }),
+                )
               ],
             ),
           ),
@@ -150,13 +177,17 @@ class SettingsState extends State<Settings> {
                     size: 22,
                   ),
                   trailing: Icon(Icons.arrow_forward_ios_rounded),
-                  onTap: () => Navigator.push(
-                    context,
-                    CupertinoPageRoute(
-                      builder: (BuildContext context) =>
-                          SecurityCodesPage(), //* OPEN SECURITY CODES PAGE
-                    ),
-                  ),
+                  onTap: () {
+                    if (!TimerAndClockState.showTimer) {
+                      Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                          builder: (BuildContext context) =>
+                              SecurityCodesPage(), //* OPEN SECURITY CODES PAGE
+                        ),
+                      );
+                    }
+                  },
                 ),
                 ListTile(
                   title: Text("Use Biometrics"),
@@ -164,22 +195,37 @@ class SettingsState extends State<Settings> {
                     Icons.fingerprint_rounded,
                     size: 22,
                   ),
-                  trailing: Switch.adaptive(
-                    value: StoredSettings.biometricsValue,
-                    onChanged: (bool value) {
-                      AuthService.auth(
-                        () {
-                          setState(
-                            () {
-                              StoredSettings.biometricsValue = value;
-                              StoredSettings.save(
-                                  biometricsValue:
-                                      StoredSettings.biometricsValue);
-                            },
-                          );
-                        },
-                      );
-                    },
+                  trailing: SizedBox(
+                    width: 95,
+                    child: Row(
+                      spacing: 10,
+                      children: [
+                        InfoWidget(
+                          iconColor: Colors.black87,
+                          iconData: Icons.info_outline,
+                          infoText:
+                              "Biometrics can be used as an additional security layer, like when changing or viewing your codes. Biometrics cannot be used when opening the app, for security reasons.",
+                          infoTextStyle: TextStyle(color: Colors.black87),
+                        ),
+                        Switch.adaptive(
+                          value: StoredSettings.biometricsValue,
+                          onChanged: (bool value) {
+                            AuthService.auth(
+                              () {
+                                setState(
+                                  () {
+                                    StoredSettings.biometricsValue = value;
+                                  },
+                                );
+                                StoredSettings.save(
+                                    biometricsValue:
+                                        StoredSettings.biometricsValue);
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],

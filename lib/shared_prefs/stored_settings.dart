@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'package:safe_return/location_logic/location_updater.dart';
 import 'package:safe_return/logic/timer_logic.dart';
 import 'package:safe_return/login_page.dart';
 import 'package:safe_return/pages/home_page.dart';
+import 'package:safe_return/pages/log_sign_up/sign_up.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/persons.dart';
 import 'package:safe_return/utils/time_manager.dart';
@@ -22,6 +24,7 @@ class StoredSettings {
     String? firstName,
     String? lastName,
     bool? showTimer,
+    bool? powerSaving,
   }) async {
     if (personList != null) {
       Person.encodePerson(personList);
@@ -48,6 +51,9 @@ class StoredSettings {
     if (lastName != null) {
       await asyncPrefs.setString('lastName', lastName);
     }
+    if (powerSaving != null) {
+      await asyncPrefs.setBool('powerSaving', powerSaving);
+    }
   }
 
   static Future<void> loadAll() async {
@@ -66,6 +72,8 @@ class StoredSettings {
     LoginPageState.isLoggedIn = await asyncPrefs.getBool('isLoggedIn') ?? false;
     SignUpState.firstName = await asyncPrefs.getString('firstName') ?? "";
     SignUpState.lastName = await asyncPrefs.getString('lastName') ?? "";
+    LocationUpdaterState.powerSaving =
+        await asyncPrefs.getBool('powerSaving') ?? false;
   }
 
   static Future<void> logOut() async {
@@ -88,5 +96,6 @@ class StoredSettings {
     TimerLogic.isTomorrow = false;
     TimeManager.selectedTime = DateTime.now();
     TimeManager.timeOfTap = null;
+    LocationUpdaterState.powerSaving = false;
   }
 }

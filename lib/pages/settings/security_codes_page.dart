@@ -42,19 +42,9 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
                     leading:
                         Icon(noRealCode() ? Icons.input : Icons.lock_reset),
                     onTap: () {
-                      useBiometricsTo(
-                        () => SettingsState.adaptiveAlert(
-                          context,
-                          () {
-                            Navigator.pop(context);
-                            getCodeInput(true);
-                          },
-                          title: "Are you sure?",
-                          content: noRealCode()
-                              ? "This will set your real code."
-                              : "This will change your real code.",
-                        ),
-                      );
+                      useBiometricsTo(() {
+                        getCodeInput(true);
+                      });
                     },
                   ),
                   ListTile(
@@ -63,19 +53,9 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
                     leading:
                         Icon(noDecoyCode() ? Icons.input : Icons.lock_reset),
                     onTap: () {
-                      useBiometricsTo(
-                        () => SettingsState.adaptiveAlert(
-                          context,
-                          () {
-                            Navigator.pop(context);
-                            getCodeInput(false);
-                          },
-                          title: "Are you sure?",
-                          content: noDecoyCode()
-                              ? "This will set your decoy code."
-                              : "This will change your decoy code.",
-                        ),
-                      );
+                      useBiometricsTo(() {
+                        getCodeInput(false);
+                      });
                     },
                   ),
                 ],
@@ -309,17 +289,9 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
     if (value.length < 6) {
       return 'Code must be at least 6 characters';
     }
-    if (!RegExp(r'[A-Z]').hasMatch(value)) {
-      return 'Include at least one uppercase letter';
-    }
-    if (!RegExp(r'[a-z]').hasMatch(value)) {
-      return 'Include at least one lowercase letter';
-    }
+
     if (value.length > 20) {
       return 'Code must be under 20 characters';
-    }
-    if (value.contains(' ')) {
-      return 'No spaces allowed';
     }
     return null;
   }
