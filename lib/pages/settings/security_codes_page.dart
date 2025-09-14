@@ -1,9 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:safe_return/Visuals/theme.dart';
-import 'package:safe_return/pages/settings_page.dart';
-import 'package:safe_return/shared_prefs/stored_settings.dart';
+import 'package:safe_return/storage.dart/stored_settings.dart';
 import 'package:safe_return/utils/auth_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -198,15 +196,7 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
                           ? "Enter your real code"
                           : "Enter your decoy code"),
                   validator: (value) {
-                    if (realCode) {
-                      if (value == SosManager.fakeCode) {
-                        return 'Real code must be different from decoy code';
-                      }
-                    }
-                    if (value == SosManager.secretCode) {
-                      return 'Decoy code must be different from real code';
-                    }
-                    return checkValidNewCode(value);
+                    return checkValidNewCode(value, realCode);
                   },
                 ),
                 TextFormField(
@@ -263,8 +253,10 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
         });
         await asyncPrefs.setString("secretCode", textController.text);
         if (!noRealCode()) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Your real code has been set!")));
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Your real code has been set!")));
+          }
         }
       } else {
         setState(() {
@@ -272,17 +264,22 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
         });
         await asyncPrefs.setString("fakeCode", textController.text);
         if (!noDecoyCode()) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Your decoy code has been set!")));
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Your decoy code has been set!")));
+          }
         }
       }
       if (context.mounted) {
-        Navigator.of(context).pop(); // Close dialog
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+// Close dialog
       }
     }
   }
 
-  checkValidNewCode(value) {
+  checkValidNewCode(value, realCode) {
     if (value == null || value.isEmpty) {
       return 'Please enter a Code';
     }
@@ -292,6 +289,14 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
 
     if (value.length > 20) {
       return 'Code must be under 20 characters';
+    }
+    if (realCode) {
+      if (value == SosManager.fakeCode) {
+        return 'Real code must be different from decoy code';
+      }
+    }
+    if (value == SosManager.secretCode) {
+      return 'Decoy code must be different from real code';
     }
     return null;
   }

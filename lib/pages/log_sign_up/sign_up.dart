@@ -6,7 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:safe_return/logic/tokens.dart';
-import 'package:safe_return/login_page.dart';
+import 'package:safe_return/main.dart';
+import 'package:safe_return/pages/log_sign_up/login_page.dart';
+import 'package:safe_return/storage.dart/stored_settings.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -190,6 +192,7 @@ class SignUpState extends State<SignUp> {
     Navigator.push(
       context,
       CupertinoPageRoute(
+        fullscreenDialog: true,
         builder: (context) {
           return Scaffold(
             appBar: AppBar(
@@ -268,7 +271,10 @@ class SignUpState extends State<SignUp> {
                     style: ElevatedButton.styleFrom(minimumSize: Size(160, 40)),
                     onPressed: () async {
                       await sendNewAccountData(() {
-                        Navigator.popUntil(context, (route) => route.isFirst);
+                        Navigator.pushReplacement(
+                            context,
+                            CupertinoPageRoute(
+                                builder: (context) => HomeScreen()));
                       });
                     },
                     child: Text(
@@ -303,24 +309,26 @@ class SignUpState extends State<SignUp> {
       body: jsonEncode(body),
       headers: {'Content-Type': 'application/json'},
     );
-    // print(newEmail);
-    // print(firstName);
-    // print(lastName);
-    // print(newPassword);
-    // print(emailCode);
     if (response.statusCode == 200) {
-      // print(newEmail);
-      firstName = "";
-      lastName = "";
-      newEmail = "";
       newPassword = "";
       emailCode = "";
+      LoginPageState.isLoggedIn = true;
+      StoredSettings.save(isLoggedIn: LoginPageState.isLoggedIn);
       //TODO get tokens
       print("successful verification code: ${response.statusCode}");
       print("body: ${response.body}");
       Tokens.signUpTokens = response.body;
       Tokens.accessToken = jsonDecode(response.body)['access_token'];
       Tokens.refreshToken = jsonDecode(response.body)['refresh_token'];
+      LoginPageState.userEmail = newEmail;
+
+      StoredSettings.save(
+          firstName: firstName,
+          lastName: lastName,
+          userEmail: LoginPageState.userEmail);
+      print(firstName);
+      print(lastName);
+      print(LoginPageState.userEmail);
 
       if200();
     } else if (response.statusCode == 400) {

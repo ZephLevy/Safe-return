@@ -6,7 +6,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:http/http.dart' as http;
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/pages/settings/preferred_viewer.dart';
-import 'package:safe_return/shared_prefs/stored_settings.dart';
+import 'package:safe_return/storage.dart/stored_settings.dart';
 import 'package:safe_return/utils/persons.dart';
 
 class ContactsPage extends StatefulWidget {
@@ -23,7 +23,7 @@ class ContactsPageState extends State<ContactsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          //todo center add icon with title and back button
+          //TODO center add icon with title and back button
           //? modify back button
           actions: [
             Padding(
@@ -91,7 +91,6 @@ class ContactsPageState extends State<ContactsPage> {
         ),
       ),
     );
-    // : listView();
   }
 
   Widget listView() {
@@ -185,7 +184,7 @@ class ContactsPageState extends State<ContactsPage> {
   }
 
   Future<void> _selectContacts() async {
-    if (Platform.isAndroid && //.sldjflksajf klasjdf k;sjd fklasjd fkllsdjfklsdj
+    if (Platform.isAndroid &&
         PreferredViewerState.viewType == ViewType.flutterList) {
       setState(() => _contactsLoading = true);
       final allContacts = await FlutterContacts.getContacts(
@@ -401,19 +400,28 @@ class ContactsPageState extends State<ContactsPage> {
   }
 
   static Future<void> sendPersonsList() async {
-    Person.encodePerson(Person.persons);
-    const ip = String.fromEnvironment("IP");
-    Uri url = Uri.parse(
-        'http://$ip/auth/verify-email'); //TODO fix to correct endpoint
-    final serverResponse =
-        await http.post(url, body: {'personsList': Person.encodedPersonString});
+    print(Person.encodedPersonString(Person.persons));
 
-    if (serverResponse.statusCode == 200) {
-      print(
-          "serverResponse.statusCode = ${serverResponse.statusCode} \nServer received request.");
-    } else {
-      print(
-          "serverResponse.statusCode = ${serverResponse.statusCode} \nServer failed to receive request.");
+    const ip = String.fromEnvironment("IP");
+
+    try {
+      if (ip == "") {
+        print("No ip passed to CLI when run");
+      }
+
+      Uri url = Uri.parse('http://$ip/'); //TODO fix to correct endpoint
+      final serverResponse = await http.post(url,
+          body: {'personsList': Person.encodedPersonString(Person.persons)});
+
+      if (serverResponse.statusCode == 200) {
+        print(
+            "serverResponse.statusCode = ${serverResponse.statusCode} \nServer received request.");
+      } else {
+        print(
+            "serverResponse.statusCode = ${serverResponse.statusCode} \nServer failed to receive request.");
+      }
+    } catch (e) {
+      print("Could not connect to server/server not running");
     }
   }
 }

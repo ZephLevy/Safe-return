@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
@@ -9,8 +10,11 @@ import 'package:background_locator_2/settings/ios_settings.dart';
 import 'package:background_locator_2/settings/locator_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:safe_return/location_logic/location.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:safe_return/logic/location_logic/location.dart';
 import 'package:safe_return/logic/tokens.dart';
+import 'package:safe_return/pages/main_pages/map_page.dart';
+import 'package:safe_return/storage.dart/user_path_storage.dart';
 import 'package:safe_return/utils/time_manager.dart';
 
 @pragma('vm:entry-point')
@@ -43,10 +47,24 @@ class LocationServiceRepository {
   static const String isolateName = "LocatorIsolate";
 
   static Future<void> callbackLogger(LocationDto locationDto) async {
-    print(' location in dart: ${locationDto.toString()}');
+    // print(' location in dart: ${locationDto.toString()}');
+    await UserPathStorage.loadLocationData();
+
     final SendPort? send = IsolateNameServer.lookupPortByName(isolateName);
     send?.send(locationDto.toJson());
-    await LocationUpdaterState.checkToRefreshToken();
+    await LocationUpdaterState.refreshTokens();
+
+    final LatLng currentPos =
+        LatLng(locationDto.latitude, locationDto.longitude);
+
+    // Timer.periodic(Duration(seconds: 5), (_) async {
+    // });
+    // userPathNotifier.value.add(currentPos);
+    // userPathNotifier.value = [...userPathNotifier.value, currentPos];
+    // UserPathStorage.saveLocationData(userPathNotifier.value);
+
+    print("USERPATH ******* ${userPathNotifier.value.length}");
+
     logLocationDtoToServer(locationDto);
   }
 
@@ -55,6 +73,9 @@ class LocationServiceRepository {
 
     final SendPort? send = IsolateNameServer.lookupPortByName(isolateName);
     send?.send(null);
+    // userPathNotifier.value.clear();
+    userPathNotifier.value = [];
+    UserPathStorage.saveLocationData(userPathNotifier.value);
   }
 
   static Future<void> logLocationDtoToServer(LocationDto locationDto) async {
@@ -63,18 +84,19 @@ class LocationServiceRepository {
       if (ip == "") {
         print("No ip passed to CLI when run");
       }
-      Uri url = Uri.parse('http://$ip/user-status/update');
+      Uri url = Uri.parse('http://$ip/user-status/update-location');
 
       final response =
           await http.post(url, body: {'locationDto': jsonEncode(locationDto)});
       if (response.statusCode == 200) {
         print('Success: ${response.body}');
       } else {
-        print('Failed with status: ${response.statusCode}');
+        print(
+            'Failed while updatinglocationdto with status: ${response.statusCode}\n\n\n${response.body}');
       }
     } catch (e) {
       print("Could not connect to server/server not running");
-      print("e: $e");
+      // print("e: $e");
     }
   }
 }
@@ -133,13 +155,21 @@ class LocationUpdaterState extends State<LocationUpdater> {
   @override
   void initState() {
     super.initState();
+    IsolateNameServer.removePortNameMapping(
+        LocationServiceRepository.isolateName);
 
     IsolateNameServer.registerPortWithName(
         port.sendPort, LocationServiceRepository.isolateName);
     port.listen((dynamic data) {
-      // do something with data
-      print("dataf: $data");
+      print("listened for data: $data");
+      if (data != null) {
+        final dto = LocationDto.fromJson(Map<String, dynamic>.from(data));
+        final currentPos = LatLng(dto.latitude, dto.longitude);
+        userPathNotifier.value = [...userPathNotifier.value, currentPos];
+        UserPathStorage.saveLocationData(userPathNotifier.value);
+      }
     });
+
     initLocator();
   }
 
@@ -174,7 +204,7 @@ class LocationUpdaterState extends State<LocationUpdater> {
     lastTokenRefresh = TimeManager.timeOfTap;
   }
 
-  static Future<void> checkToRefreshToken() async {
+  static Future<void> refreshTokens() async {
     if (LocationUpdaterState.lastTokenRefresh != null) {
       bool needsRefresh =
           DateTime.now().difference(LocationUpdaterState.lastTokenRefresh!) >
@@ -193,6 +223,7 @@ class LocationUpdaterState extends State<LocationUpdater> {
         print("No ip passed to CLI when run");
       }
       Uri url = Uri.parse('http://$ip/user-status/update');
+      //TODO put correct endpoint
 
       final response = await http.post(url, body: Tokens.refreshToken);
       if (response.statusCode == 200) {
@@ -200,7 +231,8 @@ class LocationUpdaterState extends State<LocationUpdater> {
         Tokens.accessToken = jsonDecode(response.body)['access_token'];
         Tokens.refreshToken = jsonDecode(response.body)['refresh_token'];
       } else {
-        print('Failed with status: ${response.statusCode}');
+        print(
+            'Failed with status: ${response.statusCode} when refreshing tockens');
       }
     } catch (e) {
       print("Could not connect to server/server not running");

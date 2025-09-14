@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:safe_return/Visuals/palette.dart';
-import 'package:safe_return/location_logic/location.dart';
-import 'package:safe_return/login_page.dart';
-import 'package:safe_return/pages/home_page.dart';
-import 'package:safe_return/pages/map_page.dart';
+import 'package:safe_return/logic/location_logic/location.dart';
+import 'package:safe_return/pages/log_sign_up/login_page.dart';
+import 'package:safe_return/pages/main_pages/home_page.dart';
+import 'package:safe_return/pages/main_pages/map_page.dart';
 import 'package:safe_return/pages/settings/preferred_viewer.dart';
-import 'package:safe_return/pages/settings_page.dart';
-import 'package:safe_return/shared_prefs/stored_settings.dart';
-import 'package:safe_return/shared_prefs/timer_prefs.dart';
-import 'package:safe_return/location_logic/location_updater.dart';
+import 'package:safe_return/pages/main_pages/settings_page.dart';
+import 'package:safe_return/storage.dart/stored_settings.dart';
+import 'package:safe_return/storage.dart/timer_prefs.dart';
+import 'package:safe_return/logic/location_logic/location_updater.dart';
+import 'package:safe_return/storage.dart/user_path_storage.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,6 +28,8 @@ Future<void> main() async {
   if (latitude != null && longitude != null) {
     Location.homePosition = LatLng(latitude, longitude);
   }
+
+  await UserPathStorage.loadLocationData();
   await StoredSettings.loadAll();
   await TimerPrefs.loadTimer();
   await PreferredViewerState.loadViewType();

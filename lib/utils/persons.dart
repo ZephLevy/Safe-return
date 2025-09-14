@@ -2,7 +2,9 @@ import 'dart:convert';
 
 class Person {
   static List<Person> persons = [];
-  static String encodedPersonString = '';
+  static String encodedPersonString(personList) {
+    return encodePerson(personList);
+  }
 
   String name;
   String phone;
@@ -27,8 +29,7 @@ class Person {
     List<Map<String, dynamic>> mappedList = targetList
         .map((person) => person.toJson())
         .toList(); //encodes List of Person objects to List of maps
-    encodedPersonString =
-        jsonEncode(mappedList); //encodes List of maps into a string
+    return jsonEncode(mappedList); //encodes List of maps into a string
   }
 
   static void decodePerson(

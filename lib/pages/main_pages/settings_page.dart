@@ -12,16 +12,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:random_string/random_string.dart';
 import 'package:safe_return/Visuals/theme.dart';
-import 'package:safe_return/location_logic/location_updater.dart';
-import 'package:safe_return/login_page.dart';
-import 'package:safe_return/pages/home_page.dart';
+import 'package:safe_return/logic/location_logic/location_updater.dart';
+import 'package:safe_return/pages/log_sign_up/login_page.dart';
+import 'package:safe_return/pages/main_pages/home_page.dart';
 import 'package:safe_return/pages/log_sign_up/sign_up.dart';
 import 'package:safe_return/pages/settings/account_page.dart';
 import 'package:safe_return/pages/settings/contacts_page.dart';
 import 'package:safe_return/pages/settings/preferred_viewer.dart';
 import 'package:safe_return/pages/settings/security_codes_page.dart';
 import 'package:safe_return/pages/settings/sos_activation.dart';
-import 'package:safe_return/shared_prefs/stored_settings.dart';
+import 'package:safe_return/storage.dart/stored_settings.dart';
 import 'package:safe_return/utils/auth_service.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:info_widget/info_widget.dart';
@@ -54,15 +54,18 @@ class SettingsState extends State<Settings> {
           Card(
               elevation: 2,
               child: ListTile(
-                  contentPadding: EdgeInsets.only(left: 10),
+                  contentPadding: EdgeInsets.only(left: 10, right: 20),
                   leading: Icon(Icons.account_circle, size: 50),
                   minLeadingWidth: 50,
-                  title: SignUpState.firstName.isNotEmpty
-                      ? Text("${SignUpState.firstName} ${SignUpState.lastName}")
-                      : Text("User#${randomAlphaNumeric(7).toUpperCase()}"),
+                  title:
+                      // SignUpState.firstName.isNotEmpty
+                      // ?
+                      Text("${SignUpState.firstName} ${SignUpState.lastName}"),
+                  // : Text("User#${randomAlphaNumeric(7).toUpperCase()}"),
                   subtitle: StatefulBuilder(builder: (context, setState) {
-                    return Text(LoginPageState.email);
+                    return Text(LoginPageState.userEmail);
                   }),
+                  trailing: Icon(Icons.settings_rounded),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -77,18 +80,11 @@ class SettingsState extends State<Settings> {
                   })),
           Card(
             margin: EdgeInsets.only(
-                left: 15,
-                right: 15,
-                bottom: Platform.isAndroid
-                    ? 1
-                    : 10), //.j aksdjfklasj dlkfaj s;dlfjklasdjf
+                left: 15, right: 15, bottom: Platform.isAndroid ? 1 : 10),
             child: Column(
               children: [
                 ListTile(
                   title: Text("SOS Activation"),
-                  subtitle: Text(
-                    "Number of clicks required to activate SOS button",
-                  ),
                   leading: Icon(Icons.sos_outlined),
                   trailing: Icon(Icons.arrow_forward_ios_rounded),
                   onTap: () {
@@ -103,9 +99,6 @@ class SettingsState extends State<Settings> {
                 ),
                 ListTile(
                   title: Text("Emergency Contacts"),
-                  subtitle: Text(
-                    "These contacts will be alerted if you are not home by the set time",
-                  ),
                   leading: Icon(
                     Icons.phone_in_talk,
                     size: 22,
@@ -121,31 +114,46 @@ class SettingsState extends State<Settings> {
                 ),
                 ListTile(
                   title: Text("Power Saving Mode"),
-                  subtitle: Text(
-                      "When switched on, location tracking will be reduced to save battery, decreasing your security."),
+                  // subtitle: Text(
+                  //     "When switched on, location tracking will be reduced to save battery, decreasing your security."),
                   leading: Icon(Icons.battery_charging_full),
-                  trailing: Switch.adaptive(
-                      value: LocationUpdaterState.powerSaving,
-                      onChanged: (value) {
-                        setState(() {
-                          LocationUpdaterState.powerSaving = value;
-                        });
-                        StoredSettings.save(
-                            powerSaving: LocationUpdaterState.powerSaving);
-                        if (LocationUpdaterState.powerSaving) {
-                          LocationUpdaterState.locationAccuracy =
-                              LocationAccuracy.BALANCED;
-                        } else {
-                          LocationUpdaterState.locationAccuracy =
-                              LocationAccuracy.HIGH;
-                        }
-                      }),
+                  trailing: SizedBox(
+                    width: 95,
+                    child: Row(
+                      spacing: 10,
+                      children: [
+                        InfoWidget(
+                          infoText:
+                              "When switched on, location tracking will be reduced to save battery, decreasing your security.",
+                          iconData: Icons.info_outline,
+                          iconColor: Colors.black87,
+                          infoTextStyle: TextStyle(color: Colors.black87),
+                        ),
+                        Switch.adaptive(
+                            value: LocationUpdaterState.powerSaving,
+                            onChanged: (value) {
+                              setState(() {
+                                LocationUpdaterState.powerSaving = value;
+                              });
+                              StoredSettings.save(
+                                  powerSaving:
+                                      LocationUpdaterState.powerSaving);
+                              if (LocationUpdaterState.powerSaving) {
+                                LocationUpdaterState.locationAccuracy =
+                                    LocationAccuracy.BALANCED;
+                              } else {
+                                LocationUpdaterState.locationAccuracy =
+                                    LocationAccuracy.HIGH;
+                              }
+                            }),
+                      ],
+                    ),
+                  ),
                 )
               ],
             ),
           ),
-          if (Platform
-              .isAndroid) //.jdsflka s;dklfj ;alksdfj klasdjf ;lasjd f;lks djfd
+          if (Platform.isAndroid)
             Card(
               margin: EdgeInsets.only(left: 40, right: 15, bottom: 10),
               child: ListTile(

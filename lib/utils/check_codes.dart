@@ -1,6 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:safe_return/utils/noti_service.dart';
-import 'package:safe_return/pages/home_page.dart';
+import 'package:safe_return/pages/main_pages/home_page.dart';
 
 class CheckCodes {
   // void checkCodes() {

@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'package:safe_return/location_logic/location_updater.dart';
+import 'package:safe_return/logic/location_logic/location_updater.dart';
 import 'package:safe_return/logic/timer_logic.dart';
-import 'package:safe_return/login_page.dart';
-import 'package:safe_return/pages/home_page.dart';
+import 'package:safe_return/pages/log_sign_up/login_page.dart';
+import 'package:safe_return/pages/main_pages/home_page.dart';
 import 'package:safe_return/pages/log_sign_up/sign_up.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/persons.dart';
@@ -27,9 +27,10 @@ class StoredSettings {
     bool? powerSaving,
   }) async {
     if (personList != null) {
-      Person.encodePerson(personList);
+      await asyncPrefs.setString(
+          'persons', Person.encodedPersonString(personList));
     }
-    await asyncPrefs.setString('persons', Person.encodedPersonString);
+
     if (selectedIndex != null) {
       await asyncPrefs.setInt('selectedIndex', selectedIndex);
     }
@@ -57,18 +58,18 @@ class StoredSettings {
   }
 
   static Future<void> loadAll() async {
-    Person.encodedPersonString = await asyncPrefs.getString('persons') ?? "";
+    String encodedPersonString = await asyncPrefs.getString('persons') ?? "";
 
-    Person.encodedPersonString.isNotEmpty
-        ? Person.decodePerson(
-            toDecode: Person.encodedPersonString, targetList: Person.persons)
-        : null;
+    if (encodedPersonString.isNotEmpty) {
+      Person.decodePerson(
+          toDecode: encodedPersonString, targetList: Person.persons);
+    }
 
     selectedIndex = await asyncPrefs.getInt('selectedIndex') ?? 1;
 
     SosManager.clickN = await asyncPrefs.getInt('clickN') ?? selectedIndex + 1;
     biometricsValue = await asyncPrefs.getBool('biometrics') ?? false;
-    LoginPageState.email = await asyncPrefs.getString('userEmail') ?? "";
+    LoginPageState.userEmail = await asyncPrefs.getString('userEmail') ?? "";
     LoginPageState.isLoggedIn = await asyncPrefs.getBool('isLoggedIn') ?? false;
     SignUpState.firstName = await asyncPrefs.getString('firstName') ?? "";
     SignUpState.lastName = await asyncPrefs.getString('lastName') ?? "";
@@ -80,12 +81,12 @@ class StoredSettings {
     await asyncPrefs.clear();
     SosManager.fakeCode = null;
     SosManager.secretCode = null;
-    Person.encodedPersonString = "";
+    // Person.encodedPersonString = "";
     Person.persons = [];
     selectedIndex = 1;
     SosManager.clickN = selectedIndex + 1;
     biometricsValue = false;
-    LoginPageState.email = "";
+    LoginPageState.userEmail = "";
     LoginPageState.password = "";
     LoginPageState.isLoggedIn = false;
     SignUpState.newEmail = "";

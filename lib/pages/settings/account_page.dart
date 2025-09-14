@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:safe_return/Visuals/theme.dart';
-import 'package:safe_return/login_page.dart';
+import 'package:safe_return/pages/log_sign_up/login_page.dart';
 import 'package:safe_return/pages/log_sign_up/sign_up.dart';
-import 'package:safe_return/shared_prefs/stored_settings.dart';
-import 'package:safe_return/pages/settings_page.dart';
+import 'package:safe_return/storage.dart/stored_settings.dart';
+import 'package:safe_return/pages/main_pages/settings_page.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -53,8 +53,8 @@ class AccountPageState extends State<AccountPage> {
                     subtitle: Text("Last Name"),
                   ),
                   ListTile(
-                    title: LoginPageState.email.isNotEmpty
-                        ? Text(LoginPageState.email)
+                    title: LoginPageState.userEmail.isNotEmpty
+                        ? Text(LoginPageState.userEmail)
                         : Text(
                             "No email set",
                             style: TextStyle(
@@ -63,15 +63,7 @@ class AccountPageState extends State<AccountPage> {
                     subtitle: Text("Email"),
                   ),
                   ListTile(
-                    title: LoginPageState.password.isNotEmpty
-                        ? Text(
-                            '\u2022' * (LoginPageState.passwordLength),
-                          )
-                        : Text(
-                            "No password set",
-                            style: TextStyle(
-                                color: const Color.fromARGB(104, 0, 0, 0)),
-                          ),
+                    title: Text('\u2022' * 20),
                     subtitle: Text("Password"),
                   )
                 ],

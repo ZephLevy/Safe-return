@@ -10,12 +10,13 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:safe_return/Visuals/palette.dart';
-import 'package:safe_return/location_logic/location.dart';
+import 'package:safe_return/logic/location_logic/location.dart';
 import 'package:safe_return/logic/timer_logic.dart';
-import 'package:safe_return/shared_prefs/stored_settings.dart';
-import 'package:safe_return/shared_prefs/timer_prefs.dart';
+import 'package:safe_return/pages/main_pages/map_page.dart';
+import 'package:safe_return/storage.dart/stored_settings.dart';
+import 'package:safe_return/storage.dart/timer_prefs.dart';
 import 'package:safe_return/utils/connection.dart';
-import 'package:safe_return/location_logic/location_updater.dart';
+import 'package:safe_return/logic/location_logic/location_updater.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/time_manager.dart';
@@ -493,7 +494,7 @@ class TimerAndClockState extends State<TimerAndClock>
 
       final response = await http.post(url, body: {'time': time.toString()});
       if (response.statusCode == 200) {
-        print('Success: ${response.body}');
+        print('Success: response body for set time: ${response.body}');
         onServerSuccess();
       } else {
         print('Failed with status: ${response.statusCode}');
@@ -510,8 +511,7 @@ class TimerAndClockState extends State<TimerAndClock>
 
     await _HomeTimerState.setTimerLogic();
     LocationUpdaterState.setLocationLogic();
-    await _sendTime(TimeManager.selectedTime, onServerSuccess: () {
-      print("j");
+    await _sendTime(TimeManager.selectedTime, onServerSuccess: () async {
       LocationUpdaterState.startLocationService();
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -525,6 +525,7 @@ class TimerAndClockState extends State<TimerAndClock>
         showTimer = true;
         startSelected = true;
       });
+
       if (TimeManager.timeOfTap != null) {
         Duration timeTo = TimeManager.totalTimeDuration()!;
 
@@ -534,6 +535,9 @@ class TimerAndClockState extends State<TimerAndClock>
             if (Location.homePosition == null) return;
             final LatLng homePosition = Location.homePosition!;
             final Position currentPosition = await Location.determinePosition();
+            final LatLng currentLatLng =
+                LatLng(currentPosition.latitude, currentPosition.longitude);
+            MapsPageState.userPath.add(currentLatLng);
             final double distance = Geolocator.distanceBetween(
                 homePosition.latitude,
                 homePosition.longitude,

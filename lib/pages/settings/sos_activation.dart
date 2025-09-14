@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:safe_return/shared_prefs/stored_settings.dart';
+import 'package:safe_return/Visuals/palette.dart';
+import 'package:safe_return/logic/screen_logic.dart';
+import 'package:safe_return/storage.dart/stored_settings.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 
 class SosActivation extends StatefulWidget {
@@ -24,35 +26,77 @@ class SosActivationState extends State<SosActivation> {
           appBar: AppBar(
             title: Text("SOS Activation"),
           ),
-          body: ListView.separated(
-            separatorBuilder: (BuildContext context, int index) => Divider(
-              height: 0,
-            ),
-            itemCount: dditems.length,
-            itemBuilder: (BuildContext context, int index) {
-              return ListTile(
-                minTileHeight: 65,
-                title: Text(dditems[index]),
-                trailing: StoredSettings.selectedIndex == index
-                    ? Padding(
-                        padding: const EdgeInsets.only(right: 4),
-                        child: Icon(
-                          Icons.check_rounded,
-                          color: Colors.blue.shade600,
-                        ),
-                      )
-                    : null,
-                onTap: () => setState(
-                  () {
-                    StoredSettings.selectedIndex = index;
-                    SosManager.clickN = StoredSettings.selectedIndex + 1;
-                    StoredSettings.save(
-                        selectedIndex: StoredSettings.selectedIndex,
-                        clickN: SosManager.clickN);
+          body: Column(
+            children: [
+              Expanded(
+                child: ListView.separated(
+                  separatorBuilder: (BuildContext context, int index) =>
+                      Divider(
+                    height: 0,
+                  ),
+                  itemCount: dditems.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return ListTile(
+                      minTileHeight: 65,
+                      title: Text(dditems[index]),
+                      trailing: StoredSettings.selectedIndex == index
+                          ? Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: Icon(
+                                Icons.check_rounded,
+                                color: Colors.blue.shade600,
+                              ),
+                            )
+                          : null,
+                      onTap: () => setState(
+                        () {
+                          StoredSettings.selectedIndex = index;
+                          SosManager.clickN = StoredSettings.selectedIndex + 1;
+                          StoredSettings.save(
+                              selectedIndex: StoredSettings.selectedIndex,
+                              clickN: SosManager.clickN);
+                        },
+                      ),
+                    );
                   },
                 ),
-              );
-            },
+              ),
+              Align(
+                alignment: Alignment.center,
+                child: Container(
+                  padding:
+                      EdgeInsets.only(left: 30, top: 10, right: 10, bottom: 40),
+                  decoration: BoxDecoration(
+                    color: Palette.backgroundColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black54,
+                        offset: Offset(0, -1),
+                        blurRadius: 5,
+                        spreadRadius: 1,
+                      )
+                    ],
+                  ),
+                  child: Row(
+                    spacing: 10,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.info_outline),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: SizedBox(
+                          width:
+                              ScreenLogic.screenWidth(context) - 30 - 10 - 40,
+                          child: Text(
+                              softWrap: true,
+                              "This determines the number of clicks required to activate the SOS button in the Home Page."),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },
