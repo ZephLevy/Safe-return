@@ -1,14 +1,11 @@
 import 'dart:isolate';
-import 'dart:ui';
 
-import 'package:background_locator_2/location_dto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:safe_return/logic/location_logic/location.dart';
-import 'package:safe_return/logic/location_logic/location_updater.dart';
 import 'package:safe_return/storage.dart/user_path_storage.dart';
 import 'package:safe_return/utils/connection.dart';
 
@@ -22,8 +19,8 @@ class MapsPage extends StatefulWidget {
 }
 
 class MapsPageState extends State<MapsPage> {
-  bool reConnecting = false;
   static List<LatLng> userPath = [];
+  bool reConnecting = false;
   ReceivePort port = ReceivePort();
 
   // @override
@@ -161,50 +158,44 @@ class MapsPageState extends State<MapsPage> {
       }
     }
     print("full path: ${userPath}");
-    return ValueListenableBuilder<List<LatLng>>(
-      valueListenable: userPathNotifier,
-      builder: (context, path, _) {
-        return FlutterMap(
-          options: MapOptions(
-            interactionOptions: InteractionOptions(
-                flags: InteractiveFlag.all & ~InteractiveFlag.rotate),
-            initialCenter: currentPosition,
-            initialZoom: 15,
-            keepAlive: true,
-            cameraConstraint: const CameraConstraint.containLatitude(),
-            // interactionOptions:
-            //     InteractionOptions(flags: ~InteractiveFlag.rotate)
-          ),
-          children: [
-            TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            ),
 
-            PolylineLayer(
-              polylines: [
-                Polyline(
-                  strokeWidth: 4,
-                  points: path.isNotEmpty
-                      ? path
-                      : [
-                          currentPosition,
-                        ],
-                  // points: [
-                  //   LatLng(37.332331, -122.031219),
-                  //   LatLng(37.332331, -122.031219),
-                  //   LatLng(37.332331, -122.031219),
-                  //   LatLng(37.332331, 122.031219)
-                  // ],
-                  color: Colors.blue,
-                ),
-              ],
-            ),
+    return FlutterMap(
+      options: MapOptions(
+        interactionOptions: InteractionOptions(
+            flags: InteractiveFlag.all & ~InteractiveFlag.rotate),
+        initialCenter: currentPosition,
+        initialZoom: 15,
 
-            CurrentLocationLayer(),
-            // MarkerLayer(markers: markers),
-          ],
-        );
-      },
+        cameraConstraint: const CameraConstraint.containLatitude(),
+        // interactionOptions:
+        //     InteractionOptions(flags: ~InteractiveFlag.rotate)
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        ),
+
+        ValueListenableBuilder<List<LatLng>>(
+            valueListenable: userPathNotifier,
+            builder: (context, path, _) {
+              return PolylineLayer(
+                polylines: [
+                  Polyline(
+                    strokeWidth: 4,
+                    points: path.isNotEmpty
+                        ? path
+                        : [
+                            currentPosition,
+                          ],
+                    color: Colors.blue,
+                  ),
+                ],
+              );
+            }),
+
+        CurrentLocationLayer(),
+        // MarkerLayer(markers: markers),
+      ],
     );
   }
 }

@@ -201,7 +201,7 @@ class LoginPageState extends State<LoginPage> {
                 context, MaterialPageRoute(builder: (context) => HomeScreen()));
           }
         } else {
-          print("error: code ${response.statusCode}");
+          print("failed to login with code: ${response.statusCode}");
         }
       }
       print("not connected to server");

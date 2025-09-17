@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'package:safe_return/Visuals/custom_gradient.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/logic/location_logic/location.dart';
 import 'package:safe_return/logic/timer_logic.dart';
@@ -167,7 +168,7 @@ class TimerAndClockState extends State<TimerAndClock>
   bool timeIsSet = false;
 
   double bHBHeight = 52.75;
-  double setButtonHeight = 65;
+  double setButtonHeight = 80;
 
   Widget bgBox() {
     if (firstLoad && !showTimer) {
@@ -217,6 +218,14 @@ class TimerAndClockState extends State<TimerAndClock>
               Column(
                 children: [
                   _bhb(),
+                  CustomGradient(
+                      height: 1,
+                      margin: EdgeInsets.symmetric(horizontal: 20),
+                      colors: [
+                        Colors.transparent,
+                        Colors.black54,
+                        Colors.transparent
+                      ]),
                   SizedBox(
                     key: mainContainerKey,
                     height: mainContainerHeight(),
@@ -396,7 +405,7 @@ class TimerAndClockState extends State<TimerAndClock>
     return Text(
       'Secure Me',
       style: TextStyle(
-        fontSize: 18,
+        fontSize: 20.5,
         fontWeight: FontWeight.w500,
       ),
     );
@@ -409,7 +418,8 @@ class TimerAndClockState extends State<TimerAndClock>
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Palette.blue1,
+          // color: Palette.blue1,
+          color: Colors.transparent,
           width: 1.5,
         ),
       ),
@@ -497,7 +507,7 @@ class TimerAndClockState extends State<TimerAndClock>
         print('Success: response body for set time: ${response.body}');
         onServerSuccess();
       } else {
-        print('Failed with status: ${response.statusCode}');
+        print('Failed to send set time with status: ${response.statusCode}');
         onServerFail();
       }
     } catch (e) {
@@ -512,7 +522,9 @@ class TimerAndClockState extends State<TimerAndClock>
     await _HomeTimerState.setTimerLogic();
     LocationUpdaterState.setLocationLogic();
     await _sendTime(TimeManager.selectedTime, onServerSuccess: () async {
-      LocationUpdaterState.startLocationService();
+      if (await Location.checkLocationPermissions()) {
+        LocationUpdaterState.startLocationService();
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -644,11 +656,11 @@ class TimeSetterState extends State<TimeSetter> {
       spacing: 0,
       children: [
         timeIsTomorrowCheckBox(),
-        Divider(
-          indent: 20,
-          endIndent: 20,
-          height: 3,
-        ),
+        // Divider(
+        //   indent: 20,
+        //   endIndent: 20,
+        //   height: 3,
+        // ),
         setterUi(),
       ],
     );

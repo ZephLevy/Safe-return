@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:http/http.dart' as http;
@@ -17,7 +18,9 @@ class ContactsPage extends StatefulWidget {
 }
 
 class ContactsPageState extends State<ContactsPage> {
+  bool isEditing = false;
   bool _contactsLoading = false;
+  Set<Person> selectedEditableItems = {};
 
   @override
   Widget build(BuildContext context) {
@@ -26,27 +29,78 @@ class ContactsPageState extends State<ContactsPage> {
           //TODO center add icon with title and back button
           //? modify back button
           actions: [
-            Padding(
-                padding: EdgeInsets.only(right: 32),
-                child: SizedBox(
-                  height: 48,
-                  width: 48,
-                  child: Center(
-                    child: _contactsLoading
-                        ? CircularProgressIndicator.adaptive()
-                        : IconButton(
-                            tooltip:
-                                "How on earth do you not know what a + button does \n[add_emergency_contact]",
-                            onPressed: () => _selectContacts(),
-                            icon: Icon(
-                              Icons.add,
-                              size: 28,
-                            ),
+            Person.persons.isNotEmpty
+                ? Padding(
+                    padding: EdgeInsets.only(right: 25),
+                    child: SizedBox(
+                      height: 48,
+                      width: 48,
+                      child: Center(
+                          child: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            isEditing = !isEditing;
+                            selectedEditableItems = {};
+                          });
+                        },
+                        isSelected: isEditing,
+                        icon: Icon(Icons.edit_outlined),
+                        selectedIcon: Icon(Icons.check_circle_outline_rounded),
+                      )
+                          // : IconButton(
+                          //     tooltip:
+                          //         "How on earth do you not know what a + button does \n[add_emergency_contact]",
+                          //     onPressed: () => _selectContacts(),
+                          //     icon: Icon(
+                          //       Icons.add,
+                          //       size: 28,
+                          //     ),
+                          //   ),
                           ),
-                  ),
-                )),
+                    ),
+                  )
+                : SizedBox.shrink()
           ],
           title: Text("Emergency contacts"),
+        ),
+        bottomNavigationBar: Container(
+          width: double.infinity,
+          height: 90,
+          decoration: BoxDecoration(
+            color: Palette.backgroundColor,
+            boxShadow: [
+              BoxShadow(
+                color: Palette.backgroundColor,
+                offset: Offset(0, -1),
+                blurRadius: 15,
+                spreadRadius: 25,
+              )
+            ],
+          ),
+          child: isEditing
+              ? Row(
+                  spacing: 160,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.delete_outline),
+                      onPressed: () {
+                        setState(() {
+                          Person.persons.removeWhere((person) =>
+                              selectedEditableItems.contains(person));
+                        });
+                        StoredSettings.save(personList: Person.persons);
+                      },
+                    ),
+                    IconButton(
+                        onPressed: () => _selectContacts(),
+                        icon: _contactsLoading
+                            ? CircularProgressIndicator.adaptive()
+                            : Icon(Icons.add)),
+                  ],
+                )
+              : null,
         ),
         //TODO bottomNavigationBar: BottomAppBar(), not sure if to keep this anymore
         //TODO add an edit button or something so the user has another way to delete the contacts since swiping is too unintuitive
@@ -63,7 +117,7 @@ class ContactsPageState extends State<ContactsPage> {
                 child: Person.persons.isEmpty ? contactListInfo() : listView(),
               ),
             ),
-            deleteInfo()
+            // deleteInfo()
           ],
         ));
   }
@@ -103,38 +157,80 @@ class ContactsPageState extends State<ContactsPage> {
         height: 0,
       ),
       itemBuilder: (BuildContext context, int index) {
-        return Dismissible(
-          key: Key(Person.persons[index].phone),
-          background: Container(
-            color: Colors.red,
-            alignment: Alignment.centerRight,
-            padding: EdgeInsets.only(right: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  "Delete",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ],
-            ),
-          ),
-          direction: DismissDirection.endToStart,
-          onDismissed: (direction) {
-            setState(() {
-              Person.persons.removeAt(index);
-              StoredSettings.save(personList: Person.persons);
-            });
-          },
-          child: Padding(
-            padding: const EdgeInsets.only(top: 5),
-            child: ListTile(
-              title: Text(Person.persons[index].name),
-              trailing: Text(Person.persons[index].phone),
-            ),
-          ),
-        );
+        return isEditing ? editingTile(index) : dismissibleTile(index);
       },
+    );
+  }
+
+  Widget editingTile(index) {
+    Person personAtIndex = Person.persons[index];
+    return Padding(
+      padding: const EdgeInsets.only(top: 5),
+      child: ListTile(
+        title: Text(
+          Person.persons[index].name,
+          maxLines: 1,
+          overflow: TextOverflow.fade,
+          softWrap: false,
+        ),
+        trailing: SizedBox(
+          width: 200,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text(Person.persons[index].phone),
+              Checkbox(
+                value: (selectedEditableItems.contains(personAtIndex)),
+                onChanged: (value) {
+                  if (value == true) {
+                    setState(() {
+                      selectedEditableItems.add(personAtIndex);
+                    });
+                  } else {
+                    setState(() {
+                      selectedEditableItems.remove(personAtIndex);
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget dismissibleTile(index) {
+    return Dismissible(
+      key: Key(Person.persons[index].phone),
+      background: Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: EdgeInsets.only(right: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Text(
+              "Delete",
+              style: TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+      direction: DismissDirection.endToStart,
+      onDismissed: (direction) {
+        setState(() {
+          Person.persons.removeAt(index);
+          StoredSettings.save(personList: Person.persons);
+        });
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(top: 5),
+        child: ListTile(
+          title: Text(Person.persons[index].name),
+          trailing: Text(Person.persons[index].phone),
+        ),
+      ),
     );
   }
 
@@ -418,7 +514,7 @@ class ContactsPageState extends State<ContactsPage> {
             "serverResponse.statusCode = ${serverResponse.statusCode} \nServer received request.");
       } else {
         print(
-            "serverResponse.statusCode = ${serverResponse.statusCode} \nServer failed to receive request.");
+            "serverResponse.statusCode = ${serverResponse.statusCode} \nServer failed to receive persons list.");
       }
     } catch (e) {
       print("Could not connect to server/server not running");
