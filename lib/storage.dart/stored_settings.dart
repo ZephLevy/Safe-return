@@ -81,22 +81,20 @@ class StoredSettings {
     await asyncPrefs.clear();
     SosManager.fakeCode = null;
     SosManager.secretCode = null;
-    // Person.encodedPersonString = "";
     Person.persons = [];
     selectedIndex = 1;
     SosManager.clickN = selectedIndex + 1;
     biometricsValue = false;
+    LocationUpdaterState.powerSaving = false;
+
     LoginPageState.userEmail = "";
-    LoginPageState.password = "";
     LoginPageState.isLoggedIn = false;
-    SignUpState.newEmail = "";
-    SignUpState.newPassword = ""; //TODO not sure to keep this, just for safety
     SignUpState.firstName = "";
     SignUpState.lastName = "";
+
     TimerAndClockState.showTimer = false;
     TimerLogic.isTomorrow = false;
     TimeManager.selectedTime = DateTime.now();
     TimeManager.timeOfTap = null;
-    LocationUpdaterState.powerSaving = false;
   }
 }

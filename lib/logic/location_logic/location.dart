@@ -22,17 +22,17 @@ class Location {
   static Future<bool> checkLocationPermissions() async {
     // Check location permissions
     LocationPermission permission = await Geolocator.checkPermission();
+
     // print(permission);
 
     if (permission != LocationPermission.always) {
-      permission = await Geolocator.requestPermission();
+      LocationPermission permission = await Geolocator.requestPermission();
+      print("requestedPermission: $permission");
+
       if (permission != LocationPermission.always) {
-        return Future.error("permission required");
-      } else {
-        return true;
+        return false;
       }
-    } else {
-      return true;
     }
+    return true;
   }
 }

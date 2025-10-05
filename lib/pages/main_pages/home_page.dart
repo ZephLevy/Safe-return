@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:animate_gradient/animate_gradient.dart';
 import 'package:background_locator_2/background_locator.dart';
 import 'package:circular_countdown_timer/circular_countdown_timer.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,7 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
-import 'package:safe_return/Visuals/custom_gradient.dart';
+import 'package:safe_return/custom_widgets/custom_gradient.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/logic/location_logic/location.dart';
 import 'package:safe_return/logic/timer_logic.dart';
@@ -169,6 +170,25 @@ class TimerAndClockState extends State<TimerAndClock>
 
   double bHBHeight = 52.75;
   double setButtonHeight = 80;
+
+  List<Color> primaryColors = const [
+    Color(0xFF80a6a9),
+    Color(0xFFa4d2d5),
+    Colors.amberAccent,
+    Color(0xFFa4d2d5),
+    Color(0xFF80a6a9),
+  ];
+  List<Color> secondaryColors = const [
+    Colors.amberAccent,
+    // Color(0xFFa4d2d5),
+    Color(0xFF80a6a9),
+    Color(0xFF80a6a9),
+    Color(0xFF80a6a9),
+    // Color(0xFFa4d2d5),
+    Colors.amberAccent,
+  ];
+
+  bool isChanged = false;
 
   Widget bgBox() {
     if (firstLoad && !showTimer) {
@@ -358,20 +378,29 @@ class TimerAndClockState extends State<TimerAndClock>
                       });
                     }
                   },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Palette.blue1,
-                        width: 1.5,
-                      ),
-                      color: isOnline
-                          ? (startSelected ? Palette.blue3 : Palette.blue4)
-                          : Colors.grey[400],
-                    ),
-                    child: Center(
-                      child: setButtonChild(isOnline),
-                    ),
+                  child:
+                      // Container(
+                      //   decoration: BoxDecoration(
+                      //     borderRadius: BorderRadius.circular(20),
+                      //     border: Border.all(
+                      //       color: Palette.blue1,
+                      //       width: 1.5,
+                      //     ),
+                      //     color: isOnline
+                      //         ? (startSelected ? Palette.blue3 : Palette.blue4)
+                      //         : Colors.grey[400],
+                      //   ),
+                      //   child: Center(
+                      //     child: setButtonChild(isOnline),
+                      //   ),
+                      // ),
+                      AnimateGradient(
+                    primaryColors: primaryColors,
+                    secondaryColors: secondaryColors,
+                    primaryBegin: Alignment.bottomCenter,
+                    secondaryEnd: Alignment.topCenter,
+                    animateAlignments: true,
+                    duration: Duration(milliseconds: 2000),
                   ),
                 ),
               ),
@@ -704,9 +733,6 @@ class TimeSetterState extends State<TimeSetter> {
               side: BorderSide(
                   color: const Color.fromARGB(255, 114, 114, 114), width: 1),
               visualDensity: VisualDensity.compact,
-              materialTapTargetSize: MaterialTapTargetSize
-                  .shrinkWrap, // Shrinks tap target (Android only)
-
               value: TimerLogic.isTomorrow,
               onChanged: (value) {
                 setState(
@@ -717,7 +743,7 @@ class TimeSetterState extends State<TimeSetter> {
             GestureDetector(
                 onTap: () => setState(
                     () => TimerLogic.isTomorrow = !TimerLogic.isTomorrow),
-                child: Text("I will be back tomorrow"))
+                child: Text("+ 24h"))
           ],
         );
       },

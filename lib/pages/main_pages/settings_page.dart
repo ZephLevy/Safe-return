@@ -18,6 +18,7 @@ import 'package:safe_return/pages/log_sign_up/sign_up.dart';
 import 'package:safe_return/pages/main_pages/home_page.dart';
 import 'package:safe_return/pages/settings/account_page.dart';
 import 'package:safe_return/pages/settings/contacts_page.dart';
+import 'package:safe_return/pages/settings/home_selector.dart';
 import 'package:safe_return/pages/settings/preferred_viewer.dart';
 import 'package:safe_return/pages/settings/security_codes_page.dart';
 import 'package:safe_return/pages/settings/sos_activation.dart';
@@ -112,6 +113,17 @@ class SettingsState extends State<Settings> {
                   ),
                 ),
                 ListTile(
+                  title: Text("Set Home Location"),
+                  leading: Icon(Icons.home_rounded),
+                  trailing: Icon(Icons.arrow_forward_ios_rounded),
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                            builder: (BuildContext context) => HomeSelector()));
+                  },
+                ),
+                ListTile(
                   title: Text("Power Saving Mode"),
                   // subtitle: Text(
                   //     "When switched on, location tracking will be reduced to save battery, decreasing your security."),
@@ -148,7 +160,7 @@ class SettingsState extends State<Settings> {
                       ],
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ),

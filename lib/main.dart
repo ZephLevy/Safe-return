@@ -29,7 +29,10 @@ Future<void> main() async {
     Location.homePosition = LatLng(latitude, longitude);
   }
 
-  await UserPathStorage.loadLocationData();
+  try {
+    await Location.determinePosition();
+  } catch (_) {}
+  userPathNotifier.value = await UserPathStorage.loadLocationData();
   await StoredSettings.loadAll();
   await TimerPrefs.loadTimer();
   await PreferredViewerState.loadViewType();
@@ -121,27 +124,19 @@ class _HomeScreenState extends State<HomeScreen> {
             ? Row(
                 children: [
                   LocationUpdater(),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: IconButton(
-                        tooltip: "Update home location to current location",
-                        onPressed: () {
-                          _setHomeLocation();
-                        },
-                        icon: Icon(Icons.home)),
-                  ),
+                  // Padding(
+                  //   padding: const EdgeInsets.only(right: 8.0),
+                  //   child: IconButton(
+                  //       tooltip: "Update home location to current location",
+                  //       onPressed: () {
+                  //         _setHomeLocation();
+                  //       },
+                  //       icon: Icon(Icons.home)),
+                  // ),
                 ],
               )
             : SizedBox.shrink(),
       ],
     );
-  }
-
-  Future<void> _setHomeLocation() async {
-    final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
-    final Position location = await Location.determinePosition();
-
-    await asyncPrefs.setDouble("latitude", location.latitude);
-    await asyncPrefs.setDouble("longitude", location.longitude);
   }
 }

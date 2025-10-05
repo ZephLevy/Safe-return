@@ -314,13 +314,13 @@ class SignUpState extends State<SignUp> {
       emailCode = "";
       LoginPageState.isLoggedIn = true;
       StoredSettings.save(isLoggedIn: LoginPageState.isLoggedIn);
-      //TODO get tokens
       print("successful verification code: ${response.statusCode}");
       print("body: ${response.body}");
       Tokens.signUpTokens = response.body;
       Tokens.accessToken = jsonDecode(response.body)['access_token'];
       Tokens.refreshToken = jsonDecode(response.body)['refresh_token'];
       LoginPageState.userEmail = newEmail;
+      newEmail = "";
 
       StoredSettings.save(
           firstName: firstName,
@@ -354,7 +354,7 @@ class SignUpState extends State<SignUp> {
     );
     print(newEmail);
     if (response.statusCode == 200) {
-      //TODO get tokens
+      //TODO get tokens i dont think this is needed here actually
       print("email not in use, successful: ${response.statusCode}");
 
       if200();

@@ -31,9 +31,7 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>Why is my app authenticating using face id?</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>App needs background location access</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Always require location</string>
+	<string>App needs backgorund location to know whether you are back at your house at the specified time, so it can react accordingly to keep you safe.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>App needs location when in use</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

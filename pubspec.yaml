@@ -55,6 +55,8 @@ dependencies:
   background_locator_2: ^2.0.6
   info_widget: ^1.0.0
   flutter_map_location_marker: ^10.0.2
+  top_snackbar_flutter: ^3.3.0
+  animate_gradient: ^0.0.3
   
 
 dev_dependencies:

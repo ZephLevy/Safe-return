@@ -47,8 +47,8 @@ class LocationServiceRepository {
   static const String isolateName = "LocatorIsolate";
 
   static Future<void> callbackLogger(LocationDto locationDto) async {
-    await UserPathStorage.loadLocationData();
-    await LocationUpdaterState.refreshTokens();
+    userPathNotifier.value = await UserPathStorage.loadLocationData();
+    await Tokens.triggerRefreshTokens();
 
     final SendPort? send = IsolateNameServer.lookupPortByName(isolateName);
     send?.send({"type": "location", "contents": locationDto.toJson()});
@@ -166,42 +166,6 @@ class LocationUpdaterState extends State<LocationUpdater> {
     });
 
     initLocator();
-  }
-
-  static Future<void> getTokens() async {
-    const String ip = String.fromEnvironment('IP');
-    try {
-      if (ip == "") {
-        print("No ip passed to CLI when run");
-      }
-      Uri url = Uri.parse('http://$ip/user-status/update-location');
-      //TODO put correct endpoint
-
-      final response = await http.post(url, body: Tokens.refreshToken);
-      if (response.statusCode == 200) {
-        print('Success: ${response.body}');
-        Tokens.accessToken = jsonDecode(response.body)['access_token'];
-        Tokens.refreshToken = jsonDecode(response.body)['refresh_token'];
-      } else {
-        print('Failed to refresh tokens with status: ${response.statusCode}');
-      }
-    } catch (e) {
-      print("Could not connect to server/server not running");
-      print("e: $e");
-    }
-    return;
-  }
-
-  static Future<void> refreshTokens() async {
-    if (LocationUpdaterState.lastTokenRefresh != null) {
-      bool needsRefresh =
-          DateTime.now().difference(LocationUpdaterState.lastTokenRefresh!) >
-              Duration(minutes: 25);
-
-      if (needsRefresh) {
-        await getTokens();
-      } else {}
-    } else {}
   }
 
   static void setLocationLogic() {

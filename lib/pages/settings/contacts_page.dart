@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:http/http.dart' as http;
@@ -9,6 +8,8 @@ import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/pages/settings/preferred_viewer.dart';
 import 'package:safe_return/storage.dart/stored_settings.dart';
 import 'package:safe_return/utils/persons.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 class ContactsPage extends StatefulWidget {
   const ContactsPage({super.key});
@@ -21,89 +22,126 @@ class ContactsPageState extends State<ContactsPage> {
   bool isEditing = false;
   bool _contactsLoading = false;
   Set<Person> selectedEditableItems = {};
+  Duration snackbarDuration = Duration(milliseconds: 0);
+  int singleBarMs = 2000;
+
+  void addToDuration(int n) {
+    snackbarDuration = Duration(milliseconds: singleBarMs * n);
+  }
+
+  void removeToDuration() {
+    snackbarDuration =
+        Duration(milliseconds: snackbarDuration.inMilliseconds - singleBarMs);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          //TODO center add icon with title and back button
-          //? modify back button
           actions: [
-            Person.persons.isNotEmpty
-                ? Padding(
-                    padding: EdgeInsets.only(right: 25),
-                    child: SizedBox(
-                      height: 48,
-                      width: 48,
-                      child: Center(
-                          child: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            isEditing = !isEditing;
-                            selectedEditableItems = {};
-                          });
-                        },
-                        isSelected: isEditing,
-                        icon: Icon(Icons.edit_outlined),
-                        selectedIcon: Icon(Icons.check_circle_outline_rounded),
-                      )
-                          // : IconButton(
-                          //     tooltip:
-                          //         "How on earth do you not know what a + button does \n[add_emergency_contact]",
-                          //     onPressed: () => _selectContacts(),
-                          //     icon: Icon(
-                          //       Icons.add,
-                          //       size: 28,
-                          //     ),
-                          //   ),
-                          ),
-                    ),
-                  )
-                : SizedBox.shrink()
+            Padding(
+              padding: EdgeInsets.only(right: 25, top: 3),
+              child: SizedBox(
+                  height: 48,
+                  width: 48,
+                  child: Center(
+                      child: Person.persons.isNotEmpty
+                          ? IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  isEditing = !isEditing;
+                                  selectedEditableItems = {};
+                                });
+                              },
+                              isSelected: isEditing,
+                              icon: Icon(Icons.edit_outlined),
+                              selectedIcon:
+                                  Icon(Icons.check_circle_outline_rounded),
+                            )
+                          : _contactsLoading
+                              ? CircularProgressIndicator.adaptive()
+                              : IconButton(
+                                  tooltip:
+                                      "How on earth do you not know what a + button does \n[add_emergency_contact]",
+                                  onPressed: () => _selectContacts(),
+                                  icon: Icon(
+                                    Icons.add,
+                                    size: 28,
+                                  ),
+                                ))),
+            ),
           ],
           title: Text("Emergency contacts"),
         ),
-        bottomNavigationBar: Container(
-          width: double.infinity,
+        bottomNavigationBar: SizedBox(
           height: 90,
-          decoration: BoxDecoration(
+          child: Container(
+            width: double.infinity,
+            height: 90,
             color: Palette.backgroundColor,
-            boxShadow: [
-              BoxShadow(
-                color: Palette.backgroundColor,
-                offset: Offset(0, -1),
-                blurRadius: 15,
-                spreadRadius: 25,
-              )
-            ],
+            // decoration: BoxDecoration(
+            //   color: Palette.backgroundColor,
+            //   boxShadow: [
+            //     BoxShadow(
+            //       color: const Color.fromARGB(255, 195, 11, 228),
+            //       offset: Offset(0, -1),
+            //       blurRadius: 15,
+            //       spreadRadius: 25,
+            //     )
+            //   ],
+            // ),
+            child: isEditing
+                ? Row(
+                    spacing: 160,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      IconButton(
+                        iconSize: 30,
+                        icon: Icon(
+                          Icons.delete_outline,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            Person.persons.removeWhere((person) =>
+                                selectedEditableItems.contains(person));
+                          });
+                          addToDuration(selectedEditableItems.length);
+                          for (var i in selectedEditableItems) {
+                            removeToDuration();
+
+                            showTopSnackBar(
+                                displayDuration: snackbarDuration,
+                                dismissType: DismissType.onSwipe,
+                                Overlay.of(context),
+                                CustomSnackBar.error(
+                                    icon: Icon(
+                                      Icons.cancel_outlined,
+                                      color: Color(0x15000000),
+                                      size: 120,
+                                    ),
+                                    message: "Removed: ${i.name}, ${i.phone}"));
+                          }
+                          selectedEditableItems.clear();
+                          StoredSettings.save(personList: Person.persons);
+                          if (Person.persons.isEmpty) {
+                            setState(() {
+                              isEditing = false;
+                            });
+                          }
+                        },
+                      ),
+                      IconButton(
+                          iconSize: 30,
+                          onPressed: () => _selectContacts(),
+                          icon: _contactsLoading
+                              ? CircularProgressIndicator.adaptive()
+                              : Icon(Icons.add)),
+                    ],
+                  )
+                : null,
           ),
-          child: isEditing
-              ? Row(
-                  spacing: 160,
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.delete_outline),
-                      onPressed: () {
-                        setState(() {
-                          Person.persons.removeWhere((person) =>
-                              selectedEditableItems.contains(person));
-                        });
-                        StoredSettings.save(personList: Person.persons);
-                      },
-                    ),
-                    IconButton(
-                        onPressed: () => _selectContacts(),
-                        icon: _contactsLoading
-                            ? CircularProgressIndicator.adaptive()
-                            : Icon(Icons.add)),
-                  ],
-                )
-              : null,
         ),
-        //TODO bottomNavigationBar: BottomAppBar(), not sure if to keep this anymore
-        //TODO add an edit button or something so the user has another way to delete the contacts since swiping is too unintuitive
         body: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -455,20 +493,27 @@ class ContactsPageState extends State<ContactsPage> {
   void handleAddContacts(Contact contact, Set<Phone>? selectedPhones,
       {bool? addAll}) {
     if (addAll != null) {
-      for (Phone phone
-          in (addAll ? contact.phones : selectedPhones ?? contact.phones)) {
+      var phoneList =
+          addAll ? contact.phones : selectedPhones ?? contact.phones;
+
+      addToDuration(phoneList.length);
+
+      for (Phone phone in (phoneList)) {
+        removeToDuration();
+
         if (Person.persons.any((person) => person.phone == phone.number) &&
             context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              duration: Duration(seconds: 2),
-              content: Text(
-                "The phone number ${phone.number} has already been added for ${contact.displayName}",
-                softWrap: true,
-              ),
-              showCloseIcon: true,
-            ),
-          );
+          // ScaffoldMessenger.of(context).showSnackBar(
+          //   SnackBar(
+          //     duration: Duration(seconds: 3),
+          //     content: Text(
+          //       "The phone number ${phone.number} has already been added for ${contact.displayName}",
+          //       softWrap: true,
+          //     ),
+          //     showCloseIcon: true,
+          //   ),
+          // );
+          duplicateContact(phone, contact);
         } else {
           setState(
             () {
@@ -480,14 +525,14 @@ class ContactsPageState extends State<ContactsPage> {
               sendPersonsList;
             },
           );
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              duration: Duration(seconds: 2),
-              content: Text(
-                "Added: ${contact.displayName}, ${phone.number}",
-                softWrap: true,
-              ),
-              showCloseIcon: true,
+          showTopSnackBar(
+            displayDuration: snackbarDuration,
+            dismissType: DismissType.onSwipe,
+            Overlay.of(context),
+            CustomSnackBar.info(
+              icon: Icon(Icons.info_outline_rounded,
+                  color: Color(0x15000000), size: 120),
+              message: "Added: ${contact.displayName}, ${phone.number}",
             ),
           );
         }
@@ -519,5 +564,17 @@ class ContactsPageState extends State<ContactsPage> {
     } catch (e) {
       print("Could not connect to server/server not running");
     }
+  }
+
+  void duplicateContact(Phone phone, Contact contact) {
+    showTopSnackBar(
+      displayDuration: snackbarDuration,
+      dismissType: DismissType.onSwipe,
+      Overlay.of(context),
+      CustomSnackBar.error(
+        message:
+            "The phone number ${phone.number} has already been added for ${contact.displayName}",
+      ),
+    );
   }
 }

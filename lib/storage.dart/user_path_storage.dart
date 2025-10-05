@@ -1,12 +1,11 @@
 import 'dart:convert';
 
 import 'package:latlong2/latlong.dart';
-import 'package:safe_return/pages/main_pages/map_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserPathStorage {
   // Load
-  static Future<void> loadLocationData() async {
+  static Future<List<LatLng>> loadLocationData() async {
     // print("just loaded: $userPath");
 
     final asyncPrefs = SharedPreferencesAsync();
@@ -16,10 +15,11 @@ class UserPathStorage {
     if (jsonString.isNotEmpty) {
       List<dynamic> locationMaps = jsonDecode(jsonString);
 
-      userPathNotifier.value = locationMaps
+      return locationMaps
           .map((map) => LatLng(map['latitude'], map['longitude']))
           .toList();
     }
+    return [];
     // print("final result: ${userPathNotifier.value}");
   }
 
