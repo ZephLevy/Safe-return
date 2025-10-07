@@ -22,6 +22,7 @@ import 'package:safe_return/logic/location_logic/location_updater.dart';
 import 'package:safe_return/utils/noti_service.dart';
 import 'package:safe_return/utils/sos_manager.dart';
 import 'package:safe_return/utils/time_manager.dart';
+import 'package:flutter_inner_shadow/flutter_inner_shadow.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -159,7 +160,7 @@ class TimerAndClockState extends State<TimerAndClock>
 
   // DateTime date = DateTime.now();
   static int codeAttempts = 3;
-  bool waitingServerResponse = false;
+  static bool waitingServerResponse = false;
   final CountDownController timerController = CountDownController();
   final GlobalKey mainContainerKey = GlobalKey();
   final GlobalKey bHBkey = GlobalKey();
@@ -171,24 +172,7 @@ class TimerAndClockState extends State<TimerAndClock>
   double bHBHeight = 52.75;
   double setButtonHeight = 80;
 
-  List<Color> primaryColors = const [
-    Color(0xFF80a6a9),
-    Color(0xFFa4d2d5),
-    Colors.amberAccent,
-    Color(0xFFa4d2d5),
-    Color(0xFF80a6a9),
-  ];
-  List<Color> secondaryColors = const [
-    Colors.amberAccent,
-    // Color(0xFFa4d2d5),
-    Color(0xFF80a6a9),
-    Color(0xFF80a6a9),
-    Color(0xFF80a6a9),
-    // Color(0xFFa4d2d5),
-    Colors.amberAccent,
-  ];
-
-  bool isChanged = false;
+  static bool isOnline = false;
 
   Widget bgBox() {
     if (firstLoad && !showTimer) {
@@ -325,12 +309,13 @@ class TimerAndClockState extends State<TimerAndClock>
     return FutureBuilder<bool>(
         future: Connection.hasInternet(),
         builder: (context, snapshot) {
-          bool isOnline = snapshot.data ?? false;
+          isOnline = snapshot.data ?? false;
 
           return Column(
             children: [
               SizedBox(
                 height: setButtonHeight,
+                width: double.infinity,
                 child: GestureDetector(
                   onTap: () async {
                     if (isOnline) {
@@ -378,29 +363,61 @@ class TimerAndClockState extends State<TimerAndClock>
                       });
                     }
                   },
-                  child:
-                      // Container(
-                      //   decoration: BoxDecoration(
-                      //     borderRadius: BorderRadius.circular(20),
-                      //     border: Border.all(
-                      //       color: Palette.blue1,
-                      //       width: 1.5,
-                      //     ),
-                      //     color: isOnline
-                      //         ? (startSelected ? Palette.blue3 : Palette.blue4)
-                      //         : Colors.grey[400],
-                      //   ),
-                      //   child: Center(
-                      //     child: setButtonChild(isOnline),
-                      //   ),
-                      // ),
-                      AnimateGradient(
-                    primaryColors: primaryColors,
-                    secondaryColors: secondaryColors,
-                    primaryBegin: Alignment.bottomCenter,
-                    secondaryEnd: Alignment.topCenter,
-                    animateAlignments: true,
-                    duration: Duration(milliseconds: 2000),
+                  child: Container(
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                            offset: Offset(-1, 1),
+                            blurRadius: 5,
+                            spreadRadius: 0,
+                            color: const Color.fromARGB(51, 0, 0, 0)),
+                        BoxShadow(
+                            offset: Offset(1, -1),
+                            blurRadius: 5,
+                            spreadRadius: 0,
+                            color: const Color.fromARGB(51, 0, 0, 0)),
+                        BoxShadow(
+                            offset: Offset(0, 4),
+                            blurRadius: 7,
+                            spreadRadius: 2,
+                            color: const Color.fromARGB(51, 0, 0, 0)),
+                      ],
+                    ),
+                    child: InnerShadow(
+                      shadows: [
+                        Shadow(
+                          color: Color.fromARGB(30, 0, 0, 0),
+                          offset: Offset.zero,
+                          blurRadius: 10,
+                        ),
+                      ],
+                      child: AnimatedSwitcher(
+                        duration: Duration(milliseconds: 150),
+                        child: showNormalColors()
+                            ? AnimatedSetButton(
+                                key: ValueKey('normal'),
+                              )
+                            : AnimatedSetButton(
+                                key: ValueKey('cancel'),
+                                primaryColors: [
+                                  Color(0xFFA4D2D5),
+                                  Color(0xFFD58486),
+                                  Color(0xFFD58486),
+                                  Color(0xFFD58486),
+                                  Color(0xFFA4D2D5),
+                                ],
+                                secondaryColors: [
+                                  Color(0xFFD59FA8),
+                                  Color(0xFFA4D2D5),
+                                  Color(0xFFA4D2D5),
+                                  Color(0xFFA4D2D5),
+                                  Color(0xFFD59FA8),
+                                ],
+                              ),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -414,7 +431,16 @@ class TimerAndClockState extends State<TimerAndClock>
         });
   }
 
-  Widget setButtonChild(bool isOnline) {
+  bool showNormalColors() {
+    if (TimerAndClockState.waitingServerResponse ||
+        TimerAndClockState.showTimer) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  static Widget setButtonChild(bool isOnline) {
     if (!isOnline) {
       return CircularProgressIndicator.adaptive();
     }
@@ -423,9 +449,9 @@ class TimerAndClockState extends State<TimerAndClock>
     }
     if (startSelected) {
       return Text(
-        'Cancel',
+        "Cancel",
         style: TextStyle(
-          fontSize: 18,
+          fontSize: 20.5,
           fontWeight: FontWeight.w500,
         ),
       );
@@ -550,7 +576,8 @@ class TimerAndClockState extends State<TimerAndClock>
 
     await _HomeTimerState.setTimerLogic();
     LocationUpdaterState.setLocationLogic();
-    await _sendTime(TimeManager.selectedTime, onServerSuccess: () async {
+    await _sendTime(TimeManager.selectedTime, onServerFail: () async {
+      //.3405u3453453wrtsaft
       if (await Location.checkLocationPermissions()) {
         LocationUpdaterState.startLocationService();
       }
@@ -595,7 +622,7 @@ class TimerAndClockState extends State<TimerAndClock>
           },
         );
       }
-    }, onServerFail: () {
+    }, onServerSuccess: () {
       cancelEvent();
       return showDialog(
           context: context,
@@ -620,7 +647,9 @@ class TimerAndClockState extends State<TimerAndClock>
                       Navigator.of(context).pop();
                       cancelEvent();
                     },
-                    child: Text("Cancel")),
+                    child: Text(
+                      "Cancel",
+                    )),
                 TextButton(
                   onPressed: () async {
                     Navigator.of(context).pop();
@@ -668,6 +697,62 @@ class TimerAndClockState extends State<TimerAndClock>
     TimeManager.selectedTime = DateTime.now().add(Duration(seconds: 1));
 
     TimerPrefs.saveTimer();
+  }
+}
+
+class AnimatedSetButton extends StatefulWidget {
+  final List<Color> primaryColors;
+  final List<Color> secondaryColors;
+  static const List<Color> defaultPrimaryColors = [
+    // Colors.red,
+    // Colors.green
+    Color(0xFF80a6a9),
+    Color(0xFFa4d2d5),
+    Color(0xFFa4d2d5),
+    Color(0xFFa4d2d5),
+    Color(0xFF80a6a9),
+  ];
+  static const List<Color> defaultSecondaryColors = [
+    Color(0xFFa4d2d5),
+    Color(0xFF80a6a9),
+    Color(0xFF80a6a9),
+    Color(0xFF80a6a9),
+    Color(0xFFa4d2d5),
+
+    // Colors.blue,
+    // Color.fromARGB(255, 255, 219, 59)
+  ];
+  const AnimatedSetButton(
+      {this.primaryColors = defaultPrimaryColors,
+      this.secondaryColors = defaultSecondaryColors,
+      super.key});
+
+  @override
+  State<AnimatedSetButton> createState() => _AnimatedSetButtonState();
+}
+
+class _AnimatedSetButtonState extends State<AnimatedSetButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController animationController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 5000),
+  )..repeat(reverse: true);
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimateGradient(
+      controller: animationController,
+      primaryColors: widget.primaryColors,
+      secondaryColors: widget.secondaryColors,
+      primaryBegin: Alignment.bottomRight,
+      primaryEnd: Alignment.bottomLeft,
+      secondaryBegin: Alignment.topLeft,
+      secondaryEnd: Alignment.topRight,
+      animateAlignments: true,
+      child: Center(
+        child: TimerAndClockState.setButtonChild(TimerAndClockState.isOnline),
+      ),
+    );
   }
 }
 

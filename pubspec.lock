@@ -206,6 +206,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.9+2"
+  flutter_inner_shadow:
+    dependency: "direct main"
+    description:
+      name: flutter_inner_shadow
+      sha256: b50693ec5214700340e20b920835af4504b788673da2217a794eea95309a4de0
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
   flutter_launcher_icons:
     dependency: "direct main"
     description:

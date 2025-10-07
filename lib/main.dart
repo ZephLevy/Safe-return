@@ -36,7 +36,6 @@ Future<void> main() async {
   await StoredSettings.loadAll();
   await TimerPrefs.loadTimer();
   await PreferredViewerState.loadViewType();
-
   runApp(MyApp());
 }
 
