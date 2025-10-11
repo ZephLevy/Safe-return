@@ -11,11 +11,11 @@ import 'package:background_locator_2/settings/locator_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
-import 'package:safe_return/logic/location_logic/location.dart';
-import 'package:safe_return/logic/tokens.dart';
+import 'package:safe_return/logic/location_logic/get_location.dart';
+import 'package:safe_return/logic/timer_logic.dart';
+import 'package:safe_return/logic/tokens_logic.dart';
 import 'package:safe_return/pages/main_pages/map_page.dart';
 import 'package:safe_return/storage.dart/user_path_storage.dart';
-import 'package:safe_return/utils/time_manager.dart';
 
 @pragma('vm:entry-point')
 class LocationCallbackHandler {
@@ -48,7 +48,7 @@ class LocationServiceRepository {
 
   static Future<void> callbackLogger(LocationDto locationDto) async {
     userPathNotifier.value = await UserPathStorage.loadLocationData();
-    await Tokens.triggerRefreshTokens();
+    await TokensLogic.triggerRefreshTokens();
 
     final SendPort? send = IsolateNameServer.lookupPortByName(isolateName);
     send?.send({"type": "location", "contents": locationDto.toJson()});
@@ -121,7 +121,7 @@ class LocationUpdaterState extends State<LocationUpdater> {
           child: InkWell(
             child: Icon(Icons.abc),
             onTap: () async {
-              if (await Location.checkLocationPermissions()) {
+              if (await GetLocation.checkLocationPermissions()) {
                 LocationUpdaterState.startLocationService();
               }
             },
@@ -169,7 +169,7 @@ class LocationUpdaterState extends State<LocationUpdater> {
   }
 
   static void setLocationLogic() {
-    lastTokenRefresh = TimeManager.timeOfTap;
+    lastTokenRefresh = TimerLogic.timeOfTap;
   }
 
   static void startLocationService() {

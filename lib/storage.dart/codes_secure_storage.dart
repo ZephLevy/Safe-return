@@ -1,5 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:safe_return/utils/sos_manager.dart';
+import 'package:safe_return/logic/sos_logic.dart';
 
 class SecureStorage {
   //initialize
@@ -18,9 +18,9 @@ class SecureStorage {
   }
 
   static Future<void> readCodes() async {
-    SosManager.secretCode = await storage.read(key: 'real');
-    SosManager.fakeCode = await storage.read(key: 'decoy');
-    print("read: ${SosManager.secretCode}");
-    print("read: ${SosManager.fakeCode}");
+    SosLogic.secretCode = await storage.read(key: 'real');
+    SosLogic.fakeCode = await storage.read(key: 'decoy');
+    print("read: ${SosLogic.secretCode}");
+    print("read: ${SosLogic.fakeCode}");
   }
 }

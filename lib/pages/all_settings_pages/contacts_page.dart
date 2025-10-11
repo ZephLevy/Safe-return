@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:http/http.dart' as http;
 import 'package:safe_return/Visuals/palette.dart';
-import 'package:safe_return/pages/settings/preferred_viewer.dart';
+import 'package:safe_return/pages/all_settings_pages/preferred_viewer_page.dart';
 import 'package:safe_return/storage.dart/stored_settings.dart';
-import 'package:safe_return/utils/persons.dart';
+import 'package:safe_return/logic/persons_logic.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
@@ -21,7 +21,7 @@ class ContactsPage extends StatefulWidget {
 class ContactsPageState extends State<ContactsPage> {
   bool isEditing = false;
   bool _contactsLoading = false;
-  Set<Person> selectedEditableItems = {};
+  Set<PersonLogic> selectedEditableItems = {};
   Duration snackbarDuration = Duration(milliseconds: 0);
   int singleBarMs = 2000;
 
@@ -45,7 +45,7 @@ class ContactsPageState extends State<ContactsPage> {
                   height: 48,
                   width: 48,
                   child: Center(
-                      child: Person.persons.isNotEmpty
+                      child: PersonLogic.persons.isNotEmpty
                           ? IconButton(
                               onPressed: () {
                                 setState(() {
@@ -103,7 +103,7 @@ class ContactsPageState extends State<ContactsPage> {
                         ),
                         onPressed: () {
                           setState(() {
-                            Person.persons.removeWhere((person) =>
+                            PersonLogic.persons.removeWhere((person) =>
                                 selectedEditableItems.contains(person));
                           });
                           addToDuration(selectedEditableItems.length);
@@ -123,8 +123,8 @@ class ContactsPageState extends State<ContactsPage> {
                                     message: "Removed: ${i.name}, ${i.phone}"));
                           }
                           selectedEditableItems.clear();
-                          StoredSettings.save(personList: Person.persons);
-                          if (Person.persons.isEmpty) {
+                          StoredSettings.save(personList: PersonLogic.persons);
+                          if (PersonLogic.persons.isEmpty) {
                             setState(() {
                               isEditing = false;
                             });
@@ -152,7 +152,9 @@ class ContactsPageState extends State<ContactsPage> {
                   opacity: animation,
                   child: child,
                 ),
-                child: Person.persons.isEmpty ? contactListInfo() : listView(),
+                child: PersonLogic.persons.isEmpty
+                    ? contactListInfo()
+                    : listView(),
               ),
             ),
             // deleteInfo()
@@ -187,10 +189,10 @@ class ContactsPageState extends State<ContactsPage> {
 
   Widget listView() {
     return ListView.separated(
-      physics: Person.persons.isEmpty
+      physics: PersonLogic.persons.isEmpty
           ? NeverScrollableScrollPhysics()
           : AlwaysScrollableScrollPhysics(),
-      itemCount: Person.persons.length,
+      itemCount: PersonLogic.persons.length,
       separatorBuilder: (BuildContext context, int index) => Divider(
         height: 0,
       ),
@@ -201,12 +203,12 @@ class ContactsPageState extends State<ContactsPage> {
   }
 
   Widget editingTile(index) {
-    Person personAtIndex = Person.persons[index];
+    PersonLogic personAtIndex = PersonLogic.persons[index];
     return Padding(
       padding: const EdgeInsets.only(top: 5),
       child: ListTile(
         title: Text(
-          Person.persons[index].name,
+          PersonLogic.persons[index].name,
           maxLines: 1,
           overflow: TextOverflow.fade,
           softWrap: false,
@@ -216,7 +218,7 @@ class ContactsPageState extends State<ContactsPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Text(Person.persons[index].phone),
+              Text(PersonLogic.persons[index].phone),
               Checkbox(
                 value: (selectedEditableItems.contains(personAtIndex)),
                 onChanged: (value) {
@@ -240,7 +242,7 @@ class ContactsPageState extends State<ContactsPage> {
 
   Widget dismissibleTile(index) {
     return Dismissible(
-      key: Key(Person.persons[index].phone),
+      key: Key(PersonLogic.persons[index].phone),
       background: Container(
         color: Colors.red,
         alignment: Alignment.centerRight,
@@ -258,15 +260,15 @@ class ContactsPageState extends State<ContactsPage> {
       direction: DismissDirection.endToStart,
       onDismissed: (direction) {
         setState(() {
-          Person.persons.removeAt(index);
-          StoredSettings.save(personList: Person.persons);
+          PersonLogic.persons.removeAt(index);
+          StoredSettings.save(personList: PersonLogic.persons);
         });
       },
       child: Padding(
         padding: const EdgeInsets.only(top: 5),
         child: ListTile(
-          title: Text(Person.persons[index].name),
-          trailing: Text(Person.persons[index].phone),
+          title: Text(PersonLogic.persons[index].name),
+          trailing: Text(PersonLogic.persons[index].phone),
         ),
       ),
     );
@@ -281,7 +283,7 @@ class ContactsPageState extends State<ContactsPage> {
           opacity: animation,
           child: child,
         ),
-        child: Person.persons.isNotEmpty
+        child: PersonLogic.persons.isNotEmpty
             ? Container(
                 key: ValueKey(
                     'visible'), // Required for AnimatedSwitcher to work properly
@@ -501,7 +503,7 @@ class ContactsPageState extends State<ContactsPage> {
       for (Phone phone in (phoneList)) {
         removeToDuration();
 
-        if (Person.persons.any((person) => person.phone == phone.number) &&
+        if (PersonLogic.persons.any((person) => person.phone == phone.number) &&
             context.mounted) {
           // ScaffoldMessenger.of(context).showSnackBar(
           //   SnackBar(
@@ -517,11 +519,12 @@ class ContactsPageState extends State<ContactsPage> {
         } else {
           setState(
             () {
-              Person.persons.add(Person(contact.displayName, phone.number));
-              Person.persons.sort(
+              PersonLogic.persons
+                  .add(PersonLogic(contact.displayName, phone.number));
+              PersonLogic.persons.sort(
                 (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
               );
-              StoredSettings.save(personList: Person.persons);
+              StoredSettings.save(personList: PersonLogic.persons);
               sendPersonsList;
             },
           );
@@ -541,7 +544,7 @@ class ContactsPageState extends State<ContactsPage> {
   }
 
   static Future<void> sendPersonsList() async {
-    print(Person.encodedPersonString(Person.persons));
+    print(PersonLogic.encodedPersonString(PersonLogic.persons));
 
     const ip = String.fromEnvironment("IP");
 
@@ -551,8 +554,9 @@ class ContactsPageState extends State<ContactsPage> {
       }
 
       Uri url = Uri.parse('http://$ip/'); //TODO fix to correct endpoint
-      final serverResponse = await http.post(url,
-          body: {'personsList': Person.encodedPersonString(Person.persons)});
+      final serverResponse = await http.post(url, body: {
+        'personsList': PersonLogic.encodedPersonString(PersonLogic.persons)
+      });
 
       if (serverResponse.statusCode == 200) {
         print(

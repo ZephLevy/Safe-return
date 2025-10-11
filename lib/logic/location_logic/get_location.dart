@@ -1,7 +1,7 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
-class Location {
+class GetLocation {
   static LatLng? homePosition;
 
   static Future<Position> determinePosition() async {

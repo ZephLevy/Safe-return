@@ -4,9 +4,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/custom_widgets/custom_container_button.dart';
-import 'package:safe_return/logic/location_logic/location.dart';
+import 'package:safe_return/logic/location_logic/get_location.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:top_snackbar_flutter/tap_bounce_container.dart';
 
 class HomeSelector extends StatefulWidget {
   const HomeSelector({super.key});
@@ -99,7 +98,7 @@ class _HomeSelectorState extends State<HomeSelector> {
             padding: const EdgeInsets.only(bottom: 65),
             child: SizedBox(
               height: 50,
-              child: CustomInkwell(
+              child: InkwellContainer(
                 borderRadius: BorderRadius.circular(25),
                 color: Colors.lightBlue,
                 onTap: () {
@@ -129,7 +128,7 @@ class _HomeSelectorState extends State<HomeSelector> {
 
   Widget useLocation() {
     return FutureBuilder(
-        future: Location.determinePosition(),
+        future: GetLocation.determinePosition(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator.adaptive());
@@ -212,7 +211,7 @@ class _HomeSelectorState extends State<HomeSelector> {
                         Expanded(
                           child: SizedBox(
                             height: 50,
-                            child: CustomInkwell(
+                            child: InkwellContainer(
                               borderRadius: BorderRadius.circular(25),
                               color: const Color.fromARGB(255, 107, 192, 232),
                               onTap: () {
@@ -230,7 +229,7 @@ class _HomeSelectorState extends State<HomeSelector> {
                         Expanded(
                           child: SizedBox(
                             height: 50,
-                            child: CustomInkwell(
+                            child: InkwellContainer(
                               borderRadius: BorderRadius.circular(25),
                               color: Colors.lightBlue,
                               onTap: () {
@@ -291,7 +290,7 @@ class _HomeSelectorState extends State<HomeSelector> {
               ),
               TextButton(
                   onPressed: () async {
-                    await Location.checkLocationPermissions();
+                    await GetLocation.checkLocationPermissions();
                   },
                   child: Text(
                     "Request Permission",
@@ -315,34 +314,33 @@ If that doesn't work, change the location permission to "Always" in settings''',
             ],
           ),
         ),
-        TapBounceContainer(
-            onTap: () async {
-              setState(() {
-                reConnecting = true;
-              });
+        Padding(
+          padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
+          child: SizedBox(
+            height: 40,
+            child: ShrinkTapContainer(
+              onTap: () async {
+                setState(() {
+                  reConnecting = true;
+                });
 
-              try {
-                await Location.determinePosition();
-              } catch (_) {}
-              await Future.delayed(Duration(milliseconds: 500));
+                try {
+                  await GetLocation.determinePosition();
+                } catch (_) {}
+                await Future.delayed(Duration(milliseconds: 500));
 
-              setState(() {
-                reConnecting = false;
-              });
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
-              child: SizedBox(
-                height: 40,
-                child: TapContainerBuild(
-                  color: Palette.blue3,
-                  child: Text(
-                    "Try Again",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
+                setState(() {
+                  reConnecting = false;
+                });
+              },
+              color: Palette.blue3,
+              child: Text(
+                "Try Again",
+                style: TextStyle(fontSize: 16),
               ),
-            ))
+            ),
+          ),
+        )
       ],
     ));
   }
@@ -379,7 +377,7 @@ If that doesn't work, change the location permission to "Always" in settings''',
             padding: const EdgeInsets.only(bottom: 65),
             child: SizedBox(
               height: 50,
-              child: CustomInkwell(
+              child: InkwellContainer(
                 borderRadius: BorderRadius.circular(25),
                 color: Colors.lightBlue,
                 onTap: () {
@@ -399,7 +397,7 @@ If that doesn't work, change the location permission to "Always" in settings''',
 
   Future<void> _setHomeLocation(LatLng currentPosition) async {
     final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
-    Location.homePosition = currentPosition;
+    GetLocation.homePosition = currentPosition;
 
     await asyncPrefs.setDouble("latitude", currentPosition.latitude);
     await asyncPrefs.setDouble("longitude", currentPosition.longitude);

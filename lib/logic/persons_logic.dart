@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-class Person {
-  static List<Person> persons = [];
+class PersonLogic {
+  static List<PersonLogic> persons = [];
   static String encodedPersonString(personList) {
     return encodePerson(personList);
   }
@@ -14,9 +14,9 @@ class Person {
     return 'Person(name: $name, phone: $phone)';
   }
 
-  Person(this.name, this.phone);
+  PersonLogic(this.name, this.phone);
 
-  Person.fromJson(Map<String, dynamic> json)
+  PersonLogic.fromJson(Map<String, dynamic> json)
       : name = json['name'],
         phone = json['phone'];
 
@@ -25,7 +25,7 @@ class Person {
         'phone': phone,
       };
 
-  static encodePerson(List<Person> targetList) {
+  static encodePerson(List<PersonLogic> targetList) {
     List<Map<String, dynamic>> mappedList = targetList
         .map((person) => person.toJson())
         .toList(); //encodes List of Person objects to List of maps
@@ -33,13 +33,13 @@ class Person {
   }
 
   static void decodePerson(
-      {required String toDecode, required List<Person> targetList}) {
+      {required String toDecode, required List<PersonLogic> targetList}) {
     List<dynamic> decodedList =
         jsonDecode(toDecode); //decodes the string into list of maps
 
     targetList.clear();
     targetList.addAll(decodedList
-        .map((item) => Person.fromJson(item))
+        .map((item) => PersonLogic.fromJson(item))
         .toList()); //decodes list of maps into List of Person objects
   }
 }

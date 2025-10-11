@@ -1,6 +1,5 @@
 import 'package:safe_return/logic/timer_logic.dart';
 import 'package:safe_return/pages/main_pages/home_page.dart';
-import 'package:safe_return/utils/time_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TimerPrefs {
@@ -10,7 +9,7 @@ class TimerPrefs {
 
       String stringTimeOfTap = await asyncPrefs.getString('timeOfTap') ?? "";
 
-      TimeManager.timeOfTap = DateTime.tryParse(stringTimeOfTap);
+      TimerLogic.timeOfTap = DateTime.tryParse(stringTimeOfTap);
 
       TimerAndClockState.showTimer =
           await asyncPrefs.getBool('showTimer') ?? false;
@@ -23,7 +22,7 @@ class TimerPrefs {
       if (TimerAndClockState.showTimer) {
         String? stringSelectedTime = await asyncPrefs.getString('selectedTime');
         if (stringSelectedTime != null) {
-          TimeManager.selectedTime = DateTime.parse(stringSelectedTime);
+          TimerLogic.selectedTime = DateTime.parse(stringSelectedTime);
         }
       }
     }
@@ -32,10 +31,10 @@ class TimerPrefs {
   static Future<void> saveTimer() async {
     final asyncPrefs = SharedPreferencesAsync();
     await asyncPrefs.setString(
-        'selectedTime', TimeManager.selectedTime.toIso8601String());
+        'selectedTime', TimerLogic.selectedTime.toIso8601String());
 
     await asyncPrefs.setString(
-        'timeOfTap', TimeManager.timeOfTap?.toIso8601String() ?? "");
+        'timeOfTap', TimerLogic.timeOfTap?.toIso8601String() ?? "");
 
     await asyncPrefs.setBool('showTimer', TimerAndClockState.showTimer);
     await asyncPrefs.setBool('startSelected', TimerAndClockState.startSelected);

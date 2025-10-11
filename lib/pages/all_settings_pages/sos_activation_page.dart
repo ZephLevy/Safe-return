@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/logic/screen_logic.dart';
 import 'package:safe_return/storage.dart/stored_settings.dart';
-import 'package:safe_return/utils/sos_manager.dart';
+import 'package:safe_return/logic/sos_logic.dart';
 
-class SosActivation extends StatefulWidget {
-  const SosActivation({super.key});
+class SosActivationPage extends StatefulWidget {
+  const SosActivationPage({super.key});
 
   @override
-  State<SosActivation> createState() => SosActivationState();
+  State<SosActivationPage> createState() => SosActivationPageState();
 }
 
-class SosActivationState extends State<SosActivation> {
+class SosActivationPageState extends State<SosActivationPage> {
   final dditems = [
     'Single Click',
     'Double Click',
@@ -51,10 +51,10 @@ class SosActivationState extends State<SosActivation> {
                       onTap: () => setState(
                         () {
                           StoredSettings.selectedIndex = index;
-                          SosManager.clickN = StoredSettings.selectedIndex + 1;
+                          SosLogic.clickN = StoredSettings.selectedIndex + 1;
                           StoredSettings.save(
                               selectedIndex: StoredSettings.selectedIndex,
-                              clickN: SosManager.clickN);
+                              clickN: SosLogic.clickN);
                         },
                       ),
                     );

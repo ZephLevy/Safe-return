@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:pin_code_fields/pin_code_fields.dart';
-import 'package:safe_return/logic/tokens.dart';
+import 'package:safe_return/logic/tokens_logic.dart';
 import 'package:safe_return/main.dart';
 import 'package:safe_return/pages/log_sign_up/login_page.dart';
 import 'package:safe_return/storage.dart/stored_settings.dart';
@@ -316,9 +316,9 @@ class SignUpState extends State<SignUp> {
       StoredSettings.save(isLoggedIn: LoginPageState.isLoggedIn);
       print("successful verification code: ${response.statusCode}");
       print("body: ${response.body}");
-      Tokens.signUpTokens = response.body;
-      Tokens.accessToken = jsonDecode(response.body)['access_token'];
-      Tokens.refreshToken = jsonDecode(response.body)['refresh_token'];
+      TokensLogic.signUpTokens = response.body;
+      TokensLogic.accessToken = jsonDecode(response.body)['access_token'];
+      TokensLogic.refreshToken = jsonDecode(response.body)['refresh_token'];
       LoginPageState.userEmail = newEmail;
       newEmail = "";
 

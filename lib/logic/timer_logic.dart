@@ -1,33 +1,35 @@
-import 'package:safe_return/utils/sos_manager.dart';
-import 'package:safe_return/utils/time_manager.dart';
+import 'package:intl/intl.dart';
+import 'package:safe_return/logic/sos_logic.dart';
 
 class TimerLogic {
   static bool isTomorrow = false;
+  static DateTime selectedTime = DateTime.now();
+  static DateTime? timeOfTap;
 
   static bool validTime() {
-    DateTime? dateTomorrow = TimeManager.selectedTime.add(Duration(days: 1));
+    DateTime? dateTomorrow = selectedTime.add(Duration(days: 1));
 
     if (isTomorrow) {
-      TimeManager.selectedTime = DateTime(
+      selectedTime = DateTime(
           dateTomorrow.year,
           dateTomorrow.month,
           dateTomorrow.day,
-          TimeManager.selectedTime.hour,
-          TimeManager.selectedTime.minute,
-          TimeManager.selectedTime.second,
-          TimeManager.selectedTime.millisecond);
+          selectedTime.hour,
+          selectedTime.minute,
+          selectedTime.second,
+          selectedTime.millisecond);
     }
-    return TimeManager.selectedTime.isAfter(DateTime.now());
+    return selectedTime.isAfter(DateTime.now());
   }
 
   static bool notValidForStart() {
     return TimerLogic.codesNull() ||
         !TimerLogic.validTime() ||
-        TimerLogic.timeIsNow(TimeManager.selectedTime, DateTime.now());
+        TimerLogic.timeIsNow(selectedTime, DateTime.now());
   }
 
   static bool codesNull() {
-    return SosManager.fakeCode == null || SosManager.secretCode == null;
+    return SosLogic.fakeCode == null || SosLogic.secretCode == null;
   }
 
   static bool validForStart() => !codesNull() && validTime();
@@ -38,5 +40,29 @@ class TimerLogic {
         a.day == b.day &&
         a.hour == b.hour &&
         a.minute == b.minute;
+  }
+
+  static String shortSelectedTime() {
+    return TimerLogic.isTomorrow
+        ? "${DateFormat.Hm().format(selectedTime)}, Tomorrow"
+        : DateFormat.Hm().format(selectedTime);
+  }
+
+  static int? timeElapsed() {
+    if (timeOfTap != null) {
+      return DateTime.now().difference(timeOfTap!).inSeconds;
+    }
+    return null;
+  }
+
+  static int? totalTime() {
+    return totalTimeDuration()?.inSeconds;
+  }
+
+  static Duration? totalTimeDuration() {
+    if (timeOfTap != null) {
+      return selectedTime.difference(timeOfTap!);
+    }
+    return null;
   }
 }

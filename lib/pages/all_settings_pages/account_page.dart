@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:safe_return/Visuals/theme.dart';
 import 'package:safe_return/pages/log_sign_up/login_page.dart';
-import 'package:safe_return/pages/log_sign_up/sign_up.dart';
+import 'package:safe_return/pages/log_sign_up/sign_up_page.dart';
 import 'package:safe_return/storage.dart/stored_settings.dart';
 import 'package:safe_return/pages/main_pages/settings_page.dart';
 

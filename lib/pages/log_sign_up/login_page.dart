@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:safe_return/main.dart';
-import 'package:safe_return/pages/log_sign_up/sign_up.dart';
+import 'package:safe_return/pages/log_sign_up/sign_up_page.dart';
 import 'package:safe_return/storage.dart/stored_settings.dart';
 
 class LoginPage extends StatefulWidget {

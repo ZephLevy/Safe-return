@@ -7,9 +7,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/custom_widgets/custom_container_button.dart';
-import 'package:safe_return/logic/location_logic/location.dart';
-import 'package:safe_return/utils/connection.dart';
-import 'package:top_snackbar_flutter/tap_bounce_container.dart';
+import 'package:safe_return/logic/connection_logic.dart';
+import 'package:safe_return/logic/location_logic/get_location.dart';
 
 final ValueNotifier<List<LatLng>> userPathNotifier =
     ValueNotifier(MapsPageState.userPath);
@@ -48,9 +47,9 @@ class MapsPageState extends State<MapsPage> {
     return Scaffold(
         body: FutureBuilder(
       future: Future.wait([
-        Connection.hasInternet(),
-        Location.checkLocationPermissions(),
-        Location.determinePosition(),
+        ConnectionLogic.hasInternet(),
+        GetLocation.checkLocationPermissions(),
+        GetLocation.determinePosition(),
       ]),
       builder: (context, snapshot) {
         if (reConnecting) {
@@ -90,8 +89,8 @@ class MapsPageState extends State<MapsPage> {
                   reConnecting = true;
                 });
                 await Future.wait([
-                  Connection.hasInternet(),
-                  Location.determinePosition(),
+                  ConnectionLogic.hasInternet(),
+                  GetLocation.determinePosition(),
                   Future.delayed(Duration(seconds: 1))
                 ]);
 
@@ -140,7 +139,7 @@ class MapsPageState extends State<MapsPage> {
               ),
               TextButton(
                   onPressed: () async {
-                    await Location.checkLocationPermissions();
+                    await GetLocation.checkLocationPermissions();
                   },
                   child: Text(
                     "Request Permission",
@@ -164,34 +163,33 @@ If that doesn't work, change the location permission to "Always" in settings''',
             ],
           ),
         ),
-        TapBounceContainer(
-            onTap: () async {
-              setState(() {
-                reConnecting = true;
-              });
+        Padding(
+          padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
+          child: SizedBox(
+            height: 40,
+            child: ShrinkTapContainer(
+              onTap: () async {
+                setState(() {
+                  reConnecting = true;
+                });
 
-              try {
-                await Location.determinePosition();
-              } catch (_) {}
-              await Future.delayed(Duration(milliseconds: 500));
+                try {
+                  await GetLocation.determinePosition();
+                } catch (_) {}
+                await Future.delayed(Duration(milliseconds: 500));
 
-              setState(() {
-                reConnecting = false;
-              });
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
-              child: SizedBox(
-                height: 40,
-                child: TapContainerBuild(
-                  color: Palette.blue3,
-                  child: Text(
-                    "Try Again",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
+                setState(() {
+                  reConnecting = false;
+                });
+              },
+              color: Palette.blue3,
+              child: Text(
+                "Try Again",
+                style: TextStyle(fontSize: 16),
               ),
-            ))
+            ),
+          ),
+        )
       ],
     ));
   }
@@ -200,12 +198,12 @@ If that doesn't work, change the location permission to "Always" in settings''',
     LatLng currentPosition = LatLng(snapshot.latitude, snapshot.longitude);
     List<Marker> markers = [];
 
-    if (Location.homePosition != null) {
+    if (GetLocation.homePosition != null) {
       markers.add(
         Marker(
           width: 80.0,
           height: 80.0,
-          point: Location.homePosition!,
+          point: GetLocation.homePosition!,
           child: Icon(
             Icons.home,
             color: Colors.blue,

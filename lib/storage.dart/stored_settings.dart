@@ -1,12 +1,12 @@
 import 'dart:async';
+
 import 'package:safe_return/logic/location_logic/location_updater.dart';
+import 'package:safe_return/logic/persons_logic.dart';
+import 'package:safe_return/logic/sos_logic.dart';
 import 'package:safe_return/logic/timer_logic.dart';
 import 'package:safe_return/pages/log_sign_up/login_page.dart';
+import 'package:safe_return/pages/log_sign_up/sign_up_page.dart';
 import 'package:safe_return/pages/main_pages/home_page.dart';
-import 'package:safe_return/pages/log_sign_up/sign_up.dart';
-import 'package:safe_return/utils/sos_manager.dart';
-import 'package:safe_return/utils/persons.dart';
-import 'package:safe_return/utils/time_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class StoredSettings {
@@ -15,7 +15,7 @@ class StoredSettings {
   static bool biometricsValue = false;
 
   static Future<void> save({
-    List<Person>? personList,
+    List<PersonLogic>? personList,
     int? selectedIndex,
     int? clickN,
     bool? biometricsValue,
@@ -28,7 +28,7 @@ class StoredSettings {
   }) async {
     if (personList != null) {
       await asyncPrefs.setString(
-          'persons', Person.encodedPersonString(personList));
+          'persons', PersonLogic.encodedPersonString(personList));
     }
 
     if (selectedIndex != null) {
@@ -61,13 +61,13 @@ class StoredSettings {
     String encodedPersonString = await asyncPrefs.getString('persons') ?? "";
 
     if (encodedPersonString.isNotEmpty) {
-      Person.decodePerson(
-          toDecode: encodedPersonString, targetList: Person.persons);
+      PersonLogic.decodePerson(
+          toDecode: encodedPersonString, targetList: PersonLogic.persons);
     }
 
     selectedIndex = await asyncPrefs.getInt('selectedIndex') ?? 1;
 
-    SosManager.clickN = await asyncPrefs.getInt('clickN') ?? selectedIndex + 1;
+    SosLogic.clickN = await asyncPrefs.getInt('clickN') ?? selectedIndex + 1;
     biometricsValue = await asyncPrefs.getBool('biometrics') ?? false;
     LoginPageState.userEmail = await asyncPrefs.getString('userEmail') ?? "";
     LoginPageState.isLoggedIn = await asyncPrefs.getBool('isLoggedIn') ?? false;
@@ -79,11 +79,11 @@ class StoredSettings {
 
   static Future<void> logOut() async {
     await asyncPrefs.clear();
-    SosManager.fakeCode = null;
-    SosManager.secretCode = null;
-    Person.persons = [];
+    SosLogic.fakeCode = null;
+    SosLogic.secretCode = null;
+    PersonLogic.persons = [];
     selectedIndex = 1;
-    SosManager.clickN = selectedIndex + 1;
+    SosLogic.clickN = selectedIndex + 1;
     biometricsValue = false;
     LocationUpdaterState.powerSaving = false;
 
@@ -94,7 +94,7 @@ class StoredSettings {
 
     TimerAndClockState.showTimer = false;
     TimerLogic.isTomorrow = false;
-    TimeManager.selectedTime = DateTime.now();
-    TimeManager.timeOfTap = null;
+    TimerLogic.selectedTime = DateTime.now();
+    TimerLogic.timeOfTap = null;
   }
 }

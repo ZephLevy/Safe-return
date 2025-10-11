@@ -1,37 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:top_snackbar_flutter/tap_bounce_container.dart';
 
-class TapContainerBuild extends StatelessWidget {
+class ShrinkTapContainer extends StatelessWidget {
+  final void Function()? onTap;
   final Color color;
   final Widget? child;
-  const TapContainerBuild(
-      {required this.color, required this.child, super.key});
+
+  const ShrinkTapContainer(
+      {this.onTap, required this.color, required this.child, super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black45,
-            spreadRadius: 3,
-            blurRadius: 7,
-            offset: const Offset(0, 2),
-          ),
-        ],
+    return TapBounceContainer(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black45,
+              spreadRadius: 3,
+              blurRadius: 7,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Center(child: child),
       ),
-      child: Center(child: child),
     );
   }
 }
 
-class CustomInkwell extends StatelessWidget {
+class InkwellContainer extends StatelessWidget {
   final Color color;
   final Widget? child;
   final BorderRadius? borderRadius;
   final Function()? onTap;
-  const CustomInkwell(
+  const InkwellContainer(
       {required this.color,
       this.borderRadius,
       this.onTap,

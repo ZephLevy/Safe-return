@@ -7,22 +7,22 @@ import 'package:circular_countdown_timer/circular_countdown_timer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_inner_shadow/flutter_inner_shadow.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
-import 'package:safe_return/custom_widgets/custom_gradient.dart';
 import 'package:safe_return/Visuals/palette.dart';
-import 'package:safe_return/logic/location_logic/location.dart';
+import 'package:safe_return/custom_widgets/custom_gradient_container.dart';
+import 'package:safe_return/inits/noti_init.dart';
+
+import 'package:safe_return/logic/connection_logic.dart';
+import 'package:safe_return/logic/location_logic/get_location.dart';
+import 'package:safe_return/logic/location_logic/location_updater.dart';
+import 'package:safe_return/logic/sos_logic.dart';
 import 'package:safe_return/logic/timer_logic.dart';
 import 'package:safe_return/pages/main_pages/map_page.dart';
 import 'package:safe_return/storage.dart/stored_settings.dart';
 import 'package:safe_return/storage.dart/timer_prefs.dart';
-import 'package:safe_return/utils/connection.dart';
-import 'package:safe_return/logic/location_logic/location_updater.dart';
-import 'package:safe_return/utils/noti_service.dart';
-import 'package:safe_return/utils/sos_manager.dart';
-import 'package:safe_return/utils/time_manager.dart';
-import 'package:flutter_inner_shadow/flutter_inner_shadow.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -207,7 +207,7 @@ class TimerAndClockState extends State<TimerAndClock>
   @override
   Widget build(BuildContext context) {
     // print(
-    //   "s time: ${TimeManager.selectedTime};   T of tap: ${TimeManager.timeOfTap};   elpsed: ${TimeManager.timeElapsed()};   totalT: ${TimeManager.totalTime()}",
+    //   "s time: ${TimerLogic.selectedTime};   T of tap: ${TimerLogic.timeOfTap};   elpsed: ${TimerLogic.timeElapsed()};   totalT: ${TimerLogic.totalTime()}",
     // );
 
     return Column(
@@ -222,7 +222,7 @@ class TimerAndClockState extends State<TimerAndClock>
               Column(
                 children: [
                   _bhb(),
-                  CustomGradient(
+                  CustomGradientContainer(
                       height: 1,
                       margin: EdgeInsets.symmetric(horizontal: 20),
                       colors: [
@@ -258,7 +258,7 @@ class TimerAndClockState extends State<TimerAndClock>
   void checkWhetherToStart() async {
     // setState(
     //   () {
-    //     date = TimeManager.selectedTime;
+    //     date = TimerLogic.selectedTime;
     //   },
     // );
 
@@ -307,7 +307,7 @@ class TimerAndClockState extends State<TimerAndClock>
 
   Widget setButton(BuildContext context) {
     return FutureBuilder<bool>(
-        future: Connection.hasInternet(),
+        future: ConnectionLogic.hasInternet(),
         builder: (context, snapshot) {
           isOnline = snapshot.data ?? false;
 
@@ -516,11 +516,11 @@ class TimerAndClockState extends State<TimerAndClock>
                 onPressed: () {
                   String text = textController.text;
                   bool canPop = Navigator.canPop(context);
-                  if (text == SosManager.fakeCode) {
+                  if (text == SosLogic.fakeCode) {
                     alert();
                     if (canPop) Navigator.pop(context);
                     return;
-                  } else if (text == SosManager.secretCode) {
+                  } else if (text == SosLogic.secretCode) {
                     if (canPop) Navigator.pop(context);
                     return;
                   }
@@ -576,9 +576,10 @@ class TimerAndClockState extends State<TimerAndClock>
 
     await _HomeTimerState.setTimerLogic();
     LocationUpdaterState.setLocationLogic();
-    await _sendTime(TimeManager.selectedTime, onServerFail: () async {
+
+    await _sendTime(TimerLogic.selectedTime, onServerFail: () async {
       //.3405u3453453wrtsaft
-      if (await Location.checkLocationPermissions()) {
+      if (await GetLocation.checkLocationPermissions()) {
         LocationUpdaterState.startLocationService();
       }
 
@@ -594,15 +595,16 @@ class TimerAndClockState extends State<TimerAndClock>
         startSelected = true;
       });
 
-      if (TimeManager.timeOfTap != null) {
-        Duration timeTo = TimeManager.totalTimeDuration()!;
+      if (TimerLogic.timeOfTap != null) {
+        Duration timeTo = TimerLogic.totalTimeDuration()!;
 
         awayTimer = Timer(
           timeTo,
           () async {
-            if (Location.homePosition == null) return;
-            final LatLng homePosition = Location.homePosition!;
-            final Position currentPosition = await Location.determinePosition();
+            if (GetLocation.homePosition == null) return;
+            final LatLng homePosition = GetLocation.homePosition!;
+            final Position currentPosition =
+                await GetLocation.determinePosition();
             final LatLng currentLatLng =
                 LatLng(currentPosition.latitude, currentPosition.longitude);
             MapsPageState.userPath.add(currentLatLng);
@@ -683,18 +685,18 @@ class TimerAndClockState extends State<TimerAndClock>
   static void cancelEvent() {
     showTimer = false;
     startSelected = false;
-    TimeManager.timeOfTap = null;
+    TimerLogic.timeOfTap = null;
     // TimeSetterState.isTomorrow = false;
-    // TimeManager.selectedTime = DateTime(
+    // TimerLogic.selectedTime = DateTime(
     //     DateTime.now().year,
     //     DateTime.now().month,
     //     DateTime.now().day,
-    //     TimeManager.selectedTime.hour,
-    //     TimeManager.selectedTime.minute,
-    //     TimeManager.selectedTime.second,
-    //     TimeManager.selectedTime.millisecond);
+    //     TimerLogic.selectedTime.hour,
+    //     TimerLogic.selectedTime.minute,
+    //     TimerLogic.selectedTime.second,
+    //     TimerLogic.selectedTime.millisecond);
 
-    TimeManager.selectedTime = DateTime.now().add(Duration(seconds: 1));
+    TimerLogic.selectedTime = DateTime.now().add(Duration(seconds: 1));
 
     TimerPrefs.saveTimer();
   }
@@ -786,9 +788,9 @@ class TimeSetterState extends State<TimeSetter> {
       child: SizedBox(
         height: 150,
         child: CupertinoDatePicker(
-          initialDateTime: TimeManager.selectedTime,
+          initialDateTime: TimerLogic.selectedTime,
           onDateTimeChanged: (value) {
-            TimeManager.selectedTime = value;
+            TimerLogic.selectedTime = value;
             if (timeIsNextDay()) {
               setState(() {
                 TimerLogic.isTomorrow = true;
@@ -806,7 +808,7 @@ class TimeSetterState extends State<TimeSetter> {
     );
   }
 
-  bool timeIsNextDay() => TimeManager.selectedTime.isBefore(DateTime.now());
+  bool timeIsNextDay() => TimerLogic.selectedTime.isBefore(DateTime.now());
 
   Widget timeIsTomorrowCheckBox() {
     return StatefulBuilder(
@@ -840,8 +842,8 @@ class _HomeTimerState extends State<HomeTimer> {
   bool tryingAgain = false;
   @override
   Widget build(BuildContext context) {
-    final int elapsed = TimeManager.timeElapsed() ?? 0;
-    final int total = TimeManager.totalTime() ?? 0;
+    final int elapsed = TimerLogic.timeElapsed() ?? 0;
+    final int total = TimerLogic.totalTime() ?? 0;
 
     try {
       if (total <= 0 || elapsed > total) {
@@ -851,8 +853,8 @@ class _HomeTimerState extends State<HomeTimer> {
         child: Container(
           padding: EdgeInsets.all(10),
           child: CircularCountDownTimer(
-            duration: TimeManager.totalTime() ?? 0,
-            initialDuration: TimeManager.timeElapsed() ?? 0,
+            duration: TimerLogic.totalTime() ?? 0,
+            initialDuration: TimerLogic.timeElapsed() ?? 0,
             controller: widget.timerController,
             width: 200,
             height: 200,
@@ -924,7 +926,7 @@ class _HomeTimerState extends State<HomeTimer> {
   }
 
   static Future<void> setTimerLogic() async {
-    TimeManager.timeOfTap = DateTime.now();
+    TimerLogic.timeOfTap = DateTime.now();
     TimerPrefs.saveTimer();
   }
 
@@ -937,7 +939,7 @@ class _HomeTimerState extends State<HomeTimer> {
         children: [
           bellIcon,
           Text(
-            TimeManager.shortSelectedTime(),
+            TimerLogic.shortSelectedTime(),
             style: TextStyle(fontSize: 16),
           ),
         ],

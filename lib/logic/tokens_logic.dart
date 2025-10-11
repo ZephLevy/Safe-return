@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:safe_return/logic/location_logic/location_updater.dart';
 
-class Tokens {
+class TokensLogic {
   static String? signUpTokens;
   static String? newTokenPair;
   static String? accessToken;
@@ -18,11 +18,11 @@ class Tokens {
       Uri url = Uri.parse('http://$ip/user-status/update-location');
       //TODO put correct endpoint
 
-      final response = await http.post(url, body: Tokens.refreshToken);
+      final response = await http.post(url, body: TokensLogic.refreshToken);
       if (response.statusCode == 200) {
         print('Success: ${response.body}');
-        Tokens.accessToken = jsonDecode(response.body)['access_token'];
-        Tokens.refreshToken = jsonDecode(response.body)['refresh_token'];
+        TokensLogic.accessToken = jsonDecode(response.body)['access_token'];
+        TokensLogic.refreshToken = jsonDecode(response.body)['refresh_token'];
       } else {
         print('Failed to refresh tokens with status: ${response.statusCode}');
       }

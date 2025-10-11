@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class CustomGradient extends StatelessWidget {
+class CustomGradientContainer extends StatelessWidget {
   final double height;
   final List<Color> colors;
   final EdgeInsetsGeometry? margin;
-  const CustomGradient(
+  const CustomGradientContainer(
       {required this.height, this.margin, required this.colors, super.key});
 
   @override
