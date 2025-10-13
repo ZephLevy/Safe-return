@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:http/http.dart' as http;
 import 'package:safe_return/Visuals/palette.dart';
-import 'package:safe_return/pages/all_settings_pages/preferred_viewer_page.dart';
-import 'package:safe_return/storage.dart/stored_settings.dart';
 import 'package:safe_return/logic/persons_logic.dart';
+import 'package:safe_return/pages/all_settings_pages/preferred_viewer_page.dart';
+import 'package:safe_return/storage.dart/required_settings.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
@@ -123,7 +123,7 @@ class ContactsPageState extends State<ContactsPage> {
                                     message: "Removed: ${i.name}, ${i.phone}"));
                           }
                           selectedEditableItems.clear();
-                          StoredSettings.save(personList: PersonLogic.persons);
+                          ReqSettings.saveReq(personList: PersonLogic.persons);
                           if (PersonLogic.persons.isEmpty) {
                             setState(() {
                               isEditing = false;
@@ -261,7 +261,7 @@ class ContactsPageState extends State<ContactsPage> {
       onDismissed: (direction) {
         setState(() {
           PersonLogic.persons.removeAt(index);
-          StoredSettings.save(personList: PersonLogic.persons);
+          ReqSettings.saveReq(personList: PersonLogic.persons);
         });
       },
       child: Padding(
@@ -524,7 +524,7 @@ class ContactsPageState extends State<ContactsPage> {
               PersonLogic.persons.sort(
                 (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
               );
-              StoredSettings.save(personList: PersonLogic.persons);
+              ReqSettings.saveReq(personList: PersonLogic.persons);
               sendPersonsList;
             },
           );

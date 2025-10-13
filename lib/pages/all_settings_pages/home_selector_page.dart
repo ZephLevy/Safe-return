@@ -5,7 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/custom_widgets/custom_container_button.dart';
 import 'package:safe_return/logic/location_logic/get_location.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:safe_return/storage.dart/required_settings.dart';
 
 class HomeSelector extends StatefulWidget {
   const HomeSelector({super.key});
@@ -232,8 +232,9 @@ class _HomeSelectorState extends State<HomeSelector> {
                             child: InkwellContainer(
                               borderRadius: BorderRadius.circular(25),
                               color: Colors.lightBlue,
-                              onTap: () {
-                                _setHomeLocation(currentPosition);
+                              onTap: () async {
+                                await ReqSettings.saveReq(
+                                    currentPosition: currentPosition);
                                 setState(() {
                                   addingStep += 1;
                                 });
@@ -393,13 +394,5 @@ If that doesn't work, change the location permission to "Always" in settings''',
         ],
       ),
     );
-  }
-
-  Future<void> _setHomeLocation(LatLng currentPosition) async {
-    final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
-    GetLocation.homePosition = currentPosition;
-
-    await asyncPrefs.setDouble("latitude", currentPosition.latitude);
-    await asyncPrefs.setDouble("longitude", currentPosition.longitude);
   }
 }

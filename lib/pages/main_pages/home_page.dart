@@ -21,6 +21,7 @@ import 'package:safe_return/logic/location_logic/location_updater.dart';
 import 'package:safe_return/logic/sos_logic.dart';
 import 'package:safe_return/logic/timer_logic.dart';
 import 'package:safe_return/pages/main_pages/map_page.dart';
+import 'package:safe_return/storage.dart/required_settings.dart';
 import 'package:safe_return/storage.dart/stored_settings.dart';
 import 'package:safe_return/storage.dart/timer_prefs.dart';
 
@@ -298,6 +299,7 @@ class TimerAndClockState extends State<TimerAndClock>
 
   Future<void> initStateAsync() async {
     await StoredSettings.loadAll();
+    await ReqSettings.loadReq();
     firstLoad = true;
   }
 
@@ -402,17 +404,17 @@ class TimerAndClockState extends State<TimerAndClock>
                             : AnimatedSetButton(
                                 key: ValueKey('cancel'),
                                 primaryColors: [
-                                  Color(0xFFA4D2D5),
+                                  Color(0xFFb5b5b5),
                                   Color(0xFFD58486),
                                   Color(0xFFD58486),
                                   Color(0xFFD58486),
-                                  Color(0xFFA4D2D5),
+                                  Color(0xFFb5b5b5),
                                 ],
                                 secondaryColors: [
                                   Color(0xFFD59FA8),
-                                  Color(0xFFA4D2D5),
-                                  Color(0xFFA4D2D5),
-                                  Color(0xFFA4D2D5),
+                                  Color(0xFFb5b5b5),
+                                  Color(0xFFb5b5b5),
+                                  Color(0xFFb5b5b5),
                                   Color(0xFFD59FA8),
                                 ],
                               ),

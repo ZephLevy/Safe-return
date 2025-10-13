@@ -1,38 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/inits/noti_init.dart';
 import 'package:safe_return/logic/location_logic/get_location.dart';
 import 'package:safe_return/logic/location_logic/location_updater.dart';
-import 'package:safe_return/logic/sos_logic.dart';
+import 'package:safe_return/pages/all_settings_pages/preferred_viewer_page.dart';
 import 'package:safe_return/pages/log_sign_up/login_page.dart';
 import 'package:safe_return/pages/main_pages/home_page.dart';
 import 'package:safe_return/pages/main_pages/map_page.dart';
 import 'package:safe_return/pages/main_pages/settings_page.dart';
-import 'package:safe_return/pages/all_settings_pages/preferred_viewer_page.dart';
+import 'package:safe_return/storage.dart/required_settings.dart';
 import 'package:safe_return/storage.dart/stored_settings.dart';
 import 'package:safe_return/storage.dart/timer_prefs.dart';
 import 'package:safe_return/storage.dart/user_path_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
-  final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
   WidgetsFlutterBinding.ensureInitialized();
 
   NotiService().initNotification();
-  double? latitude = await asyncPrefs.getDouble("latitude");
-  double? longitude = await asyncPrefs.getDouble("longitude");
-  SosLogic.secretCode = await asyncPrefs.getString("secretCode");
-  SosLogic.fakeCode = await asyncPrefs.getString("fakeCode");
-  if (latitude != null && longitude != null) {
-    GetLocation.homePosition = LatLng(latitude, longitude);
-  }
 
   try {
     await GetLocation.determinePosition();
   } catch (_) {}
   userPathNotifier.value = await UserPathStorage.loadLocationData();
   await StoredSettings.loadAll();
+  await ReqSettings.loadReq();
   await TimerPrefs.loadTimer();
   await PreferredViewerState.loadViewType();
   runApp(MyApp());

@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:safe_return/Visuals/theme.dart';
-import 'package:safe_return/storage.dart/stored_settings.dart';
 import 'package:safe_return/inits/auth_init.dart';
 import 'package:safe_return/logic/sos_logic.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:safe_return/storage.dart/required_settings.dart';
+import 'package:safe_return/storage.dart/stored_settings.dart';
 
 class SecurityCodesPage extends StatefulWidget {
   const SecurityCodesPage({super.key});
@@ -244,14 +244,14 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
   }
 
   void setCodes(bool realCode, TextEditingController textController) async {
-    final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
-
     if (codeKey.currentState!.validate()) {
       if (realCode) {
         setState(() {
           SosLogic.secretCode = textController.text;
         });
-        await asyncPrefs.setString("secretCode", textController.text);
+        await ReqSettings.saveReq(
+            realCode: realCode, textController: textController);
+
         if (!noRealCode()) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -262,7 +262,9 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
         setState(() {
           SosLogic.fakeCode = textController.text;
         });
-        await asyncPrefs.setString("fakeCode", textController.text);
+        await ReqSettings.saveReq(
+            realCode: realCode, textController: textController);
+
         if (!noDecoyCode()) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(

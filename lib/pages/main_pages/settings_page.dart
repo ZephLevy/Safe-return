@@ -24,7 +24,7 @@ import 'package:safe_return/pages/all_settings_pages/security_codes_page.dart';
 import 'package:safe_return/pages/all_settings_pages/sos_activation_page.dart';
 import 'package:safe_return/storage.dart/stored_settings.dart';
 import 'package:safe_return/inits/auth_init.dart';
-import 'package:safe_return/inits/noti_service.dart';
+import 'package:safe_return/inits/noti_init.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});

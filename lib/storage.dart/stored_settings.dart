@@ -15,7 +15,6 @@ class StoredSettings {
   static bool biometricsValue = false;
 
   static Future<void> save({
-    List<PersonLogic>? personList,
     int? selectedIndex,
     int? clickN,
     bool? biometricsValue,
@@ -26,11 +25,6 @@ class StoredSettings {
     bool? showTimer,
     bool? powerSaving,
   }) async {
-    if (personList != null) {
-      await asyncPrefs.setString(
-          'persons', PersonLogic.encodedPersonString(personList));
-    }
-
     if (selectedIndex != null) {
       await asyncPrefs.setInt('selectedIndex', selectedIndex);
     }
@@ -58,13 +52,6 @@ class StoredSettings {
   }
 
   static Future<void> loadAll() async {
-    String encodedPersonString = await asyncPrefs.getString('persons') ?? "";
-
-    if (encodedPersonString.isNotEmpty) {
-      PersonLogic.decodePerson(
-          toDecode: encodedPersonString, targetList: PersonLogic.persons);
-    }
-
     selectedIndex = await asyncPrefs.getInt('selectedIndex') ?? 1;
 
     SosLogic.clickN = await asyncPrefs.getInt('clickN') ?? selectedIndex + 1;
