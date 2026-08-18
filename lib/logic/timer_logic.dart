@@ -1,5 +1,5 @@
 import 'package:intl/intl.dart';
-import 'package:safe_return/logic/sos_logic.dart';
+import 'package:safe_return/logic/codes_logic.dart';
 
 class TimerLogic {
   static bool isTomorrow = false;
@@ -29,7 +29,7 @@ class TimerLogic {
   }
 
   static bool codesNull() {
-    return SosLogic.decoyCode == null || SosLogic.realCode == null;
+    return CodesLogic.decoyCode == null || CodesLogic.realCode == null;
   }
 
   static bool validForStart() => !codesNull() && validTime();

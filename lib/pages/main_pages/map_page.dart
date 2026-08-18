@@ -20,6 +20,7 @@ class MapsPage extends StatefulWidget {
 }
 
 class MapsPageState extends State<MapsPage> {
+  static LatLng? homePosition;
   static List<Marker> markers = [];
   static List<LatLng> userPath = [];
   bool reConnecting = false;
@@ -253,9 +254,9 @@ class MapsPageState extends State<MapsPage> {
               },
             ),
             MarkerLayer(markers: [
-              if (GetLocation.homePosition != null)
+              if (MapsPageState.homePosition != null)
                 Marker(
-                  point: GetLocation.homePosition!,
+                  point: MapsPageState.homePosition!,
                   child: Icon(Icons.home_filled),
                 )
             ]),

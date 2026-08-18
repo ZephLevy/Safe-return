@@ -8,9 +8,9 @@ import 'package:safe_return/pages/log_sign_up/login_page.dart';
 import 'package:safe_return/pages/main_pages/home_page.dart';
 import 'package:safe_return/pages/main_pages/map_page.dart';
 import 'package:safe_return/pages/main_pages/settings_page.dart';
-import 'package:safe_return/storage.dart/required_settings.dart';
+import 'package:safe_return/storage.dart/codes_secure_storage.dart';
 import 'package:safe_return/storage.dart/stored_settings.dart';
-import 'package:safe_return/storage.dart/timer_prefs.dart';
+import 'package:safe_return/storage.dart/timer_storage.dart';
 import 'package:safe_return/storage.dart/user_path_storage.dart';
 
 Future<void> main() async {
@@ -22,10 +22,11 @@ Future<void> main() async {
     await GetLocation.determinePosition();
   } catch (_) {}
   userPathNotifier.value = await UserPathStorage.loadLocationData();
-  await StoredSettings.loadAll();
-  await ReqSettings.loadReq();
-  await TimerPrefs.loadTimer();
+  await StoredSettings.load();
+
+  await TimerStorage.loadTimer();
   await PreferredViewerState.loadViewType();
+  await SecureCodesStorage.readCodes();
   runApp(MyApp());
 }
 

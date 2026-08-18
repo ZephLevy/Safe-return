@@ -3,6 +3,7 @@ import 'package:safe_return/Visuals/theme.dart';
 import 'package:safe_return/pages/log_sign_up/login_page.dart';
 import 'package:safe_return/pages/log_sign_up/sign_up_page.dart';
 import 'package:safe_return/pages/main_pages/settings_page.dart';
+import 'package:safe_return/storage.dart/auth_storage.dart';
 import 'package:safe_return/storage.dart/stored_settings.dart';
 
 class AccountPage extends StatefulWidget {
@@ -103,7 +104,7 @@ class AccountPageState extends State<AccountPage> {
                   context,
                   () {
                     LoginPageState.isLoggedIn = false;
-                    StoredSettings.save(isLoggedIn: LoginPageState.isLoggedIn);
+                    AuthStorage.save(isLoggedIn: LoginPageState.isLoggedIn);
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(builder: (context) => LoginPage()),
                       (Route<dynamic> route) => false,
@@ -128,7 +129,7 @@ class AccountPageState extends State<AccountPage> {
                     // deleteAccount();
 
                     LoginPageState.isLoggedIn = false;
-                    StoredSettings.save(isLoggedIn: LoginPageState.isLoggedIn);
+                    AuthStorage.save(isLoggedIn: LoginPageState.isLoggedIn);
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(builder: (context) => LoginPage()),
                       (Route<dynamic> route) => false,

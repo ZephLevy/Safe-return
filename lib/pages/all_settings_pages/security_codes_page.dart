@@ -2,8 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:safe_return/Visuals/theme.dart';
 import 'package:safe_return/inits/auth_init.dart';
-import 'package:safe_return/logic/sos_logic.dart';
-import 'package:safe_return/storage.dart/required_settings.dart';
+import 'package:safe_return/logic/codes_logic.dart';
+import 'package:safe_return/storage.dart/codes_secure_storage.dart';
 import 'package:safe_return/storage.dart/stored_settings.dart';
 
 class SecurityCodesPage extends StatefulWidget {
@@ -14,8 +14,8 @@ class SecurityCodesPage extends StatefulWidget {
 }
 
 class _SecurityCodesPageState extends State<SecurityCodesPage> {
-  bool noRealCode() => SosLogic.realCode?.isEmpty ?? true;
-  bool noDecoyCode() => SosLogic.decoyCode?.isEmpty ?? true;
+  bool noRealCode() => CodesLogic.realCode?.isEmpty ?? true;
+  bool noDecoyCode() => CodesLogic.decoyCode?.isEmpty ?? true;
   final codeKey = GlobalKey<FormState>();
   bool showReal = false;
   bool showDecoy = false;
@@ -97,9 +97,6 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
   }
 
   Widget viewCodes() {
-    print("real: ${SosLogic.realCode}");
-    print("fake: ${SosLogic.decoyCode}");
-
     return StatefulBuilder(builder: (context, setModalState) {
       return Scaffold(
         appBar: AppBar(
@@ -124,7 +121,7 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
                       showReal
                           ? (noRealCode()
                               ? "No real code set"
-                              : SosLogic.realCode!)
+                              : CodesLogic.realCode!)
                           : ('\u2022' * 15),
                       style:
                           TextStyle(color: Color.fromARGB(255, 100, 100, 100)),
@@ -154,7 +151,7 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
                       showDecoy
                           ? (noDecoyCode()
                               ? "No decoy code set"
-                              : SosLogic.decoyCode!)
+                              : CodesLogic.decoyCode!)
                           : ('\u2022' * 15),
                       style: TextStyle(
                           color: const Color.fromARGB(255, 100, 100, 100)),
@@ -249,14 +246,14 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
     if (codeKey.currentState!.validate()) {
       if (isRealCode) {
         setState(() {
-          SosLogic.realCode = textController.text;
+          CodesLogic.realCode = textController.text;
         });
-        await ReqSettings.saveReq(realCode: textController.text);
+        await SecureCodesStorage.writeCodes(realCode: CodesLogic.realCode);
       } else {
         setState(() {
-          SosLogic.decoyCode = textController.text;
+          CodesLogic.decoyCode = textController.text;
         });
-        await ReqSettings.saveReq(decoyCode: textController.text);
+        await SecureCodesStorage.writeCodes(decoyCode: CodesLogic.decoyCode);
       }
 
       if (mounted) {
@@ -278,10 +275,10 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
       return 'Code must be under 20 characters';
     }
     if (realCode) {
-      if (value == SosLogic.decoyCode) {
+      if (value == CodesLogic.decoyCode) {
         return 'Real code must be different from decoy code';
       }
-    } else if (value == SosLogic.realCode) {
+    } else if (value == CodesLogic.realCode) {
       return 'Decoy code must be different from real code';
     }
 

@@ -6,6 +6,7 @@ class ConnectionLogic {
     var connectivityResult = await Connectivity().checkConnectivity();
 
     //if the device is connected to the internet with any connectivity type, return true
+    print(connectivityResult);
     return connectivityResult.any((r) => r != ConnectivityResult.none);
   }
 }

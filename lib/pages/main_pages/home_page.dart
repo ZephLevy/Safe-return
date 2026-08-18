@@ -18,12 +18,11 @@ import 'package:safe_return/inits/noti_init.dart';
 import 'package:safe_return/logic/connection_logic.dart';
 import 'package:safe_return/logic/location_logic/get_location.dart';
 import 'package:safe_return/logic/location_logic/location_updater.dart';
-import 'package:safe_return/logic/sos_logic.dart';
+import 'package:safe_return/logic/codes_logic.dart';
 import 'package:safe_return/logic/timer_logic.dart';
 import 'package:safe_return/pages/main_pages/map_page.dart';
-import 'package:safe_return/storage.dart/required_settings.dart';
 import 'package:safe_return/storage.dart/stored_settings.dart';
-import 'package:safe_return/storage.dart/timer_prefs.dart';
+import 'package:safe_return/storage.dart/timer_storage.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -221,8 +220,8 @@ class TimerAndClockState extends State<TimerAndClock>
   }
 
   Future<void> initStateAsync() async {
-    await StoredSettings.loadAll();
-    await ReqSettings.loadReq();
+    await StoredSettings.load();
+    await TimerStorage.loadTimer();
     firstLoad = true;
   }
 
@@ -450,8 +449,8 @@ class TimerAndClockState extends State<TimerAndClock>
         awayTimer = Timer(
           timeTo,
           () async {
-            if (GetLocation.homePosition == null) return;
-            final LatLng homePosition = GetLocation.homePosition!;
+            if (MapsPageState.homePosition == null) return;
+            final LatLng homePosition = MapsPageState.homePosition!;
             final Position currentPosition =
                 await GetLocation.determinePosition();
             final LatLng currentLatLng =
@@ -575,11 +574,11 @@ class TimerAndClockState extends State<TimerAndClock>
                 onPressed: () {
                   String text = textController.text;
                   bool canPop = Navigator.canPop(context);
-                  if (text == SosLogic.decoyCode) {
+                  if (text == CodesLogic.decoyCode) {
                     alert();
                     if (canPop) Navigator.pop(context);
                     return;
-                  } else if (text == SosLogic.realCode) {
+                  } else if (text == CodesLogic.realCode) {
                     if (canPop) Navigator.pop(context);
                     return;
                   }
@@ -618,7 +617,7 @@ class TimerAndClockState extends State<TimerAndClock>
 
     TimerLogic.selectedTime = DateTime.now().add(Duration(seconds: 1));
 
-    TimerPrefs.saveTimer();
+    TimerStorage.saveTimer();
   }
 
   static void alert() {
@@ -843,7 +842,7 @@ class _HomeTimerState extends State<HomeTimer> {
     TimerAndClockState.cancelEvent();
 
     await Future.wait([
-      TimerPrefs.loadTimer(),
+      TimerStorage.loadTimer(),
       Future.delayed(Duration(seconds: 1)),
     ]);
     setState(() {
@@ -853,7 +852,7 @@ class _HomeTimerState extends State<HomeTimer> {
 
   static Future<void> setTimerLogic() async {
     TimerLogic.timeOfTap = DateTime.now();
-    TimerPrefs.saveTimer();
+    TimerStorage.saveTimer();
   }
 
   static Widget showBeHomeTime() {

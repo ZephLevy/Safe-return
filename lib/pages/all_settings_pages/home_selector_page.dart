@@ -5,7 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/custom_widgets/custom_container_button.dart';
 import 'package:safe_return/logic/location_logic/get_location.dart';
-import 'package:safe_return/storage.dart/required_settings.dart';
+import 'package:safe_return/pages/main_pages/map_page.dart';
 
 class HomeSelector extends StatefulWidget {
   const HomeSelector({super.key});
@@ -236,9 +236,7 @@ class _HomeSelectorState extends State<HomeSelector> {
                               borderRadius: BorderRadius.circular(25),
                               color: Colors.lightBlue,
                               onTap: () async {
-                                await ReqSettings.saveReq(
-                                    currentPosition: currentPosition);
-                                GetLocation.homePosition = currentPosition;
+                                MapsPageState.homePosition = currentPosition;
                                 setState(() {
                                   addingStep += 1;
                                 });

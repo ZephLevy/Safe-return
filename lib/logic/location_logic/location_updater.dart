@@ -72,7 +72,7 @@ class LocationUpdater extends StatefulWidget {
 class LocationUpdaterState extends State<LocationUpdater> {
   static bool powerSaving = false;
   static LocationAccuracy locationAccuracy = LocationAccuracy.BALANCED;
-  static double distanceFilter = 10;
+  static double? speed;
   static int androidInterval = 10;
 
   static DateTime? lastTokenRefresh;
@@ -133,6 +133,7 @@ class LocationUpdaterState extends State<LocationUpdater> {
           //disose function triggered
           if (data["type"] == "dispose") {
             userPathNotifier.value = [];
+            tmpPath.clear();
             UserPathStorage.saveLocationData(userPathNotifier.value);
           } else if (data["type"] == "location") {
             //location logger (callbackLogger) function triggered
@@ -140,7 +141,7 @@ class LocationUpdaterState extends State<LocationUpdater> {
             final contents = Map<String, dynamic>.from(data["contents"]);
             print(contents);
             final locationDto = LocationDto.fromJson(contents);
-            final int speed = contents["speed"];
+            speed = contents["speed"];
             final currentPos =
                 LatLng(locationDto.latitude, locationDto.longitude);
 
@@ -151,22 +152,9 @@ class LocationUpdaterState extends State<LocationUpdater> {
 
             if (tmpPath.length == 10) {
               logLocationDtoToServer(locationDto);
-
               tmpPath.clear();
             }
-            switch (speed) {
-              case <= 10:
-                distanceFilter = 5;
-
-              case <= 30:
-                distanceFilter = 10;
-
-              case > 30:
-                distanceFilter = 50;
-
-                break;
-              default:
-            }
+            print(speed! * 5);
           } else {
             print("unexpected data: $data");
           }
@@ -212,13 +200,13 @@ class LocationUpdaterState extends State<LocationUpdater> {
         iosSettings: IOSSettings(
             showsBackgroundLocationIndicator: true,
             accuracy: locationAccuracy,
-            distanceFilter: LocationUpdaterState.distanceFilter,
+            distanceFilter: speed != null ? (speed! * 5) : 10,
             stopWithTerminate: false),
         androidSettings: AndroidSettings(
             accuracy:
                 locationAccuracy, //TODO not sure which accuracy to use yet. increase accuracy if closer to set time?
             interval: LocationUpdaterState.androidInterval,
-            distanceFilter: LocationUpdaterState.distanceFilter,
+            distanceFilter: speed != null ? (speed! * 5) : 10,
             androidNotificationSettings: AndroidNotificationSettings(
                 notificationChannelName: 'Location tracking',
                 notificationTitle: 'Start Location Tracking',

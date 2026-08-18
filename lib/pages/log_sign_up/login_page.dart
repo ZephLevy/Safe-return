@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:safe_return/main.dart';
 import 'package:safe_return/pages/log_sign_up/sign_up_page.dart';
+import 'package:safe_return/storage.dart/auth_storage.dart';
 import 'package:safe_return/storage.dart/stored_settings.dart';
 
 class LoginPage extends StatefulWidget {
@@ -49,7 +50,7 @@ class LoginPageState extends State<LoginPage> {
                 skipLoginAlert(
                   () {
                     isLoggedIn = true;
-                    StoredSettings.save(isLoggedIn: isLoggedIn);
+                    AuthStorage.save(isLoggedIn: isLoggedIn);
                     StoredSettings.logOut();
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(builder: (context) => HomeScreen()),
@@ -176,7 +177,7 @@ class LoginPageState extends State<LoginPage> {
       password = passwordController.text;
 
       if (ip.isNotEmpty) {
-        StoredSettings.save(userEmail: userEmail);
+        AuthStorage.save(userEmail: userEmail);
         final response = await http.post(
           Uri.parse("http://$ip/logIn"),
           body: {
@@ -195,7 +196,7 @@ class LoginPageState extends State<LoginPage> {
           }
           password = "";
           isLoggedIn = true;
-          StoredSettings.save(isLoggedIn: isLoggedIn);
+          AuthStorage.save(isLoggedIn: isLoggedIn);
           if (mounted) {
             Navigator.pushReplacement(
                 context, MaterialPageRoute(builder: (context) => HomeScreen()));
@@ -204,7 +205,6 @@ class LoginPageState extends State<LoginPage> {
           print("failed to login with code: ${response.statusCode}");
         }
       }
-      print("not connected to server");
     }
   }
 }

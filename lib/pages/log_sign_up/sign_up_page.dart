@@ -8,7 +8,7 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:safe_return/logic/tokens_logic.dart';
 import 'package:safe_return/main.dart';
 import 'package:safe_return/pages/log_sign_up/login_page.dart';
-import 'package:safe_return/storage.dart/stored_settings.dart';
+import 'package:safe_return/storage.dart/auth_storage.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -313,7 +313,7 @@ class SignUpState extends State<SignUp> {
       newPassword = "";
       emailCode = "";
       LoginPageState.isLoggedIn = true;
-      StoredSettings.save(isLoggedIn: LoginPageState.isLoggedIn);
+      AuthStorage.save(isLoggedIn: LoginPageState.isLoggedIn);
       print("successful verification code: ${response.statusCode}");
       print("body: ${response.body}");
       TokensLogic.signUpTokens = response.body;
@@ -322,7 +322,7 @@ class SignUpState extends State<SignUp> {
       LoginPageState.userEmail = newEmail;
       newEmail = "";
 
-      StoredSettings.save(
+      AuthStorage.save(
           firstName: firstName,
           lastName: lastName,
           userEmail: LoginPageState.userEmail);
