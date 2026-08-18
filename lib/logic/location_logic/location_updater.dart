@@ -52,10 +52,6 @@ class LocationServiceRepository {
 
     final SendPort? send = IsolateNameServer.lookupPortByName(isolateName);
     send?.send({"type": "location", "contents": locationDto.toJson()});
-
-    print("USERPATH ******* ${userPathNotifier.value.length}");
-
-    logLocationDtoToServer(locationDto);
   }
 
   static Future<void> dispose() async {
@@ -63,28 +59,6 @@ class LocationServiceRepository {
 
     final SendPort? send = IsolateNameServer.lookupPortByName(isolateName);
     send?.send({"type": "dispose"});
-  }
-
-  static Future<void> logLocationDtoToServer(LocationDto locationDto) async {
-    const String ip = String.fromEnvironment('IP');
-    try {
-      if (ip == "") {
-        print("No ip passed to CLI when run");
-      }
-      Uri url = Uri.parse('http://$ip/user-status/update-location');
-
-      final response =
-          await http.post(url, body: {'locationDto': jsonEncode(locationDto)});
-      if (response.statusCode == 200) {
-        print('Success: ${response.body}');
-      } else {
-        print(
-            'Failed while updatinglocationdto with status: ${response.statusCode}\n\n\n${response.body}');
-      }
-    } catch (e) {
-      print("Could not connect to server/server not running");
-      // print("e: $e");
-    }
   }
 }
 
@@ -97,8 +71,13 @@ class LocationUpdater extends StatefulWidget {
 
 class LocationUpdaterState extends State<LocationUpdater> {
   static bool powerSaving = false;
-  static LocationAccuracy locationAccuracy = LocationAccuracy.HIGH;
+  static LocationAccuracy locationAccuracy = LocationAccuracy.BALANCED;
+  static double distanceFilter = 10;
+  static int androidInterval = 10;
+
   static DateTime? lastTokenRefresh;
+
+  List<LatLng> tmpPath = [];
   ReceivePort port = ReceivePort();
 
   @override
@@ -147,25 +126,77 @@ class LocationUpdaterState extends State<LocationUpdater> {
 
     IsolateNameServer.registerPortWithName(
         port.sendPort, LocationServiceRepository.isolateName);
-    port.listen((dynamic data) {
-      print("listened for data: $data");
-      if (data != null) {
-        if (data["type"] == "dispose") {
-          userPathNotifier.value = [];
-          UserPathStorage.saveLocationData(userPathNotifier.value);
-        } else if (data["type"] == "location") {
-          final contents = Map<String, dynamic>.from(data["contents"]);
-          final dto = LocationDto.fromJson(contents);
-          final currentPos = LatLng(dto.latitude, dto.longitude);
-          userPathNotifier.value = [...userPathNotifier.value, currentPos];
-          UserPathStorage.saveLocationData(userPathNotifier.value);
-        } else {
-          print("unexpected data: $data");
+    port.listen(
+      (dynamic data) {
+        // print("listened for data: $data");
+        if (data != null) {
+          //disose function triggered
+          if (data["type"] == "dispose") {
+            userPathNotifier.value = [];
+            UserPathStorage.saveLocationData(userPathNotifier.value);
+          } else if (data["type"] == "location") {
+            //location logger (callbackLogger) function triggered
+
+            final contents = Map<String, dynamic>.from(data["contents"]);
+            print(contents);
+            final locationDto = LocationDto.fromJson(contents);
+            final int speed = contents["speed"];
+            final currentPos =
+                LatLng(locationDto.latitude, locationDto.longitude);
+
+            userPathNotifier.value = [...userPathNotifier.value, currentPos];
+            print("USERPATH ******* ${userPathNotifier.value.length}");
+            UserPathStorage.saveLocationData(userPathNotifier.value);
+            tmpPath.add(currentPos);
+
+            if (tmpPath.length == 10) {
+              logLocationDtoToServer(locationDto);
+
+              tmpPath.clear();
+            }
+            switch (speed) {
+              case <= 10:
+                distanceFilter = 5;
+
+              case <= 30:
+                distanceFilter = 10;
+
+              case > 30:
+                distanceFilter = 50;
+
+                break;
+              default:
+            }
+          } else {
+            print("unexpected data: $data");
+          }
         }
-      }
-    });
+      },
+    );
 
     initLocator();
+  }
+
+  static Future<void> logLocationDtoToServer(LocationDto locationDto) async {
+    const String ip = String.fromEnvironment('IP');
+    try {
+      if (ip == "") {
+        print("No ip passed to CLI when run");
+      }
+      Uri url = Uri.parse('http://$ip/user-status/update-location');
+
+      final response =
+          await http.post(url, body: {'locationDto': jsonEncode(locationDto)});
+      if (response.statusCode == 200) {
+        print('Success: ${response.body}');
+      } else {
+        print(
+            'Failed while updatinglocationdto with status: ${response.statusCode}\n\n\n${response.body}');
+      }
+    } catch (e) {
+      print("Could not connect to server/server not running");
+      // print("e: $e");
+    }
   }
 
   static void setLocationLogic() {
@@ -179,14 +210,15 @@ class LocationUpdaterState extends State<LocationUpdater> {
         disposeCallback: LocationCallbackHandler.disposeCallback,
         autoStop: false,
         iosSettings: IOSSettings(
+            showsBackgroundLocationIndicator: true,
             accuracy: locationAccuracy,
-            distanceFilter: 10,
-            stopWithTerminate: true),
+            distanceFilter: LocationUpdaterState.distanceFilter,
+            stopWithTerminate: false),
         androidSettings: AndroidSettings(
-            accuracy: LocationAccuracy
-                .BALANCED, //TODO not sure which accuracy to use yet. increase accuracy if closer to set time?
-            interval: 120,
-            distanceFilter: 10,
+            accuracy:
+                locationAccuracy, //TODO not sure which accuracy to use yet. increase accuracy if closer to set time?
+            interval: LocationUpdaterState.androidInterval,
+            distanceFilter: LocationUpdaterState.distanceFilter,
             androidNotificationSettings: AndroidNotificationSettings(
                 notificationChannelName: 'Location tracking',
                 notificationTitle: 'Start Location Tracking',

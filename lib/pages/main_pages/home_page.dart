@@ -408,7 +408,7 @@ class TimerAndClockState extends State<TimerAndClock>
         child: Center(
             child: showTimer
                 ? _HomeTimerState.showBeHomeTime()
-                : Text(
+                : const Text(
                     'Be Home By:',
                     style: TextStyle(
                       fontSize: 17,
@@ -417,83 +417,6 @@ class TimerAndClockState extends State<TimerAndClock>
                   )),
       ),
     );
-  }
-
-  void _handleAwayFromhome() {
-    NotiService().notHomeNotif();
-    TextEditingController textController = TextEditingController();
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, timeSetButtonState) => AlertDialog(
-            title: Text(
-              "It looks like you're away from your home. Enter your code:",
-            ),
-            content: TextField(
-              controller: textController,
-              decoration: InputDecoration(
-                  hintText: "You have $codeAttempts attempts left"),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  String text = textController.text;
-                  bool canPop = Navigator.canPop(context);
-                  if (text == SosLogic.fakeCode) {
-                    alert();
-                    if (canPop) Navigator.pop(context);
-                    return;
-                  } else if (text == SosLogic.realCode) {
-                    if (canPop) Navigator.pop(context);
-                    return;
-                  }
-
-                  // Got code wrong
-                  textController.clear();
-                  timeSetButtonState(() => codeAttempts--);
-
-                  if (codeAttempts <= 0) {
-                    alert();
-                    if (canPop) Navigator.pop(context);
-                  }
-                },
-                child: Text("Enter"),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _sendTime(DateTime time,
-      {required Function onServerSuccess, required onServerFail}) async {
-    // IMPORTANT: Use "flutter run --dart-define=IP=[ip]" to set this before running
-    // ALSO IMPORTANT: @Grayerhack700 if you don't use nginx then specify port 8080 (eg. localhost:8080)
-    // If you are using nginx then it *should* default to port 80
-    const String ip = String.fromEnvironment('IP');
-    try {
-      if (ip == "") {
-        print("No ip passed to CLI when run");
-        onServerFail();
-      }
-
-      Uri url = Uri.parse('http://$ip/user-status/set-time');
-
-      final response = await http.post(url, body: {'time': time.toString()});
-      if (response.statusCode == 200) {
-        print('Success: response body for set time: ${response.body}');
-        onServerSuccess();
-      } else {
-        print('Failed to send set time with status: ${response.statusCode}');
-        onServerFail();
-      }
-    } catch (e) {
-      print("Could not connect to server/server not running");
-      onServerFail();
-    }
   }
 
   Future<void> _tryStartTimer() async {
@@ -507,13 +430,14 @@ class TimerAndClockState extends State<TimerAndClock>
       if (await GetLocation.checkLocationPermissions()) {
         LocationUpdaterState.startLocationService();
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: SnackBarContent(),
-          duration: Duration(milliseconds: 500),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: SnackBarContent(),
+            duration: Duration(milliseconds: 500),
+          ),
+        );
+      }
       setState(() {
         codeAttempts = 3;
         showTimer = true;
@@ -601,10 +525,81 @@ class TimerAndClockState extends State<TimerAndClock>
     });
   }
 
-  static void alert() {
-    //This is called when we are sure the user is in danger.
-    //TODO: implement something
-    print("alerted");
+  Future<void> _sendTime(DateTime time,
+      {required Function onServerSuccess, required onServerFail}) async {
+    // IMPORTANT: Use "flutter run --dart-define=IP=[ip]" to set this before running
+    // ALSO IMPORTANT: @Grayerhack700 if you don't use nginx then specify port 8080 (eg. localhost:8080)
+    // If you are using nginx then it *should* default to port 80
+    const String ip = String.fromEnvironment('IP');
+    try {
+      if (ip == "") {
+        print("No ip passed to CLI when run");
+        onServerFail();
+      }
+
+      Uri url = Uri.parse('http://$ip/user-status/set-time');
+
+      final response = await http.post(url, body: {'time': time.toString()});
+      if (response.statusCode == 200) {
+        print('Success: response body for set time: ${response.body}');
+        onServerSuccess();
+      } else {
+        print('Failed to send set time with status: ${response.statusCode}');
+        onServerFail();
+      }
+    } catch (e) {
+      print("Could not connect to server/server not running");
+      onServerFail();
+    }
+  }
+
+  void _handleAwayFromhome() {
+    NotiService().notHomeNotif();
+    TextEditingController textController = TextEditingController();
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, timeSetButtonState) => AlertDialog(
+            title: Text(
+              "It looks like you're away from your home. Enter your code:",
+            ),
+            content: TextField(
+              controller: textController,
+              decoration: InputDecoration(
+                  hintText: "You have $codeAttempts attempts left"),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  String text = textController.text;
+                  bool canPop = Navigator.canPop(context);
+                  if (text == SosLogic.decoyCode) {
+                    alert();
+                    if (canPop) Navigator.pop(context);
+                    return;
+                  } else if (text == SosLogic.realCode) {
+                    if (canPop) Navigator.pop(context);
+                    return;
+                  }
+
+                  // Got code wrong
+                  textController.clear();
+                  timeSetButtonState(() => codeAttempts--);
+
+                  if (codeAttempts <= 0) {
+                    alert();
+                    if (canPop) Navigator.pop(context);
+                  }
+                },
+                child: Text("Enter"),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   static void cancelEvent() {
@@ -624,6 +619,12 @@ class TimerAndClockState extends State<TimerAndClock>
     TimerLogic.selectedTime = DateTime.now().add(Duration(seconds: 1));
 
     TimerPrefs.saveTimer();
+  }
+
+  static void alert() {
+    //This is called when we are sure the user is in danger.
+    //TODO: implement something
+    print("alerted");
   }
 }
 
@@ -755,7 +756,7 @@ class TimeSetterState extends State<TimeSetter> {
             GestureDetector(
                 onTap: () => setState(
                     () => TimerLogic.isTomorrow = !TimerLogic.isTomorrow),
-                child: Text("Next Day"))
+                child: const Text("Next Day"))
           ],
         );
       },

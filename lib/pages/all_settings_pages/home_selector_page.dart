@@ -5,7 +5,6 @@ import 'package:latlong2/latlong.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/custom_widgets/custom_container_button.dart';
 import 'package:safe_return/logic/location_logic/get_location.dart';
-import 'package:safe_return/pages/main_pages/map_page.dart';
 import 'package:safe_return/storage.dart/required_settings.dart';
 
 class HomeSelector extends StatefulWidget {

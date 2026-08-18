@@ -193,28 +193,28 @@ class MapsPageState extends State<MapsPage> {
   Widget _mainBody(Position snapshot) {
     LatLng currentPosition = LatLng(snapshot.latitude, snapshot.longitude);
 
-    if (GetLocation.homePosition != null) {
-      markers.add(
-        Marker(
-          width: 80.0,
-          height: 80.0,
-          point: GetLocation.homePosition!,
-          child: Icon(
-            Icons.home,
-            color: Colors.blue,
-          ),
-        ),
-      );
-      // bool closeToHome = Geolocator.distanceBetween(
-      //         currentPosition.latitude,
-      //         currentPosition.longitude,
-      //         Location.homePosition!.latitude,
-      //         Location.homePosition!.longitude) <
-      //     20;
-      // if (closeToHome) {
-      //   markers.removeAt(0); //Home and current location don't overlap
-      // }
-    }
+    // if (GetLocation.homePosition != null) {
+    //   markers.add(
+    //     Marker(
+    //       width: 80.0,
+    //       height: 80.0,
+    //       point: GetLocation.homePosition!,
+    //       child: Icon(
+    //         Icons.home,
+    //         color: Colors.blue,
+    //       ),
+    //     ),
+    //   );
+    // bool closeToHome = Geolocator.distanceBetween(
+    //         currentPosition.latitude,
+    //         currentPosition.longitude,
+    //         Location.homePosition!.latitude,
+    //         Location.homePosition!.longitude) <
+    //     20;
+    // if (closeToHome) {
+    //   markers.removeAt(0); //Home and current location don't overlap
+    // }
+    // }
     print("full path: $userPath");
 
     return Stack(

@@ -21,7 +21,6 @@ import 'package:safe_return/pages/all_settings_pages/contacts_page.dart';
 import 'package:safe_return/pages/all_settings_pages/home_selector_page.dart';
 import 'package:safe_return/pages/all_settings_pages/preferred_viewer_page.dart';
 import 'package:safe_return/pages/all_settings_pages/security_codes_page.dart';
-import 'package:safe_return/pages/all_settings_pages/sos_activation_page.dart';
 import 'package:safe_return/storage.dart/stored_settings.dart';
 import 'package:safe_return/inits/auth_init.dart';
 import 'package:safe_return/inits/noti_init.dart';
@@ -135,7 +134,7 @@ class SettingsState extends State<Settings> {
                       children: [
                         InfoWidget(
                           infoText:
-                              "When switched on, location tracking will be reduced to save battery, decreasing your security.",
+                              "When switched on, location tracking will be reduced to save battery, but decreases your security.",
                           iconData: Icons.info_outline,
                           iconColor: Colors.black87,
                           infoTextStyle: TextStyle(color: Colors.black87),
@@ -151,10 +150,10 @@ class SettingsState extends State<Settings> {
                                       LocationUpdaterState.powerSaving);
                               if (LocationUpdaterState.powerSaving) {
                                 LocationUpdaterState.locationAccuracy =
-                                    LocationAccuracy.BALANCED;
+                                    LocationAccuracy.POWERSAVE;
                               } else {
                                 LocationUpdaterState.locationAccuracy =
-                                    LocationAccuracy.HIGH;
+                                    LocationAccuracy.BALANCED;
                               }
                             }),
                       ],
@@ -223,7 +222,7 @@ class SettingsState extends State<Settings> {
                           iconColor: Colors.black87,
                           iconData: Icons.info_outline,
                           infoText:
-                              "Biometrics can be used as an additional security layer, like when changing or viewing your codes. Biometrics cannot be used when opening the app, for security reasons.",
+                              "Biometrics can be used as an additional security layer, like when changing or viewing your codes. For security reasons, biometrics cannot be used to open the app.",
                           infoTextStyle: TextStyle(color: Colors.black87),
                         ),
                         Switch.adaptive(

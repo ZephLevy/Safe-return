@@ -19,8 +19,8 @@ class SecureStorage {
 
   static Future<void> readCodes() async {
     SosLogic.realCode = await storage.read(key: 'real');
-    SosLogic.fakeCode = await storage.read(key: 'decoy');
+    SosLogic.decoyCode = await storage.read(key: 'decoy');
     print("read: ${SosLogic.realCode}");
-    print("read: ${SosLogic.fakeCode}");
+    print("read: ${SosLogic.decoyCode}");
   }
 }
