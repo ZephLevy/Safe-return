@@ -14,7 +14,7 @@ class SecurityCodesPage extends StatefulWidget {
 }
 
 class _SecurityCodesPageState extends State<SecurityCodesPage> {
-  bool noRealCode() => SosLogic.secretCode?.isEmpty ?? true;
+  bool noRealCode() => SosLogic.realCode?.isEmpty ?? true;
   bool noDecoyCode() => SosLogic.fakeCode?.isEmpty ?? true;
   final codeKey = GlobalKey<FormState>();
   bool showReal = false;
@@ -97,7 +97,7 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
   }
 
   Widget viewCodes() {
-    print("real: ${SosLogic.secretCode}");
+    print("real: ${SosLogic.realCode}");
     print("fake: ${SosLogic.fakeCode}");
 
     return StatefulBuilder(builder: (context, setModalState) {
@@ -124,7 +124,7 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
                       showReal
                           ? (noRealCode()
                               ? "No real code set"
-                              : SosLogic.secretCode!)
+                              : SosLogic.realCode!)
                           : ('\u2022' * 15),
                       style:
                           TextStyle(color: Color.fromARGB(255, 100, 100, 100)),
@@ -169,7 +169,7 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
     });
   }
 
-  void getCodeInput(bool realCode) {
+  void getCodeInput(bool isRealCode) {
     TextEditingController textController = TextEditingController();
     TextEditingController confirmController = TextEditingController();
 
@@ -178,9 +178,9 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(realCode
+          title: Text(isRealCode
               ? "Enter a code"
-              : "Enter a code: if threatened to enter a code, this will silently call an alert"),
+              : "Enter a code: if threatened to enter a code, this will silently alert your emergency contacts"),
           content: Form(
             key: codeKey,
             child: Column(
@@ -192,11 +192,11 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
                   autofillHints: [AutofillHints.newPassword],
                   controller: textController,
                   decoration: InputDecoration(
-                      hintText: realCode
+                      hintText: isRealCode
                           ? "Enter your real code"
                           : "Enter your decoy code"),
                   validator: (value) {
-                    return checkValidNewCode(value, realCode);
+                    return checkValidNewCode(value, isRealCode);
                   },
                 ),
                 TextFormField(
@@ -205,15 +205,15 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
                   autofillHints: [AutofillHints.newPassword],
                   controller: confirmController,
                   decoration: InputDecoration(
-                      hintText: realCode
+                      hintText: isRealCode
                           ? "Confirm your real code"
                           : "Confirm your decoy code"),
                   validator: (value) {
-                    if (value != textController.text) {
-                      return 'Codes do not match';
-                    }
                     if (value == null || value.isEmpty) {
                       return 'Please confirm your code';
+                    }
+                    if (value != textController.text) {
+                      return 'Codes do not match';
                     }
                     return null;
                   },
@@ -233,7 +233,7 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
             ),
             TextButton(
               onPressed: () {
-                setCodes(realCode, textController);
+                setCodes(isRealCode, textController);
               },
               child: Text("OK"),
             ),
@@ -243,14 +243,14 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
     );
   }
 
-  void setCodes(bool realCode, TextEditingController textController) async {
+  void setCodes(bool isRealCode, TextEditingController textController) async {
     if (codeKey.currentState!.validate()) {
-      if (realCode) {
+      if (isRealCode) {
         setState(() {
-          SosLogic.secretCode = textController.text;
+          SosLogic.realCode = textController.text;
         });
         await ReqSettings.saveReq(
-            realCode: realCode, textController: textController);
+            realCode: isRealCode, textController: textController);
 
         if (!noRealCode()) {
           if (mounted) {
@@ -263,7 +263,7 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
           SosLogic.fakeCode = textController.text;
         });
         await ReqSettings.saveReq(
-            realCode: realCode, textController: textController);
+            realCode: isRealCode, textController: textController);
 
         if (!noDecoyCode()) {
           if (mounted) {
@@ -297,7 +297,7 @@ class _SecurityCodesPageState extends State<SecurityCodesPage> {
         return 'Real code must be different from decoy code';
       }
     }
-    if (value == SosLogic.secretCode) {
+    if (value == SosLogic.realCode) {
       return 'Decoy code must be different from real code';
     }
     return null;

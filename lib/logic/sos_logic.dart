@@ -1,5 +1,5 @@
 class SosLogic {
-  static String? secretCode;
+  static String? realCode;
   static String? fakeCode;
   static int clickN = 1;
 }

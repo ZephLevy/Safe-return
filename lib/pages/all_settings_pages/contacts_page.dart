@@ -42,33 +42,36 @@ class ContactsPageState extends State<ContactsPage> {
             Padding(
               padding: EdgeInsets.only(right: 25, top: 3),
               child: SizedBox(
-                  height: 48,
-                  width: 48,
-                  child: Center(
-                      child: PersonLogic.persons.isNotEmpty
-                          ? IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  isEditing = !isEditing;
-                                  selectedEditableItems = {};
-                                });
+                height: 48,
+                width: 48,
+                child: Center(
+                  child: PersonLogic.persons.isNotEmpty
+                      ? IconButton(
+                          onPressed: () {
+                            setState(
+                              () {
+                                isEditing = !isEditing;
+                                selectedEditableItems = {};
                               },
-                              isSelected: isEditing,
-                              icon: Icon(Icons.edit_outlined),
-                              selectedIcon:
-                                  Icon(Icons.check_circle_outline_rounded),
-                            )
-                          : _contactsLoading
-                              ? CircularProgressIndicator.adaptive()
-                              : IconButton(
-                                  tooltip:
-                                      "How on earth do you not know what a + button does \n[add_emergency_contact]",
-                                  onPressed: () => _selectContacts(),
-                                  icon: Icon(
-                                    Icons.add,
-                                    size: 28,
-                                  ),
-                                ))),
+                            );
+                          },
+                          isSelected: isEditing,
+                          icon: Icon(Icons.edit_outlined),
+                          selectedIcon: Icon(Icons.check),
+                        )
+                      : _contactsLoading
+                          ? CircularProgressIndicator.adaptive()
+                          : IconButton(
+                              tooltip:
+                                  "How on earth do you not know what a + button does \n[add_emergency_contact]",
+                              onPressed: () => _selectContacts(),
+                              icon: Icon(
+                                Icons.add,
+                                size: 28,
+                              ),
+                            ),
+                ),
+              ),
             ),
           ],
           title: Text("Emergency contacts"),

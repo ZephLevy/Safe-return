@@ -29,7 +29,7 @@ class TimerLogic {
   }
 
   static bool codesNull() {
-    return SosLogic.fakeCode == null || SosLogic.secretCode == null;
+    return SosLogic.fakeCode == null || SosLogic.realCode == null;
   }
 
   static bool validForStart() => !codesNull() && validTime();

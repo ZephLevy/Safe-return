@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/custom_widgets/custom_container_button.dart';
 import 'package:safe_return/logic/location_logic/get_location.dart';
+import 'package:safe_return/pages/main_pages/map_page.dart';
 import 'package:safe_return/storage.dart/required_settings.dart';
 
 class HomeSelector extends StatefulWidget {
@@ -162,27 +163,30 @@ class _HomeSelectorState extends State<HomeSelector> {
                             interactionOptions: InteractionOptions(
                                 flags: InteractiveFlag.pinchZoom),
                             initialCenter: currentPosition,
-                            initialZoom: 15,
+                            initialZoom: 17,
                             cameraConstraint:
                                 const CameraConstraint.containLatitude(),
                           ),
                           children: [
                             TileLayer(
                               urlTemplate:
-                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                  'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                              subdomains: const ['a', 'b', 'c', 'd'],
                             ),
                             CircleLayer(
                               circles: [
                                 CircleMarker(
-                                    point: LatLng(currentPosition.latitude,
-                                        currentPosition.longitude),
-                                    useRadiusInMeter: true,
-                                    radius: 100,
-                                    color:
-                                        const Color.fromARGB(178, 33, 149, 243),
-                                    borderColor:
-                                        Color.fromARGB(231, 23, 103, 168),
-                                    borderStrokeWidth: 5)
+                                  point: LatLng(currentPosition.latitude,
+                                      currentPosition.longitude),
+                                  useRadiusInMeter: true,
+                                  radius: 100,
+                                  //TODO make sure the radius is the same as the logic radius in home_page line 616
+                                  color:
+                                      const Color.fromARGB(178, 33, 149, 243),
+                                  borderColor:
+                                      Color.fromARGB(231, 23, 103, 168),
+                                  borderStrokeWidth: 2,
+                                )
                               ],
                             ),
                             MarkerLayer(
@@ -235,6 +239,7 @@ class _HomeSelectorState extends State<HomeSelector> {
                               onTap: () async {
                                 await ReqSettings.saveReq(
                                     currentPosition: currentPosition);
+                                GetLocation.homePosition = currentPosition;
                                 setState(() {
                                   addingStep += 1;
                                 });

@@ -83,20 +83,20 @@ class SettingsState extends State<Settings> {
                 left: 15, right: 15, bottom: Platform.isAndroid ? 1 : 10),
             child: Column(
               children: [
-                ListTile(
-                  title: Text("SOS Activation"),
-                  leading: Icon(Icons.sos_outlined),
-                  trailing: Icon(Icons.arrow_forward_ios_rounded),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      CupertinoPageRoute(
-                        builder: (BuildContext context) =>
-                            SosActivationPage(), //* OPEN SOS ACTIVATION PAGE
-                      ),
-                    );
-                  },
-                ),
+                // ListTile(
+                //   title: Text("SOS Activation"),
+                //   leading: Icon(Icons.sos_outlined),
+                //   trailing: Icon(Icons.arrow_forward_ios_rounded),
+                //   onTap: () {
+                //     Navigator.push(
+                //       context,
+                //       CupertinoPageRoute(
+                //         builder: (BuildContext context) =>
+                //             SosActivationPage(), //* OPEN SOS ACTIVATION PAGE
+                //       ),
+                //     );
+                //   },
+                // ),
                 ListTile(
                   title: Text("Emergency Contacts"),
                   leading: Icon(

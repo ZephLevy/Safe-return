@@ -8,6 +8,7 @@ import 'package:safe_return/pages/log_sign_up/login_page.dart';
 import 'package:safe_return/pages/log_sign_up/sign_up_page.dart';
 import 'package:safe_return/pages/main_pages/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:latlong2/latlong.dart';
 
 class StoredSettings {
   static int selectedIndex = 1;
@@ -67,7 +68,7 @@ class StoredSettings {
   static Future<void> logOut() async {
     await asyncPrefs.clear();
     SosLogic.fakeCode = null;
-    SosLogic.secretCode = null;
+    SosLogic.realCode = null;
     PersonLogic.persons = [];
     selectedIndex = 1;
     SosLogic.clickN = selectedIndex + 1;

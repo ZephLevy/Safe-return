@@ -44,7 +44,7 @@ class ReqSettings {
     }
     double? latitude = await asyncPrefs.getDouble("latitude");
     double? longitude = await asyncPrefs.getDouble("longitude");
-    SosLogic.secretCode = await asyncPrefs.getString("secretCode");
+    SosLogic.realCode = await asyncPrefs.getString("secretCode");
     SosLogic.fakeCode = await asyncPrefs.getString("fakeCode");
     if (latitude != null && longitude != null) {
       GetLocation.homePosition = LatLng(latitude, longitude);
