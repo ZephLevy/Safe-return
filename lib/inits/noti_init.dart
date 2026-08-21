@@ -6,7 +6,7 @@ class NotiService {
   bool get isInitialized => _isInitialized;
 
   //initialize
-  Future<void> initNotification() async {
+  Future<void> init() async {
     if (_isInitialized) return; // prevent re-initialization
 
     //prepare ios init settings

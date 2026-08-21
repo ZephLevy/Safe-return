@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:safe_return/Visuals/palette.dart';
-import 'package:safe_return/inits/noti_init.dart';
+import 'package:safe_return/logic/global_vars.dart';
 import 'package:safe_return/logic/location_logic/get_location.dart';
 import 'package:safe_return/logic/location_logic/location_updater.dart';
 import 'package:safe_return/pages/all_settings_pages/preferred_viewer_page.dart';
@@ -15,15 +15,15 @@ import 'package:safe_return/storage.dart/user_path_storage.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  NotiService().initNotification();
-
+  await isOnlineNotifier.init();
+  await reconnectingNotifier.init();
+  await notiService.init();
   try {
     await GetLocation.determinePosition();
   } catch (_) {}
-  userPathNotifier.value = await UserPathStorage.loadLocationData();
-  await StoredSettings.load();
 
+  userPathNotifier.value = await UserPathStorage.load();
+  await StoredSettings.load();
   await TimerStorage.loadTimer();
   await PreferredViewerState.loadViewType();
   await SecureCodesStorage.readCodes();

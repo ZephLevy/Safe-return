@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class UserPathStorage {
   // Save
-  static Future<void> saveLocationData(List<LatLng> userPath) async {
+  static Future<void> save(List<LatLng> userPath) async {
     final asyncPrefs = SharedPreferencesAsync();
 
     // Convert LatLng objects to Map
@@ -22,7 +22,7 @@ class UserPathStorage {
   }
 
   // Load
-  static Future<List<LatLng>> loadLocationData() async {
+  static Future<List<LatLng>> load() async {
     // print("just loaded: $userPath");
 
     final asyncPrefs = SharedPreferencesAsync();

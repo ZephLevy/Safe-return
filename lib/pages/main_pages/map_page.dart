@@ -5,14 +5,10 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/Visuals/theme.dart';
-import 'package:safe_return/custom_widgets/custom_container_button.dart';
-import 'package:safe_return/logic/connection_logic.dart';
-import 'package:safe_return/logic/location_logic/get_location.dart';
-
-final ValueNotifier<List<LatLng>> userPathNotifier =
-    ValueNotifier(MapsPageState.userPath);
+import 'package:safe_return/logic/global_vars.dart';
+import 'package:safe_return/logic/internet_error.dart';
+import 'package:safe_return/logic/location_logic/location_error.dart';
 
 class MapsPage extends StatefulWidget {
   const MapsPage({super.key});
@@ -24,202 +20,53 @@ class MapsPageState extends State<MapsPage> {
   static LatLng? homePosition;
   static List<Marker> markers = [];
   static List<LatLng> userPath = [];
-  bool reConnecting = false;
   ReceivePort port = ReceivePort();
   final MapController _mapController = MapController();
 
-  // @override
-  // void initState() {
-  //   super.initState();
+  @override
+  void initState() {
+    super.initState();
+    currentPositionNotifier.init();
+  }
 
-  //   IsolateNameServer.registerPortWithName(
-  //       port.sendPort, LocationServiceRepository.isolateName);
-
-  //   port.listen((dynamic data) {
-  //     print("listened for data: $data");
-  //     if (data != null) {
-  //       final dto = LocationDto.fromJson(Map<String, dynamic>.from(data));
-  //       final currentPos = LatLng(dto.latitude, dto.longitude);
-  //       userPathNotifier.value = [...userPathNotifier.value, currentPos];
-  //       UserPathStorage.saveLocationData(userPathNotifier.value);
-  //     }
-  //   });
-  // }
+  @override
+  void dispose() {
+    currentPositionNotifier.stop();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: FutureBuilder(
-      future: Future.wait([
-        ConnectionLogic.hasInternet(),
-        GetLocation.checkLocationPermissions(),
-        GetLocation.determinePosition(),
-      ]),
-      builder: (context, snapshot) {
-        if (reConnecting) {
-          return Center(child: CircularProgressIndicator.adaptive());
-        }
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator.adaptive());
-        } else if (snapshot.hasError ||
-            !snapshot.hasData ||
-            snapshot.data == null) {
-          return locationError();
-        }
-        final internetAvailable = snapshot.data![0] as bool;
-        final position = snapshot.data![2] as Position;
+    return ValueListenableBuilder(
+        valueListenable: isOnlineNotifier,
+        builder: (context, isOnline, child) {
+          return ValueListenableBuilder(
+            valueListenable: reconnectingNotifier,
+            builder: (context, reConnecting, child) {
+              return ValueListenableBuilder<Position?>(
+                valueListenable: currentPositionNotifier,
+                builder: (context, currentPosition, child) {
+                  if (currentPositionNotifier.hasError) {
+                    return LocationError();
+                  }
+                  if (reConnecting || currentPosition == null) {
+                    return Center(child: CircularProgressIndicator.adaptive());
+                  }
 
-        if (!internetAvailable) {
-          return noInternet();
-        } else if (snapshot.hasData) {
-          return _mainBody(position);
-        } else {
-          throw Exception("No location returned");
-        }
-      },
-    ));
-  }
-
-  Widget noInternet() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.warning_amber_rounded, size: 30),
-          Text("No internet connection"),
-          TextButton(
-              onPressed: (() async {
-                setState(() {
-                  reConnecting = true;
-                });
-                await Future.wait([
-                  ConnectionLogic.hasInternet(),
-                  GetLocation.determinePosition(),
-                  Future.delayed(Duration(seconds: 1))
-                ]);
-
-                setState(() {
-                  reConnecting = false;
-                });
-              }),
-              child: Text("Try Again"))
-        ],
-      ),
-    );
-  }
-
-  Widget locationError() {
-    return Center(
-        child: Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(height: 70),
-              Row(
-                spacing: 10,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.warning_amber_rounded, size: 31),
-                  Text(
-                    "An error occurred",
-                    style: TextStyle(fontSize: 24),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: Column(
-            children: [
-              Text(
-                'Check that your location permission is set to "Always".',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 18),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Text(
-                textAlign: TextAlign.center,
-                "You can change the permission in the app settings",
-                style: TextStyle(fontSize: 16),
-              ),
-              TextButton(
-                onPressed: () async {
-                  await Geolocator.openLocationSettings();
+                  if (!isOnline) {
+                    return InternetError.noInternet(reConnecting);
+                  } else {
+                    return _mainBody(LatLng(
+                        currentPosition.latitude, currentPosition.longitude));
+                  }
                 },
-                child: Text(
-                  "Open settings",
-                  style: TextStyle(fontSize: 16),
-                ),
-              )
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
-          child: SizedBox(
-            height: 40,
-            child: ShrinkTapContainer(
-              onTap: () async {
-                setState(() {
-                  reConnecting = true;
-                });
-
-                try {
-                  await GetLocation.determinePosition();
-                } catch (_) {}
-                await Future.delayed(Duration(milliseconds: 500));
-
-                setState(() {
-                  reConnecting = false;
-                });
-              },
-              color: Palette.blue3,
-              child: Text(
-                "Try Again",
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-          ),
-        )
-      ],
-    ));
+              );
+            },
+          );
+        });
   }
 
-  Widget _mainBody(Position snapshot) {
-    LatLng currentPosition = LatLng(snapshot.latitude, snapshot.longitude);
-
-    // if (GetLocation.homePosition != null) {
-    //   markers.add(
-    //     Marker(
-    //       width: 80.0,
-    //       height: 80.0,
-    //       point: GetLocation.homePosition!,
-    //       child: Icon(
-    //         Icons.home,
-    //         color: Colors.blue,
-    //       ),
-    //     ),
-    //   );
-    // bool closeToHome = Geolocator.distanceBetween(
-    //         currentPosition.latitude,
-    //         currentPosition.longitude,
-    //         Location.homePosition!.latitude,
-    //         Location.homePosition!.longitude) <
-    //     20;
-    // if (closeToHome) {
-    //   markers.removeAt(0); //Home and current location don't overlap
-    // }
-    // }
-    print("full path: $userPath");
-
+  Widget _mainBody(LatLng currentPosition) {
     return Theme(
       data: Themes.settingsThemeData,
       child: Stack(
@@ -302,7 +149,6 @@ class MapsPageState extends State<MapsPage> {
                     size: 30,
                   ),
                   onPressed: () async {
-                    await GetLocation.determinePosition();
                     _mapController.move(currentPosition, 15);
                   },
                 ),
@@ -316,6 +162,7 @@ class MapsPageState extends State<MapsPage> {
 
   Future<void> noHomePos() {
     return showAdaptiveDialog(
+        barrierDismissible: true,
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(

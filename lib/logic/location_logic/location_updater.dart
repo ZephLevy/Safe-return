@@ -11,10 +11,10 @@ import 'package:background_locator_2/settings/locator_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'package:safe_return/logic/global_vars.dart';
 import 'package:safe_return/logic/location_logic/get_location.dart';
 import 'package:safe_return/logic/timer_logic.dart';
 import 'package:safe_return/logic/tokens_logic.dart';
-import 'package:safe_return/pages/main_pages/map_page.dart';
 import 'package:safe_return/storage.dart/user_path_storage.dart';
 
 @pragma('vm:entry-point')
@@ -47,7 +47,7 @@ class LocationServiceRepository {
   static const String isolateName = "LocatorIsolate";
 
   static Future<void> callbackLogger(LocationDto locationDto) async {
-    userPathNotifier.value = await UserPathStorage.loadLocationData();
+    userPathNotifier.value = await UserPathStorage.load();
     await TokensLogic.triggerRefreshTokens();
 
     final SendPort? send = IsolateNameServer.lookupPortByName(isolateName);
@@ -134,7 +134,7 @@ class LocationUpdaterState extends State<LocationUpdater> {
           if (data["type"] == "dispose") {
             userPathNotifier.value = [];
             tmpPath.clear();
-            UserPathStorage.saveLocationData(userPathNotifier.value);
+            UserPathStorage.save(userPathNotifier.value);
           } else if (data["type"] == "location") {
             //location logger (callbackLogger) function triggered
 
@@ -147,7 +147,7 @@ class LocationUpdaterState extends State<LocationUpdater> {
 
             userPathNotifier.value = [...userPathNotifier.value, currentPos];
             print("USERPATH ******* ${userPathNotifier.value.length}");
-            UserPathStorage.saveLocationData(userPathNotifier.value);
+            UserPathStorage.save(userPathNotifier.value);
             tmpPath.add(currentPos);
 
             if (tmpPath.length == 10) {

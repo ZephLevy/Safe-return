@@ -15,7 +15,7 @@ import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/custom_widgets/custom_gradient_container.dart';
 import 'package:safe_return/inits/noti_init.dart';
 
-import 'package:safe_return/logic/connection_logic.dart';
+import 'package:safe_return/logic/global_vars.dart';
 import 'package:safe_return/logic/location_logic/get_location.dart';
 import 'package:safe_return/logic/location_logic/location_updater.dart';
 import 'package:safe_return/logic/codes_logic.dart';
@@ -94,8 +94,6 @@ class TimerAndClockState extends State<TimerAndClock>
 
   double bHBHeight = 52.75;
   double setButtonHeight = 80;
-
-  static bool isOnline = false;
 
   Widget bgBox() {
     if (firstLoad && !showTimer) {
@@ -230,11 +228,9 @@ class TimerAndClockState extends State<TimerAndClock>
   }
 
   Widget setButton(BuildContext context) {
-    return FutureBuilder<bool>(
-        future: ConnectionLogic.hasInternet(),
-        builder: (context, snapshot) {
-          isOnline = snapshot.data ?? false;
-
+    return ValueListenableBuilder(
+        valueListenable: isOnlineNotifier,
+        builder: (context, isOnline, child) {
           return Column(
             children: [
               SizedBox(
@@ -364,29 +360,22 @@ class TimerAndClockState extends State<TimerAndClock>
     }
   }
 
-  static Widget setButtonChild(bool isOnline) {
-    if (!isOnline) {
-      return CircularProgressIndicator.adaptive();
-    }
-    if (waitingServerResponse) {
-      return CircularProgressIndicator.adaptive();
-    }
-    if (startSelected) {
-      return Text(
-        "Cancel",
-        style: TextStyle(
-          fontSize: 20.5,
-          fontWeight: FontWeight.w500,
-        ),
-      );
-    }
+  static Widget setButtonChild() {
+    return ValueListenableBuilder(
+      valueListenable: isOnlineNotifier,
+      builder: (context, isOnline, child) {
+        if (!isOnline || waitingServerResponse) {
+          return CircularProgressIndicator.adaptive();
+        }
 
-    return Text(
-      'Secure Me',
-      style: TextStyle(
-        fontSize: 20.5,
-        fontWeight: FontWeight.w500,
-      ),
+        return Text(
+          startSelected ? "Cancel" : "Secure Me",
+          style: TextStyle(
+            fontSize: 20.5,
+            fontWeight: FontWeight.w500,
+          ),
+        );
+      },
     );
   }
 
@@ -677,7 +666,7 @@ class _AnimatedSetButtonState extends State<AnimatedSetButton>
       secondaryEnd: Alignment.topRight,
       animateAlignments: true,
       child: Center(
-        child: TimerAndClockState.setButtonChild(TimerAndClockState.isOnline),
+        child: TimerAndClockState.setButtonChild(),
       ),
     );
   }
