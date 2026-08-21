@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 class Themes {
   static final settingsThemeData = ThemeData(
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: Colors.white, elevation: 10),
     cardTheme: CardThemeData(
       margin: EdgeInsets.only(left: 15, right: 15, bottom: 10),
       clipBehavior: Clip.antiAlias,
