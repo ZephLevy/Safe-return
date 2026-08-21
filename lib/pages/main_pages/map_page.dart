@@ -54,7 +54,7 @@ class MapsPageState extends State<MapsPage> {
                   }
 
                   if (!isOnline) {
-                    return InternetError.noInternet(reConnecting);
+                    return InternetError();
                   } else {
                     return _mainBody(LatLng(
                         currentPosition.latitude, currentPosition.longitude));

@@ -9,6 +9,14 @@ import 'package:safe_return/logic/location_logic/get_location.dart';
 import 'package:safe_return/logic/location_logic/location_error.dart';
 import 'package:safe_return/pages/main_pages/map_page.dart';
 
+class MapLoadNotifier extends ValueNotifier<bool> {
+  MapLoadNotifier() : super(false); // false = no error yet
+
+  void mapLoadFailed() {
+    if (!value) value = true; // only trigger once
+  }
+}
+
 class HomeSelector extends StatefulWidget {
   const HomeSelector({super.key});
 
@@ -21,12 +29,6 @@ enum HomeType { location, address, map }
 class _HomeSelectorState extends State<HomeSelector> {
   static HomeType homeSelectionType = HomeType.location;
   int addingStep = 1;
-
-  @override
-  void dispose() {
-    currentPositionNotifier.stop();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,110 +120,128 @@ class _HomeSelectorState extends State<HomeSelector> {
   }
 
   Widget useLocation() {
-    currentPositionNotifier.init();
+    mapLoadNotifier.value = false;
     return ValueListenableBuilder(
-      valueListenable: isOnlineNotifier,
-      builder: (context, isOnline, child) {
-        return ValueListenableBuilder(
-          valueListenable: reconnectingNotifier,
-          builder: (context, reConnecting, child) {
-            return FutureBuilder(
-              future: GetLocation.determinePosition(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator.adaptive());
-                } else if (snapshot.hasError ||
-                    snapshot.data == null ||
-                    !snapshot.hasData) {
-                  return LocationError();
-                } else if (reConnecting) {
-                  return Center(child: CircularProgressIndicator.adaptive());
-                } else if (!isOnline) {
-                  return InternetError.noInternet(reConnecting);
-                } else {
-                  final position = snapshot.data!;
-                  LatLng currentPosition =
-                      LatLng(position.latitude, position.longitude);
-                  return Scaffold(
-                    body: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: SafeArea(
-                        top: false,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(height: 20),
-                            Text(
-                              "This location will be marked as your home:",
-                              style: TextStyle(fontSize: 16),
-                            ),
-                            SizedBox(
-                              height: 400,
-                              child: FlutterMap(
-                                options: MapOptions(
-                                  minZoom: 4,
-                                  maxZoom: 20,
-                                  interactionOptions: InteractionOptions(
-                                      flags: InteractiveFlag.pinchZoom),
-                                  initialCenter: LatLng(
-                                      currentPosition.latitude,
-                                      currentPosition.longitude),
-                                  initialZoom: 17,
-                                  cameraConstraint:
-                                      const CameraConstraint.containLatitude(),
-                                ),
+        valueListenable: mapLoadNotifier,
+        builder: (context, failedToLoad, child) {
+          return ValueListenableBuilder(
+            valueListenable: isOnlineNotifier,
+            builder: (context, isOnline, child) {
+              return ValueListenableBuilder(
+                valueListenable: reconnectingNotifier,
+                builder: (context, reConnecting, child) {
+                  return FutureBuilder(
+                    future: GetLocation.determinePosition(),
+                    builder: (context, snapshot) {
+                      // if (snapshot.connectionState == ConnectionState.waiting) {
+                      //   return Center(
+                      //       child: CircularProgressIndicator.adaptive());
+                      // } else
+                      if (snapshot.hasError ||
+                          snapshot.data == null ||
+                          !snapshot.hasData) {
+                        return LocationError();
+                      } else if (reConnecting) {
+                        return Center(
+                            child: CircularProgressIndicator.adaptive());
+                      } else if (!isOnline || failedToLoad) {
+                        return InternetError();
+                      } else {
+                        final position = snapshot.data!;
+                        LatLng currentPosition =
+                            LatLng(position.latitude, position.longitude);
+                        return Scaffold(
+                          body: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: SafeArea(
+                              top: false,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  TileLayer(
-                                    urlTemplate:
-                                        'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-                                    subdomains: const ['a', 'b', 'c', 'd'],
+                                  SizedBox(height: 20),
+                                  Text(
+                                    "This location will be marked as your home:",
+                                    style: TextStyle(fontSize: 16),
                                   ),
-                                  CircleLayer(
-                                    circles: [
-                                      CircleMarker(
-                                        point: LatLng(currentPosition.latitude,
+                                  SizedBox(
+                                    height: 400,
+                                    child: FlutterMap(
+                                      options: MapOptions(
+                                        minZoom: 4,
+                                        maxZoom: 20,
+                                        interactionOptions: InteractionOptions(
+                                            flags: InteractiveFlag.pinchZoom),
+                                        initialCenter: LatLng(
+                                            currentPosition.latitude,
                                             currentPosition.longitude),
-                                        useRadiusInMeter: true,
-                                        radius: 100,
-                                        //TODO make sure the radius is the same as the logic radius in home_page line 616
-                                        color: const Color.fromARGB(
-                                            178, 33, 149, 243),
-                                        borderColor:
-                                            Color.fromARGB(231, 23, 103, 168),
-                                        borderStrokeWidth: 2,
-                                      )
-                                    ],
-                                  ),
-                                  CurrentLocationLayer(),
-                                  MarkerLayer(
-                                    markers: [
-                                      Marker(
-                                        point: LatLng(
-                                            currentPosition.latitude + 0.00001,
-                                            currentPosition.longitude),
-                                        child: Icon(Icons.location_pin),
+                                        initialZoom: 17,
+                                        cameraConstraint: const CameraConstraint
+                                            .containLatitude(),
                                       ),
-                                    ],
+                                      children: [
+                                        TileLayer(
+                                          maxZoom: 50,
+                                          errorTileCallback: (tile, error,
+                                                  stackTrace) =>
+                                              mapLoadNotifier.mapLoadFailed(),
+                                          urlTemplate:
+                                              'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                                          subdomains: const [
+                                            'a',
+                                            'b',
+                                            'c',
+                                            'd'
+                                          ],
+                                        ),
+                                        CircleLayer(
+                                          circles: [
+                                            CircleMarker(
+                                              point: LatLng(
+                                                  currentPosition.latitude,
+                                                  currentPosition.longitude),
+                                              useRadiusInMeter: true,
+                                              radius: 100,
+                                              //TODO make sure the radius is the same as the logic radius in home_page line 616
+                                              color: const Color.fromARGB(
+                                                  178, 33, 149, 243),
+                                              borderColor: Color.fromARGB(
+                                                  231, 23, 103, 168),
+                                              borderStrokeWidth: 2,
+                                            )
+                                          ],
+                                        ),
+                                        CurrentLocationLayer(),
+                                        MarkerLayer(
+                                          markers: [
+                                            Marker(
+                                              point: LatLng(
+                                                  currentPosition.latitude +
+                                                      0.00001,
+                                                  currentPosition.longitude),
+                                              child: Icon(Icons.location_pin),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
+                                  Text("Pinch to zoom in and out")
                                 ],
                               ),
                             ),
-                            Text("Pinch to zoom in and out")
-                          ],
-                        ),
-                      ),
-                    ),
-                    bottomNavigationBar: backNextButtons(
-                        currentPosition: LatLng(currentPosition.latitude,
-                            currentPosition.longitude)),
+                          ),
+                          bottomNavigationBar: backNextButtons(
+                              currentPosition: LatLng(currentPosition.latitude,
+                                  currentPosition.longitude)),
+                        );
+                      }
+                    },
                   );
-                }
-              },
-            );
-          },
-        );
-      },
-    );
+                },
+              );
+            },
+          );
+        });
   }
 
   Widget useAddress() {
@@ -377,9 +397,6 @@ class _HomeSelectorState extends State<HomeSelector> {
                   borderRadius: BorderRadius.circular(25),
                   color: const Color.fromARGB(255, 107, 192, 232),
                   onTap: () {
-                    if (currentPositionNotifier.value != null) {
-                      currentPositionNotifier.stop();
-                    }
                     setState(() {
                       addingStep -= 1;
                     });
@@ -398,9 +415,6 @@ class _HomeSelectorState extends State<HomeSelector> {
                   borderRadius: BorderRadius.circular(25),
                   color: Colors.lightBlue,
                   onTap: () async {
-                    if (currentPositionNotifier.value != null) {
-                      currentPositionNotifier.stop();
-                    }
                     MapsPageState.homePosition = currentPosition;
                     setState(() {
                       addingStep += 1;

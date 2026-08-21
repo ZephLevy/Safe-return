@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/custom_widgets/custom_container_button.dart';
 import 'package:safe_return/logic/global_vars.dart';
+import 'package:safe_return/logic/location_logic/get_location.dart';
 
 class LocationError extends StatefulWidget {
   const LocationError({super.key});
@@ -12,6 +13,14 @@ class LocationError extends StatefulWidget {
 }
 
 class _LocationErrorState extends State<LocationError> {
+  @override
+  void initState() {
+    if (currentPositionNotifier.value != null) {
+      currentPositionNotifier.stop();
+    }
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
@@ -75,24 +84,25 @@ class _LocationErrorState extends State<LocationError> {
               ),
               Padding(
                 padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
-                child: SizedBox(
-                  height: 40,
-                  child: ShrinkTapContainer(
-                    onTap: () async {
-                      currentPositionNotifier.stop();
-
-                      print("reconnecting");
-                      reconnectingNotifier.tryReconnect(
-                        () async {
-                          await currentPositionNotifier.init();
-                          await Future.delayed(Duration(seconds: 1));
-                        },
-                      );
-                    },
-                    color: Palette.blue3,
-                    child: Text(
-                      "Try Again",
-                      style: TextStyle(fontSize: 16),
+                child: SafeArea(
+                  top: false,
+                  child: SizedBox(
+                    height: 40,
+                    child: ShrinkTapContainer(
+                      onTap: () async {
+                        print("reconnecting");
+                        reconnectingNotifier.tryReconnect(
+                          () async {
+                            GetLocation.determinePosition();
+                            await Future.delayed(Duration(seconds: 1));
+                          },
+                        );
+                      },
+                      color: Palette.blue3,
+                      child: Text(
+                        "Try Again",
+                        style: TextStyle(fontSize: 16),
+                      ),
                     ),
                   ),
                 ),

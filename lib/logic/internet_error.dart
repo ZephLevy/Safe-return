@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:safe_return/logic/global_vars.dart';
 
-class InternetError {
-  static Widget noInternet(bool reConnecting) {
+class InternetError extends StatefulWidget {
+  const InternetError({super.key});
+
+  @override
+  State<InternetError> createState() => _InternetErrorState();
+}
+
+class _InternetErrorState extends State<InternetError> {
+  @override
+  Widget build(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
