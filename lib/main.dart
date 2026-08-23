@@ -16,7 +16,6 @@ import 'package:safe_return/storage.dart/user_path_storage.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await isOnlineNotifier.init();
-  await reconnectingNotifier.init();
   await notiService.init();
   try {
     await GetLocation.determinePosition();

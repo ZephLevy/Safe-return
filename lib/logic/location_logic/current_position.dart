@@ -11,7 +11,16 @@ class CurrentPosition extends ValueNotifier<Position?> {
 
   bool hasError = false;
 
+  bool positionStreamRunning = false;
+
+  bool _initializing = false;
+
   Future<void> init() async {
+    if (positionStreamRunning || _initializing) {
+      return;
+    }
+    _initializing = true;
+
     //get inital position
     try {
       value = await GetLocation.determinePosition();
@@ -21,6 +30,8 @@ class CurrentPosition extends ValueNotifier<Position?> {
       hasError = true;
       print("error determining position: $e");
       notifyListeners();
+    } finally {
+      _initializing = false;
     }
 
     //keep it updated live
