@@ -12,10 +12,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:info_widget/info_widget.dart';
 import 'package:safe_return/Visuals/theme.dart';
+import 'package:safe_return/logic/home_page_updater.dart';
 import 'package:safe_return/logic/location_logic/location_updater.dart';
 import 'package:safe_return/pages/log_sign_up/login_page.dart';
 import 'package:safe_return/pages/log_sign_up/sign_up_page.dart';
-import 'package:safe_return/pages/main_pages/home_page.dart';
 import 'package:safe_return/pages/all_settings_pages/account_page.dart';
 import 'package:safe_return/pages/all_settings_pages/contacts_page.dart';
 import 'package:safe_return/pages/all_settings_pages/home_selector_page.dart';
@@ -197,7 +197,7 @@ class SettingsState extends State<Settings> {
                   ),
                   trailing: Icon(Icons.arrow_forward_ios_rounded),
                   onTap: () {
-                    if (!TimerAndClockState.showTimer) {
+                    if (!HomeUpdater.showTimer) {
                       Navigator.push(
                         context,
                         CupertinoPageRoute(

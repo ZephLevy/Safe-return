@@ -8,203 +8,129 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inner_shadow/flutter_inner_shadow.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-import 'package:latlong2/latlong.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/custom_widgets/custom_gradient_container.dart';
 import 'package:safe_return/inits/noti_init.dart';
-
-import 'package:safe_return/logic/global_vars.dart';
-import 'package:safe_return/logic/location_logic/get_location.dart';
-import 'package:safe_return/logic/location_logic/location_updater.dart';
 import 'package:safe_return/logic/codes_logic.dart';
+import 'package:safe_return/logic/global_vars.dart';
+import 'package:safe_return/logic/home_page_updater.dart';
+import 'package:safe_return/logic/location_logic/location_updater.dart';
+import 'package:safe_return/logic/timer_handler.dart';
 import 'package:safe_return/logic/timer_logic.dart';
 import 'package:safe_return/pages/main_pages/map_page.dart';
 import 'package:safe_return/storage.dart/stored_settings.dart';
 import 'package:safe_return/storage.dart/timer_storage.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            TimerAndClock(),
-          ],
-        ),
-      ),
-    );
-  }
+  State<HomePage> createState() => HomePageState();
 }
 
-class HomeTimer extends StatefulWidget {
-  final CountDownController timerController;
-
-  final VoidCallback onTimerComplete;
-  const HomeTimer({
-    super.key,
-    required this.timerController,
-    required this.onTimerComplete,
-  });
-
-  @override
-  State<HomeTimer> createState() => _HomeTimerState();
-}
-
-class SnackBarContent extends StatefulWidget {
-  const SnackBarContent({
-    super.key,
-  });
-
-  @override
-  State<SnackBarContent> createState() => _SnackBarContentState();
-}
-
-class TimerAndClock extends StatefulWidget {
-  const TimerAndClock({super.key});
-
-  @override
-  State<TimerAndClock> createState() => TimerAndClockState();
-}
-
-class TimerAndClockState extends State<TimerAndClock>
-    with TickerProviderStateMixin {
-  static Timer? awayTimer;
-  static bool showTimer = false;
-  static bool firstLoad = false;
-  static bool startSelected = false;
-
-  // DateTime date = DateTime.now();
-  static int codeAttempts = 3;
-  static bool waitingServerResponse = false;
-  final CountDownController timerController = CountDownController();
-  final GlobalKey mainContainerKey = GlobalKey();
-  final GlobalKey bHBkey = GlobalKey();
-
+class HomePageState extends State<HomePage> {
   Duration animationDuration = Duration(milliseconds: 200);
   Curve animationCurve = Curves.easeOut;
-  bool timeIsSet = false;
 
-  double bHBHeight = 52.75;
-  double setButtonHeight = 80;
-
-  Widget bgBox() {
-    if (firstLoad && !showTimer) {
-      return Container(
-        width: double.infinity,
-        height: bHBHeight + mainContainerHeight(),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: Palette.blue1,
-            width: 1.5,
-          ),
-        ),
-      );
-    } else {
-      return AnimatedContainer(
-        curve: animationCurve,
-        duration: animationDuration,
-        width: double.infinity,
-        height: bHBHeight + mainContainerHeight(),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: Palette.blue1,
-            width: 1.5,
-          ),
-        ),
-      );
-    }
-  }
+  // DateTime date = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
-    // print(
-    //   "s time: ${TimerLogic.selectedTime};   T of tap: ${TimerLogic.timeOfTap};   elpsed: ${TimerLogic.timeElapsed()};   totalT: ${TimerLogic.totalTime()}",
-    // );
-
-    return Column(
-      children: [
-        AnimatedSize(
-          curve: animationCurve,
-          duration: animationDuration,
-          alignment: Alignment.topCenter,
-          child: Stack(
-            children: [
-              bgBox(),
-              Column(
-                children: [
-                  _bhb(),
-                  CustomGradientContainer(
-                      height: 1,
-                      margin: EdgeInsets.symmetric(horizontal: 20),
-                      colors: [
-                        Colors.transparent,
-                        Colors.black54,
-                        Colors.transparent
-                      ]),
-                  SizedBox(
-                    key: mainContainerKey,
-                    height: mainContainerHeight(),
-                    child: showTimer
-                        ? HomeTimer(
-                            timerController: timerController,
-                            onTimerComplete: () {
-                              setState(() {
-                                cancelEvent();
-                              });
-                            },
-                          )
-                        : TimeSetter(),
-                  )
-                ],
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: 15),
-        setButton(context),
-      ],
-    );
+    return ValueListenableBuilder(
+        valueListenable: isOnlineNotifier,
+        builder: (context, isOnline, child) {
+          return ValueListenableBuilder(
+            valueListenable: showTimerNotifier,
+            builder: (context, showTimer, child) {
+              return ValueListenableBuilder(
+                valueListenable: startSelectedNotifier,
+                builder: (context, startSelected, child) {
+                  return ValueListenableBuilder(
+                    valueListenable: firstLoadNotifier,
+                    builder: (context, firstLoad, child) {
+                      return ValueListenableBuilder(
+                          valueListenable: codeAttemptsNotifier,
+                          builder: (context, codeAttempts, child) {
+                            return ValueListenableBuilder(
+                              valueListenable: initializingTimer,
+                              builder: (context, initializingTimer, child) {
+                                return Scaffold(
+                                  body: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        AnimatedSize(
+                                          curve: animationCurve,
+                                          duration: animationDuration,
+                                          alignment: Alignment.topCenter,
+                                          child: MainScreen(),
+                                        ),
+                                        SizedBox(height: 15),
+                                        SetButton(),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          });
+                    },
+                  );
+                },
+              );
+            },
+          );
+        });
   }
 
-  void checkWhetherToStart() async {
-    // setState(
-    //   () {
-    //     date = TimerLogic.selectedTime;
-    //   },
-    // );
-
-    if (TimerLogic.validForStart()) {
-      print('attempting to contact server to send info');
-      _tryStartTimer();
+  static void checkSettingsForStart(context) async {
+    if (TimerLogic.validSettingsForStart()) {
+      TimerHandler.tryStartTimer(context);
     } else {
-      setState(() {
-        startSelected = false;
-        showTimer = false;
-      });
+      HomeUpdater.startSelected = false;
+      HomeUpdater.showTimer = false;
       if (TimerLogic.codesNull()) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Center(
-              child: Text("Please configure your codes in the settings page"),
-            ),
+        showTopSnackBar(
+          displayDuration: Duration(seconds: 4),
+          dismissType: DismissType.onSwipe,
+          Overlay.of(context),
+          CustomSnackBar.error(
+            maxLines: 4,
+            icon: Icon(Icons.info_outline_rounded,
+                color: Color(0x15000000), size: 120),
+            message:
+                "Missing Security Code(s):\nYou can configure your codes in the settings page.",
           ),
         );
-      } else if (TimerLogic.notValidForStart()) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Center(
-              child: Text("Please select a time that is after now!"),
-            ),
+      } else if (TimerLogic.selectedTimeIsNow()) {
+        showTopSnackBar(
+          displayDuration: Duration(seconds: 4),
+          dismissType: DismissType.onSwipe,
+          Overlay.of(context),
+          CustomSnackBar.error(
+            maxLines: 4,
+            icon: Icon(Icons.info_outline_rounded,
+                color: Color(0x15000000), size: 120),
+            message: "Error starting timer:\nSelect a time that is not now.",
+          ),
+        );
+      } else if (MapsPageState.homePosition == null) {
+        showTopSnackBar(
+          displayDuration: Duration(seconds: 4),
+          dismissType: DismissType.onSwipe,
+          Overlay.of(context),
+          CustomSnackBar.error(
+            maxLines: 4,
+            icon: Icon(Icons.info_outline_rounded,
+                color: Color(0x15000000), size: 120),
+            message:
+                "Missing Home Position:\nYou can add your Home Position in the settings page.",
           ),
         );
       }
@@ -220,300 +146,14 @@ class TimerAndClockState extends State<TimerAndClock>
   Future<void> initStateAsync() async {
     await StoredSettings.load();
     await TimerStorage.loadTimer();
-    firstLoad = true;
+    firstLoadNotifier.value = true;
   }
 
   double mainContainerHeight() {
-    return showTimer ? 280 : 220;
+    return HomeUpdater.showTimer ? 280 : 220;
   }
 
-  Widget setButton(BuildContext context) {
-    return ValueListenableBuilder(
-        valueListenable: isOnlineNotifier,
-        builder: (context, isOnline, child) {
-          return Column(
-            children: [
-              SizedBox(
-                height: setButtonHeight,
-                width: double.infinity,
-                child: GestureDetector(
-                  onTap: () async {
-                    if (isOnline) {
-                      setState(() {
-                        firstLoad = false;
-                      });
-                      if (showTimer) {
-                        IsolateNameServer.removePortNameMapping(
-                            LocationServiceRepository.isolateName);
-                        await BackgroundLocator.unRegisterLocationUpdate();
-
-                        setState(() {
-                          cancelEvent();
-                        });
-                      } else {
-                        checkWhetherToStart();
-                      }
-                    }
-                  },
-                  onTapDown: (details) {
-                    HapticFeedback.selectionClick();
-                    if (isOnline) {
-                      setState(() {
-                        startSelected = true;
-                      });
-                    }
-                  },
-                  onTapUp: (details) {
-                    if (isOnline) {
-                      if (TimerLogic.validTime()) {
-                        setState(() => startSelected = true);
-                        HapticFeedback.heavyImpact();
-                      } else {
-                        HapticFeedback.selectionClick();
-                        setState(() => startSelected = false);
-                      }
-                    }
-                  },
-                  onTapCancel: () {
-                    if (isOnline) {
-                      setState(() {
-                        showTimer
-                            ? startSelected = true
-                            : startSelected = false;
-                      });
-                    }
-                  },
-                  child: Container(
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                            offset: Offset(-1, 1),
-                            blurRadius: 5,
-                            spreadRadius: 0,
-                            color: const Color.fromARGB(51, 0, 0, 0)),
-                        BoxShadow(
-                            offset: Offset(1, -1),
-                            blurRadius: 5,
-                            spreadRadius: 0,
-                            color: const Color.fromARGB(51, 0, 0, 0)),
-                        BoxShadow(
-                            offset: Offset(0, 4),
-                            blurRadius: 7,
-                            spreadRadius: 2,
-                            color: const Color.fromARGB(51, 0, 0, 0)),
-                      ],
-                    ),
-                    child: InnerShadow(
-                      shadows: [
-                        Shadow(
-                          color: Color.fromARGB(30, 0, 0, 0),
-                          offset: Offset.zero,
-                          blurRadius: 10,
-                        ),
-                      ],
-                      child: AnimatedSwitcher(
-                        duration: Duration(milliseconds: 150),
-                        child: showNormalColors()
-                            ? AnimatedSetButton(
-                                key: ValueKey('normal'),
-                              )
-                            : AnimatedSetButton(
-                                key: ValueKey('cancel'),
-                                primaryColors: [
-                                  Color(0xFFb5b5b5),
-                                  Color(0xFFD58486),
-                                  Color(0xFFD58486),
-                                  Color(0xFFD58486),
-                                  Color(0xFFb5b5b5),
-                                ],
-                                secondaryColors: [
-                                  Color(0xFFD59FA8),
-                                  Color(0xFFb5b5b5),
-                                  Color(0xFFb5b5b5),
-                                  Color(0xFFb5b5b5),
-                                  Color(0xFFD59FA8),
-                                ],
-                              ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              if (!isOnline)
-                Padding(
-                  padding: const EdgeInsets.only(top: 5),
-                  child: Text("Waiting for internet connection"),
-                )
-            ],
-          );
-        });
-  }
-
-  bool showNormalColors() {
-    if (TimerAndClockState.waitingServerResponse ||
-        TimerAndClockState.showTimer) {
-      return false;
-    } else {
-      return true;
-    }
-  }
-
-  static Widget setButtonChild() {
-    return ValueListenableBuilder(
-      valueListenable: isOnlineNotifier,
-      builder: (context, isOnline, child) {
-        if (!isOnline || waitingServerResponse) {
-          return CircularProgressIndicator.adaptive();
-        }
-
-        return Text(
-          startSelected ? "Cancel" : "Secure Me",
-          style: TextStyle(
-            fontSize: 20.5,
-            fontWeight: FontWeight.w500,
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _bhb() {
-    return Container(
-      key: bHBkey,
-      height: bHBHeight,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          // color: Palette.blue1,
-          color: Colors.transparent,
-          width: 1.5,
-        ),
-      ),
-      child: SizedBox(
-        height: mainContainerHeight(),
-        child: Center(
-            child: showTimer
-                ? _HomeTimerState.showBeHomeTime()
-                : const Text(
-                    'Be Home By:',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  )),
-      ),
-    );
-  }
-
-  Future<void> _tryStartTimer() async {
-    setState(() => waitingServerResponse = true);
-
-    await _HomeTimerState.setTimerLogic();
-    LocationUpdaterState.setLocationLogic();
-
-    await _sendTime(TimerLogic.selectedTime, onServerFail: () async {
-      //.3405u3453453wrtsaft
-      if (await GetLocation.checkLocationPermissions()) {
-        LocationUpdaterState.startLocationService();
-      }
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: SnackBarContent(),
-            duration: Duration(milliseconds: 500),
-          ),
-        );
-      }
-      setState(() {
-        codeAttempts = 3;
-        showTimer = true;
-        startSelected = true;
-      });
-
-      if (TimerLogic.timeOfTap != null) {
-        Duration timeTo = TimerLogic.totalTimeDuration()!;
-
-        awayTimer = Timer(
-          timeTo,
-          () async {
-            if (MapsPageState.homePosition == null) return;
-            final LatLng homePosition = MapsPageState.homePosition!;
-            final Position currentPosition =
-                await GetLocation.determinePosition();
-            final LatLng currentLatLng =
-                LatLng(currentPosition.latitude, currentPosition.longitude);
-            MapsPageState.userPath.add(currentLatLng);
-            final double distance = Geolocator.distanceBetween(
-                homePosition.latitude,
-                homePosition.longitude,
-                currentPosition.latitude,
-                currentPosition.longitude);
-            final accuracy = await Geolocator.getLocationAccuracy();
-            late int radius;
-            if (accuracy == LocationAccuracyStatus.reduced) {
-              radius = 5000;
-            } else {
-              radius = 20;
-            }
-            if (distance > radius) _handleAwayFromhome();
-          },
-        );
-      }
-    }, onServerSuccess: () {
-      cancelEvent();
-      return showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 7,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 3),
-                    child: Icon(Icons.warning_amber_rounded),
-                  ),
-                  Text("An error occured"),
-                ],
-              ),
-              content: Text(
-                  "We were unable to connect to the server, please try again.\nIf the error persists, try restarting the app."),
-              actions: [
-                TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      cancelEvent();
-                    },
-                    child: Text(
-                      "Cancel",
-                    )),
-                TextButton(
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                    setState(() {
-                      waitingServerResponse = true;
-                    });
-                    await Future.delayed(Duration(seconds: 1));
-                    await _tryStartTimer();
-                    print("waiting: $waitingServerResponse");
-                    setState(() {
-                      waitingServerResponse = false;
-                    });
-                  },
-                  child: Text("Try again"),
-                )
-              ],
-            );
-          });
-    });
-    setState(() {
-      waitingServerResponse = false;
-    });
-  }
-
-  Future<void> _sendTime(DateTime time,
+  static Future<void> sendTime(DateTime time,
       {required Function onServerSuccess, required onServerFail}) async {
     // IMPORTANT: Use "flutter run --dart-define=IP=[ip]" to set this before running
     // ALSO IMPORTANT: @Grayerhack700 if you don't use nginx then specify port 8080 (eg. localhost:8080)
@@ -541,7 +181,7 @@ class TimerAndClockState extends State<TimerAndClock>
     }
   }
 
-  void _handleAwayFromhome() {
+  static void handleAwayFromhome(context) {
     NotiService().notHomeNotif();
     TextEditingController textController = TextEditingController();
     showDialog(
@@ -556,7 +196,8 @@ class TimerAndClockState extends State<TimerAndClock>
             content: TextField(
               controller: textController,
               decoration: InputDecoration(
-                  hintText: "You have $codeAttempts attempts left"),
+                  hintText:
+                      "You have ${codeAttemptsNotifier.value} attempts left"),
             ),
             actions: [
               TextButton(
@@ -574,9 +215,9 @@ class TimerAndClockState extends State<TimerAndClock>
 
                   // Got code wrong
                   textController.clear();
-                  timeSetButtonState(() => codeAttempts--);
+                  timeSetButtonState(() => codeAttemptsNotifier.value--);
 
-                  if (codeAttempts <= 0) {
+                  if (codeAttemptsNotifier.value <= 0) {
                     alert();
                     if (canPop) Navigator.pop(context);
                   }
@@ -591,8 +232,8 @@ class TimerAndClockState extends State<TimerAndClock>
   }
 
   static void cancelEvent() {
-    showTimer = false;
-    startSelected = false;
+    HomeUpdater.showTimer = false;
+    HomeUpdater.startSelected = false;
     TimerLogic.timeOfTap = null;
     // TimeSetterState.isTomorrow = false;
     // TimerLogic.selectedTime = DateTime(
@@ -604,7 +245,7 @@ class TimerAndClockState extends State<TimerAndClock>
     //     TimerLogic.selectedTime.second,
     //     TimerLogic.selectedTime.millisecond);
 
-    TimerLogic.selectedTime = DateTime.now().add(Duration(seconds: 1));
+    HomeUpdater.selectedTime = DateTime.now().add(Duration(seconds: 1));
 
     TimerStorage.saveTimer();
   }
@@ -616,32 +257,185 @@ class TimerAndClockState extends State<TimerAndClock>
   }
 }
 
-class AnimatedSetButton extends StatefulWidget {
-  final List<Color> primaryColors;
-  final List<Color> secondaryColors;
-  static const List<Color> defaultPrimaryColors = [
-    // Colors.red,
-    // Colors.green
-    Color(0xFF80a6a9),
-    Color(0xFFa4d2d5),
-    Color(0xFFa4d2d5),
-    Color(0xFFa4d2d5),
-    Color(0xFF80a6a9),
-  ];
-  static const List<Color> defaultSecondaryColors = [
-    Color(0xFFa4d2d5),
-    Color(0xFF80a6a9),
-    Color(0xFF80a6a9),
-    Color(0xFF80a6a9),
-    Color(0xFFa4d2d5),
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
 
-    // Colors.blue,
-    // Color.fromARGB(255, 255, 219, 59)
-  ];
-  const AnimatedSetButton(
-      {this.primaryColors = defaultPrimaryColors,
-      this.secondaryColors = defaultSecondaryColors,
-      super.key});
+  @override
+  State<MainScreen> createState() => MainScreenState();
+}
+
+class MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
+  final GlobalKey mainContainerKey = GlobalKey();
+  CountDownController timerController = CountDownController();
+  bool timeIsSet = false;
+
+  double bHBHeight = 52.75;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(bottom: 20, top: 15),
+      width: double.infinity,
+      // height: bHBHeight + mainContainerHeight(),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Palette.blue1,
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          HomeUpdater.showTimer
+              ? HomeTimerState.showBeHomeTime()
+              : const Text(
+                  textAlign: TextAlign.center,
+                  'Be Home By:',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+          SizedBox(height: 7),
+          CustomGradientContainer(
+              height: 1,
+              margin: EdgeInsets.symmetric(horizontal: 20),
+              colors: [Colors.transparent, Colors.black54, Colors.transparent]),
+          SizedBox(height: HomeUpdater.showTimer ? 20 : 15),
+          Container(
+            key: mainContainerKey,
+            child: HomeUpdater.showTimer
+                ? HomeTimer(
+                    timerController: timerController,
+                    onTimerComplete: () {
+                      setState(() {
+                        HomePageState.cancelEvent();
+                      });
+                    },
+                  )
+                : TimeSetter(),
+          )
+        ],
+      ),
+    );
+
+    // print(
+    //   "s time: ${TimerLogic.selectedTime};   T of tap: ${TimerLogic.timeOfTap};   elpsed: ${TimerLogic.timeElapsed()};   totalT: ${TimerLogic.totalTime()}",
+    // );
+  }
+}
+
+class SetButton extends StatefulWidget {
+  const SetButton({super.key});
+
+  @override
+  State<SetButton> createState() => _SetButtonState();
+}
+
+class _SetButtonState extends State<SetButton> {
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: isOnlineNotifier,
+      builder: (context, isOnline, child) {
+        return Column(
+          children: [
+            SizedBox(
+              height: 80,
+              width: double.infinity,
+              child: GestureDetector(
+                onTap: () async {
+                  if (isOnline) {
+                    HomeUpdater.firstLoad = false;
+
+                    if (HomeUpdater.showTimer) {
+                      IsolateNameServer.removePortNameMapping(
+                          LocationServiceRepository.isolateName);
+                      await BackgroundLocator.unRegisterLocationUpdate();
+
+                      setState(() {
+                        HomePageState.cancelEvent();
+                      });
+                    } else {
+                      HomePageState.checkSettingsForStart(context);
+                    }
+                  }
+                },
+                onTapDown: (details) {
+                  HapticFeedback.selectionClick();
+                  if (isOnline) {
+                    HomeUpdater.startSelected = true;
+                  }
+                },
+                onTapUp: (details) {
+                  if (isOnline) {
+                    HomeUpdater.startSelected = true;
+                    HapticFeedback.heavyImpact();
+                  } else {
+                    HapticFeedback.selectionClick();
+                    HomeUpdater.startSelected = false;
+                  }
+                },
+                onTapCancel: () {
+                  if (isOnline) {
+                    HomeUpdater.showTimer
+                        ? HomeUpdater.startSelected = true
+                        : HomeUpdater.startSelected = false;
+                  }
+                },
+                child: Container(
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                          offset: Offset(-1, 1),
+                          blurRadius: 5,
+                          spreadRadius: 0,
+                          color: const Color.fromARGB(51, 0, 0, 0)),
+                      BoxShadow(
+                          offset: Offset(1, -1),
+                          blurRadius: 5,
+                          spreadRadius: 0,
+                          color: const Color.fromARGB(51, 0, 0, 0)),
+                      BoxShadow(
+                          offset: Offset(0, 4),
+                          blurRadius: 7,
+                          spreadRadius: 2,
+                          color: const Color.fromARGB(51, 0, 0, 0)),
+                    ],
+                  ),
+                  child: InnerShadow(
+                    shadows: [
+                      Shadow(
+                        color: Color.fromARGB(30, 0, 0, 0),
+                        offset: Offset.zero,
+                        blurRadius: 10,
+                      ),
+                    ],
+                    child: AnimatedSwitcher(
+                      duration: Duration(milliseconds: 300),
+                      child: AnimatedSetButton(),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            if (!isOnline)
+              Padding(
+                padding: const EdgeInsets.only(top: 5),
+                child: Text("Waiting for internet connection"),
+              )
+          ],
+        );
+      },
+    );
+  }
+}
+
+class AnimatedSetButton extends StatefulWidget {
+  const AnimatedSetButton({super.key});
 
   @override
   State<AnimatedSetButton> createState() => _AnimatedSetButtonState();
@@ -654,19 +448,75 @@ class _AnimatedSetButtonState extends State<AnimatedSetButton>
     duration: const Duration(milliseconds: 5000),
   )..repeat(reverse: true);
 
+  static const List<Color> defaultPrimaryColors = [
+    // Colors.red,
+    // Colors.green
+    Color(0xFF80a6a9),
+    Color(0xFFa4d2d5),
+    Color(0xFFa4d2d5),
+    Color(0xFFa4d2d5),
+    Color(0xFF80a6a9),
+  ];
+  final List<Color> defaultSecondaryColors = [
+    Color(0xFFa4d2d5),
+    Color(0xFF80a6a9),
+    Color(0xFF80a6a9),
+    Color(0xFF80a6a9),
+    Color(0xFFa4d2d5),
+  ];
+
+  final List<Color> cancelPrimaryColors = [
+    Color(0xFFb5b5b5),
+    Color(0xFFD58486),
+    Color(0xFFD58486),
+    Color(0xFFD58486),
+    Color(0xFFb5b5b5),
+  ];
+
+  final List<Color> cancelSecondaryColors = [
+    Color(0xFFD59FA8),
+    Color(0xFFb5b5b5),
+    Color(0xFFb5b5b5),
+    Color(0xFFb5b5b5),
+    Color(0xFFD59FA8),
+  ];
+
+  bool showNormalColors() {
+    if (HomeUpdater.showTimer) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimateGradient(
       controller: animationController,
-      primaryColors: widget.primaryColors,
-      secondaryColors: widget.secondaryColors,
+      primaryColors:
+          showNormalColors() ? defaultPrimaryColors : cancelPrimaryColors,
+      secondaryColors:
+          showNormalColors() ? defaultSecondaryColors : cancelSecondaryColors,
       primaryBegin: Alignment.bottomRight,
       primaryEnd: Alignment.bottomLeft,
       secondaryBegin: Alignment.topLeft,
       secondaryEnd: Alignment.topRight,
       animateAlignments: true,
       child: Center(
-        child: TimerAndClockState.setButtonChild(),
+        child: setButtonChild(),
+      ),
+    );
+  }
+
+  Widget setButtonChild() {
+    if (!isOnlineNotifier.value || waitingServerNotifier.value) {
+      return CircularProgressIndicator.adaptive();
+    }
+    return Text(
+      HomeUpdater.startSelected ? "Cancel" : "Secure Me",
+      style: TextStyle(
+        fontSize: 20.5,
+        fontWeight: FontWeight.w500,
       ),
     );
   }
@@ -685,12 +535,7 @@ class TimeSetterState extends State<TimeSetter> {
     return Column(
       spacing: 0,
       children: [
-        timeIsTomorrowCheckBox(),
-        // Divider(
-        //   indent: 20,
-        //   endIndent: 20,
-        //   height: 3,
-        // ),
+        // timeIsTomorrowCheckBox(),
         setterUi(),
       ],
     );
@@ -702,18 +547,18 @@ class TimeSetterState extends State<TimeSetter> {
       child: SizedBox(
         height: 150,
         child: CupertinoDatePicker(
-          initialDateTime: TimerLogic.selectedTime,
+          initialDateTime: HomeUpdater.selectedTime,
           onDateTimeChanged: (value) {
-            TimerLogic.selectedTime = value;
-            if (timeIsNextDay()) {
-              setState(() {
-                TimerLogic.isTomorrow = true;
-              });
-            } else {
-              setState(() {
-                TimerLogic.isTomorrow = false;
-              });
-            }
+            HomeUpdater.selectedTime = value;
+            // if (timeIsNextDay()) {
+            //   setState(() {
+            //     TimerLogic.plusDay = true;
+            //   });
+            // } else {
+            //   setState(() {
+            //     TimerLogic.plusDay = false;
+            //   });
+            // }
           },
           mode: CupertinoDatePickerMode.time,
           use24hFormat: true,
@@ -722,37 +567,48 @@ class TimeSetterState extends State<TimeSetter> {
     );
   }
 
-  bool timeIsNextDay() => TimerLogic.selectedTime.isBefore(DateTime.now());
-
-  Widget timeIsTomorrowCheckBox() {
-    return StatefulBuilder(
-      builder: (context, setState) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Checkbox.adaptive(
-              side: BorderSide(
-                  color: const Color.fromARGB(255, 114, 114, 114), width: 1),
-              visualDensity: VisualDensity.compact,
-              value: TimerLogic.isTomorrow,
-              onChanged: (value) {
-                setState(
-                  () => TimerLogic.isTomorrow = value!,
-                );
-              },
-            ),
-            GestureDetector(
-                onTap: () => setState(
-                    () => TimerLogic.isTomorrow = !TimerLogic.isTomorrow),
-                child: const Text("Next Day"))
-          ],
-        );
-      },
-    );
-  }
+  // Widget timeIsTomorrowCheckBox() {
+  //   return StatefulBuilder(
+  //     builder: (context, setState) {
+  //       return Row(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: [
+  //           Checkbox.adaptive(
+  //             side: BorderSide(
+  //                 color: const Color.fromARGB(255, 114, 114, 114), width: 1),
+  //             visualDensity: VisualDensity.compact,
+  //             value: TimerLogic.plusDay,
+  //             onChanged: (value) {
+  //               setState(
+  //                 () => TimerLogic.plusDay = value!,
+  //               );
+  //             },
+  //           ),
+  //           GestureDetector(
+  //               onTap: () =>
+  //                   setState(() => TimerLogic.plusDay = !TimerLogic.plusDay),
+  //               child: const Text("+24h"))
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 }
 
-class _HomeTimerState extends State<HomeTimer> {
+class HomeTimer extends StatefulWidget {
+  final CountDownController timerController;
+  final VoidCallback onTimerComplete;
+  const HomeTimer({
+    super.key,
+    required this.timerController,
+    required this.onTimerComplete,
+  });
+
+  @override
+  State<HomeTimer> createState() => HomeTimerState();
+}
+
+class HomeTimerState extends State<HomeTimer> {
   bool tryingAgain = false;
   @override
   Widget build(BuildContext context) {
@@ -828,7 +684,7 @@ class _HomeTimerState extends State<HomeTimer> {
       tryingAgain = true;
     });
 
-    TimerAndClockState.cancelEvent();
+    HomePageState.cancelEvent();
 
     await Future.wait([
       TimerStorage.loadTimer(),
@@ -858,47 +714,6 @@ class _HomeTimerState extends State<HomeTimer> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _SnackBarContentState extends State<SnackBarContent> {
-  final List<String> loadingStates = [
-    "Setting Event",
-    "Setting Event.",
-    "Setting Event..",
-    "Setting Event..."
-  ];
-  int index = 0;
-  late Timer timer;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text(loadingStates[index]));
-  }
-
-  @override
-  void dispose() {
-    timer.cancel();
-    super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    timer = Timer.periodic(
-      Duration(milliseconds: 250),
-      (timer) {
-        if (mounted) {
-          setState(
-            () {
-              index = (index + 1) %
-                  loadingStates
-                      .length; //This loops index over the possible list values
-            },
-          );
-        }
-      },
     );
   }
 }
