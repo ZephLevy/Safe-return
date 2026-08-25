@@ -24,8 +24,8 @@ class TimerLogic {
   }
 
   bool timeIsNextDay() {
-    final now = DateTime.now();
-    final selected = HomeUpdater.selectedTime;
+    final DateTime now = DateTime.now();
+    final DateTime selected = HomeUpdater.selectedTime;
 
     final nowMinutes = now.hour * 60 + now.minute;
     final selectedMinutes = selected.hour * 60 + selected.minute;
@@ -72,12 +72,8 @@ class TimerLogic {
   }
 
   static int? totalTime() {
-    return totalTimeDuration()?.inSeconds;
-  }
-
-  static Duration? totalTimeDuration() {
     if (timeOfTap != null) {
-      return HomeUpdater.selectedTime.difference(timeOfTap!);
+      return HomeUpdater.selectedTime.difference(timeOfTap!).inSeconds;
     }
     return null;
   }

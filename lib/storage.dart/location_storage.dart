@@ -15,14 +15,16 @@ class LocationStorage {
   }
 
   static Future<void> load() async {
-    var homeLng = await asyncPrefs.getDouble('homeLng');
-    var homeLat = await asyncPrefs.getDouble('homeLat');
+    double? homeLng = await asyncPrefs.getDouble('homeLng');
+    double? homeLat = await asyncPrefs.getDouble('homeLat');
+
     if (homeLat != null && homeLng != null) {
       MapsPageState.homePosition = LatLng(homeLat, homeLng);
     }
   }
 
   static Future<void> logOut() async {
+    MapsPageState.homePosition = null;
     await asyncPrefs.clear();
   }
 }

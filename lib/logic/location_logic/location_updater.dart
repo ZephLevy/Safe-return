@@ -12,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:safe_return/logic/global_vars.dart';
-import 'package:safe_return/logic/location_logic/get_location.dart';
 import 'package:safe_return/logic/timer_logic.dart';
 import 'package:safe_return/logic/tokens_logic.dart';
 import 'package:safe_return/storage.dart/user_path_storage.dart';
@@ -44,21 +43,26 @@ class LocationCallbackHandler {
 }
 
 class LocationServiceRepository {
-  static const String isolateName = "LocatorIsolate";
+  static const String _isolateName = "LocatorIsolate";
 
   static Future<void> callbackLogger(LocationDto locationDto) async {
     userPathNotifier.value = await UserPathStorage.load();
     await TokensLogic.triggerRefreshTokens();
 
-    final SendPort? send = IsolateNameServer.lookupPortByName(isolateName);
+    final SendPort? send = IsolateNameServer.lookupPortByName(_isolateName);
     send?.send({"type": "location", "contents": locationDto.toJson()});
   }
 
   static Future<void> dispose() async {
     print("***********Dispose callback handler");
 
-    final SendPort? send = IsolateNameServer.lookupPortByName(isolateName);
+    final SendPort? send = IsolateNameServer.lookupPortByName(_isolateName);
     send?.send({"type": "dispose"});
+  }
+
+  static Future<void> terminateLocationUpdates() async {
+    IsolateNameServer.removePortNameMapping(_isolateName);
+    BackgroundLocator.unRegisterLocationUpdate();
   }
 }
 
@@ -82,50 +86,17 @@ class LocationUpdaterState extends State<LocationUpdater> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SizedBox(
-          height: 20,
-          width: 20,
-          child: InkWell(
-            child: Icon(Icons.stop),
-            onTap: () async {
-              await BackgroundLocator.unRegisterLocationUpdate();
-            },
-          ),
-        ),
-        SizedBox(
-          height: 20,
-          width: 20,
-          child: InkWell(
-            child: Icon(Icons.abc),
-            onTap: () async {
-              if (await GetLocation.checkLocationPermissions()) {
-                LocationUpdaterState.startLocationService();
-              }
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> initLocator() async {
-    await initPlatformState();
-  }
-
-  Future<void> initPlatformState() async {
-    await BackgroundLocator.initialize();
+    return SizedBox.shrink();
   }
 
   @override
   void initState() {
     super.initState();
     IsolateNameServer.removePortNameMapping(
-        LocationServiceRepository.isolateName);
+        LocationServiceRepository._isolateName);
 
     IsolateNameServer.registerPortWithName(
-        port.sendPort, LocationServiceRepository.isolateName);
+        port.sendPort, LocationServiceRepository._isolateName);
     port.listen(
       (dynamic data) {
         // print("listened for data: $data");
@@ -162,7 +133,7 @@ class LocationUpdaterState extends State<LocationUpdater> {
       },
     );
 
-    initLocator();
+    BackgroundLocator.initialize();
   }
 
   static Future<void> logLocationDtoToServer(LocationDto locationDto) async {

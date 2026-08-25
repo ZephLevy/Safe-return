@@ -12,13 +12,11 @@ final reconnectingNotifier = ReconnectingNotifier();
 final currentPositionNotifier = CurrentPosition();
 final mapLoadNotifier = MapLoadNotifier();
 final notiService = NotiService();
-final initializingTimer = InitializingTimer();
+final initializingTimerNotifier = InitializingTimer();
 final ValueNotifier<List<LatLng>> userPathNotifier =
     ValueNotifier(MapsPageState.userPath);
 
-final waitingServerNotifier = WaitingServer();
 final ValueNotifier<bool> showTimerNotifier = ValueNotifier(false);
-final ValueNotifier<bool> firstLoadNotifier = ValueNotifier(false);
 final ValueNotifier<bool> startSelectedNotifier = ValueNotifier(false);
 final ValueNotifier<int> codeAttemptsNotifier = ValueNotifier(3);
 final ValueNotifier<DateTime> selectedTimeNotifier =

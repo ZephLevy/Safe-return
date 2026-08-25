@@ -43,29 +43,24 @@ class MapsPageState extends State<MapsPage> {
           return ValueListenableBuilder(
             valueListenable: reconnectingNotifier,
             builder: (context, reConnecting, child) {
-              return ValueListenableBuilder(
-                  valueListenable: initializingTimer,
-                  builder: (context, value, child) {
-                    return ValueListenableBuilder<Position?>(
-                      valueListenable: currentPositionNotifier,
-                      builder: (context, currentPosition, child) {
-                        if (currentPositionNotifier.hasError) {
-                          return LocationError();
-                        }
-                        if (reConnecting || currentPosition == null) {
-                          return Center(
-                              child: CircularProgressIndicator.adaptive());
-                        }
+              return ValueListenableBuilder<Position?>(
+                valueListenable: currentPositionNotifier,
+                builder: (context, currentPosition, child) {
+                  if (currentPositionNotifier.hasError) {
+                    return LocationError();
+                  }
+                  if (reConnecting || currentPosition == null) {
+                    return Center(child: CircularProgressIndicator.adaptive());
+                  }
 
-                        if (!isOnline) {
-                          return InternetError();
-                        } else {
-                          return _mainBody(LatLng(currentPosition.latitude,
-                              currentPosition.longitude));
-                        }
-                      },
-                    );
-                  });
+                  if (!isOnline) {
+                    return InternetError();
+                  } else {
+                    return _mainBody(LatLng(
+                        currentPosition.latitude, currentPosition.longitude));
+                  }
+                },
+              );
             },
           );
         });

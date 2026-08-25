@@ -2,19 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:safe_return/Visuals/palette.dart';
 import 'package:safe_return/logic/global_vars.dart';
 import 'package:safe_return/logic/location_logic/get_location.dart';
-import 'package:safe_return/logic/location_logic/location_updater.dart';
 import 'package:safe_return/pages/all_settings_pages/preferred_viewer_page.dart';
 import 'package:safe_return/pages/log_sign_up/login_page.dart';
 import 'package:safe_return/pages/main_pages/home_page.dart';
 import 'package:safe_return/pages/main_pages/map_page.dart';
 import 'package:safe_return/pages/main_pages/settings_page.dart';
 import 'package:safe_return/storage.dart/codes_secure_storage.dart';
+import 'package:safe_return/storage.dart/location_storage.dart';
 import 'package:safe_return/storage.dart/stored_settings.dart';
 import 'package:safe_return/storage.dart/timer_storage.dart';
 import 'package:safe_return/storage.dart/user_path_storage.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  LoginPageState.isLoggedIn =
+      true; //TODO remove this but i just need it so i don't have to login every time
   await isOnlineNotifier.init();
   await notiService.init();
   try {
@@ -22,6 +24,7 @@ Future<void> main() async {
   } catch (_) {}
 
   userPathNotifier.value = await UserPathStorage.load();
+  await LocationStorage.load();
   await StoredSettings.load();
   await TimerStorage.loadTimer();
   await PreferredViewerState.loadViewType();
@@ -108,24 +111,6 @@ class _HomeScreenState extends State<HomeScreen> {
           color: Palette.blue1,
         ),
       ),
-      actions: [
-        (_selectedIndex == 1)
-            ? Row(
-                children: [
-                  LocationUpdater(),
-                  // Padding(
-                  //   padding: const EdgeInsets.only(right: 8.0),
-                  //   child: IconButton(
-                  //       tooltip: "Update home location to current location",
-                  //       onPressed: () {
-                  //         _setHomeLocation();
-                  //       },
-                  //       icon: Icon(Icons.home)),
-                  // ),
-                ],
-              )
-            : SizedBox.shrink(),
-      ],
     );
   }
 }

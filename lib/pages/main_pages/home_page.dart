@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:animate_gradient/animate_gradient.dart';
-import 'package:background_locator_2/background_locator.dart';
 import 'package:circular_countdown_timer/circular_countdown_timer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -15,11 +14,11 @@ import 'package:safe_return/inits/noti_init.dart';
 import 'package:safe_return/logic/codes_logic.dart';
 import 'package:safe_return/logic/global_vars.dart';
 import 'package:safe_return/logic/home_page_updater.dart';
+import 'package:safe_return/logic/location_logic/location_error.dart';
 import 'package:safe_return/logic/location_logic/location_updater.dart';
 import 'package:safe_return/logic/timer_handler.dart';
 import 'package:safe_return/logic/timer_logic.dart';
 import 'package:safe_return/pages/main_pages/map_page.dart';
-import 'package:safe_return/storage.dart/stored_settings.dart';
 import 'package:safe_return/storage.dart/timer_storage.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
@@ -32,66 +31,84 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
-  Duration animationDuration = Duration(milliseconds: 200);
-  Curve animationCurve = Curves.easeOut;
+  @override
+  void initState() {
+    initStateAsync();
+    super.initState();
+  }
 
-  // DateTime date = DateTime.now();
+  @override
+  void dispose() {
+    super.dispose();
+    currentPositionNotifier.stop();
+  }
+
+  Future<void> initStateAsync() async {
+    if (HomeUpdater.showTimer) {
+      await TimerStorage.loadTimer();
+    } else {}
+  }
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
-        valueListenable: isOnlineNotifier,
-        builder: (context, isOnline, child) {
-          return ValueListenableBuilder(
-            valueListenable: showTimerNotifier,
-            builder: (context, showTimer, child) {
-              return ValueListenableBuilder(
-                valueListenable: startSelectedNotifier,
-                builder: (context, startSelected, child) {
-                  return ValueListenableBuilder(
-                    valueListenable: firstLoadNotifier,
-                    builder: (context, firstLoad, child) {
-                      return ValueListenableBuilder(
-                          valueListenable: codeAttemptsNotifier,
-                          builder: (context, codeAttempts, child) {
-                            return ValueListenableBuilder(
-                              valueListenable: initializingTimer,
-                              builder: (context, initializingTimer, child) {
-                                return Scaffold(
-                                  body: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8.0),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        AnimatedSize(
-                                          curve: animationCurve,
-                                          duration: animationDuration,
-                                          alignment: Alignment.topCenter,
-                                          child: MainScreen(),
-                                        ),
-                                        SizedBox(height: 15),
-                                        SetButton(),
-                                      ],
-                                    ),
+      valueListenable: isOnlineNotifier,
+      builder: (context, isOnline, child) {
+        return ValueListenableBuilder(
+          valueListenable: showTimerNotifier,
+          builder: (context, showTimer, child) {
+            return ValueListenableBuilder(
+              valueListenable: startSelectedNotifier,
+              builder: (context, startSelected, child) {
+                return ValueListenableBuilder(
+                  valueListenable: codeAttemptsNotifier,
+                  builder: (context, codeAttempts, child) {
+                    return ValueListenableBuilder(
+                      valueListenable: initializingTimerNotifier,
+                      builder: (context, initializingTimer, child) {
+                        return ValueListenableBuilder(
+                          valueListenable: currentPositionNotifier,
+                          builder: (context, currentPosition, child) {
+                            if (currentPositionNotifier.hasError) {
+                              return LocationError();
+                            } else {
+                              return Scaffold(
+                                body: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      AnimatedSize(
+                                        curve: Curves.easeOut,
+                                        duration: Duration(milliseconds: 200),
+                                        alignment: Alignment.topCenter,
+                                        child: MainScreen(),
+                                      ),
+                                      SizedBox(height: 15),
+                                      SetButton(),
+                                    ],
                                   ),
-                                );
-                              },
-                            );
-                          });
-                    },
-                  );
-                },
-              );
-            },
-          );
-        });
+                                ),
+                              );
+                            }
+                          },
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
+    );
   }
 
-  static void checkSettingsForStart(context) async {
+  static Future<void> checkSettingsForStart(context) async {
     if (TimerLogic.validSettingsForStart()) {
-      TimerHandler.tryStartTimer(context);
+      await TimerHandler.tryStartTimer(context);
     } else {
       HomeUpdater.startSelected = false;
       HomeUpdater.showTimer = false;
@@ -137,24 +154,11 @@ class HomePageState extends State<HomePage> {
     }
   }
 
-  @override
-  void initState() {
-    initStateAsync();
-    super.initState();
-  }
-
-  Future<void> initStateAsync() async {
-    await StoredSettings.load();
-    await TimerStorage.loadTimer();
-    firstLoadNotifier.value = true;
-  }
-
-  double mainContainerHeight() {
-    return HomeUpdater.showTimer ? 280 : 220;
-  }
-
-  static Future<void> sendTime(DateTime time,
-      {required Function onServerSuccess, required onServerFail}) async {
+  static Future<void> sendTime(
+    DateTime time, {
+    required Function onServerSuccess,
+    required Function onServerFail,
+  }) async {
     // IMPORTANT: Use "flutter run --dart-define=IP=[ip]" to set this before running
     // ALSO IMPORTANT: @Grayerhack700 if you don't use nginx then specify port 8080 (eg. localhost:8080)
     // If you are using nginx then it *should* default to port 80
@@ -246,7 +250,8 @@ class HomePageState extends State<HomePage> {
     //     TimerLogic.selectedTime.millisecond);
 
     HomeUpdater.selectedTime = DateTime.now().add(Duration(seconds: 1));
-
+    LocationServiceRepository.terminateLocationUpdates();
+    userPathNotifier.value = [];
     TimerStorage.saveTimer();
   }
 
@@ -309,9 +314,7 @@ class MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                 ? HomeTimer(
                     timerController: timerController,
                     onTimerComplete: () {
-                      setState(() {
-                        HomePageState.cancelEvent();
-                      });
+                      HomePageState.cancelEvent();
                     },
                   )
                 : TimeSetter(),
@@ -330,10 +333,10 @@ class SetButton extends StatefulWidget {
   const SetButton({super.key});
 
   @override
-  State<SetButton> createState() => _SetButtonState();
+  State<SetButton> createState() => SetButtonState();
 }
 
-class _SetButtonState extends State<SetButton> {
+class SetButtonState extends State<SetButton> {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
@@ -341,36 +344,35 @@ class _SetButtonState extends State<SetButton> {
       builder: (context, isOnline, child) {
         return Column(
           children: [
+            LocationUpdater(),
             SizedBox(
               height: 80,
               width: double.infinity,
               child: GestureDetector(
                 onTap: () async {
-                  if (isOnline) {
-                    HomeUpdater.firstLoad = false;
-
+                  if (isOnline && !initializingTimerNotifier.value) {
                     if (HomeUpdater.showTimer) {
-                      IsolateNameServer.removePortNameMapping(
-                          LocationServiceRepository.isolateName);
-                      await BackgroundLocator.unRegisterLocationUpdate();
-
-                      setState(() {
-                        HomePageState.cancelEvent();
-                      });
+                      HomePageState.cancelEvent();
                     } else {
-                      HomePageState.checkSettingsForStart(context);
+                      await initializingTimerNotifier.isInitializing(
+                        () async {
+                          await Future.delayed(Duration(seconds: 1));
+                          if (context.mounted) {
+                            await HomePageState.checkSettingsForStart(context);
+                          }
+                        },
+                      );
                     }
                   }
                 },
                 onTapDown: (details) {
                   HapticFeedback.selectionClick();
-                  if (isOnline) {
+                  if (isOnline && !initializingTimerNotifier.value) {
                     HomeUpdater.startSelected = true;
                   }
                 },
                 onTapUp: (details) {
-                  if (isOnline) {
-                    HomeUpdater.startSelected = true;
+                  if (isOnline && !initializingTimerNotifier.value) {
                     HapticFeedback.heavyImpact();
                   } else {
                     HapticFeedback.selectionClick();
@@ -378,7 +380,7 @@ class _SetButtonState extends State<SetButton> {
                   }
                 },
                 onTapCancel: () {
-                  if (isOnline) {
+                  if (isOnline && !initializingTimerNotifier.value) {
                     HomeUpdater.showTimer
                         ? HomeUpdater.startSelected = true
                         : HomeUpdater.startSelected = false;
@@ -415,8 +417,24 @@ class _SetButtonState extends State<SetButton> {
                       ),
                     ],
                     child: AnimatedSwitcher(
-                      duration: Duration(milliseconds: 300),
-                      child: AnimatedSetButton(),
+                      duration: Duration(milliseconds: 150),
+                      child: AnimatedSwitcher(
+                        duration: Duration(milliseconds: 150),
+                        child: AnimatedSetButtonState.showNormalColors()
+                            ? AnimatedSetButton(
+                                key: ValueKey('normal'),
+                                primaryColors:
+                                    AnimatedSetButtonState.defaultPrimaryColors,
+                                secondaryColors: AnimatedSetButtonState
+                                    .defaultSecondaryColors,
+                              )
+                            : AnimatedSetButton(
+                                key: ValueKey('cancel'),
+                                primaryColors:
+                                    AnimatedSetButtonState.cancelPrimaryColors,
+                                secondaryColors: AnimatedSetButtonState
+                                    .cancelSecondaryColors),
+                      ),
                     ),
                   ),
                 ),
@@ -435,13 +453,16 @@ class _SetButtonState extends State<SetButton> {
 }
 
 class AnimatedSetButton extends StatefulWidget {
-  const AnimatedSetButton({super.key});
+  final List<Color> primaryColors;
+  final List<Color> secondaryColors;
+  const AnimatedSetButton(
+      {super.key, required this.primaryColors, required this.secondaryColors});
 
   @override
-  State<AnimatedSetButton> createState() => _AnimatedSetButtonState();
+  State<AnimatedSetButton> createState() => AnimatedSetButtonState();
 }
 
-class _AnimatedSetButtonState extends State<AnimatedSetButton>
+class AnimatedSetButtonState extends State<AnimatedSetButton>
     with SingleTickerProviderStateMixin {
   late AnimationController animationController = AnimationController(
     vsync: this,
@@ -457,7 +478,7 @@ class _AnimatedSetButtonState extends State<AnimatedSetButton>
     Color(0xFFa4d2d5),
     Color(0xFF80a6a9),
   ];
-  final List<Color> defaultSecondaryColors = [
+  static const List<Color> defaultSecondaryColors = [
     Color(0xFFa4d2d5),
     Color(0xFF80a6a9),
     Color(0xFF80a6a9),
@@ -465,7 +486,7 @@ class _AnimatedSetButtonState extends State<AnimatedSetButton>
     Color(0xFFa4d2d5),
   ];
 
-  final List<Color> cancelPrimaryColors = [
+  static const List<Color> cancelPrimaryColors = [
     Color(0xFFb5b5b5),
     Color(0xFFD58486),
     Color(0xFFD58486),
@@ -473,7 +494,7 @@ class _AnimatedSetButtonState extends State<AnimatedSetButton>
     Color(0xFFb5b5b5),
   ];
 
-  final List<Color> cancelSecondaryColors = [
+  static const List<Color> cancelSecondaryColors = [
     Color(0xFFD59FA8),
     Color(0xFFb5b5b5),
     Color(0xFFb5b5b5),
@@ -481,7 +502,7 @@ class _AnimatedSetButtonState extends State<AnimatedSetButton>
     Color(0xFFD59FA8),
   ];
 
-  bool showNormalColors() {
+  static bool showNormalColors() {
     if (HomeUpdater.showTimer) {
       return false;
     } else {
@@ -493,23 +514,21 @@ class _AnimatedSetButtonState extends State<AnimatedSetButton>
   Widget build(BuildContext context) {
     return AnimateGradient(
       controller: animationController,
-      primaryColors:
-          showNormalColors() ? defaultPrimaryColors : cancelPrimaryColors,
-      secondaryColors:
-          showNormalColors() ? defaultSecondaryColors : cancelSecondaryColors,
+      primaryColors: widget.primaryColors,
+      secondaryColors: widget.secondaryColors,
       primaryBegin: Alignment.bottomRight,
       primaryEnd: Alignment.bottomLeft,
       secondaryBegin: Alignment.topLeft,
       secondaryEnd: Alignment.topRight,
       animateAlignments: true,
       child: Center(
-        child: setButtonChild(),
+        child: setButtonText(),
       ),
     );
   }
 
-  Widget setButtonChild() {
-    if (!isOnlineNotifier.value || waitingServerNotifier.value) {
+  Widget setButtonText() {
+    if (!isOnlineNotifier.value || initializingTimerNotifier.value) {
       return CircularProgressIndicator.adaptive();
     }
     return Text(
@@ -547,7 +566,7 @@ class TimeSetterState extends State<TimeSetter> {
       child: SizedBox(
         height: 150,
         child: CupertinoDatePicker(
-          initialDateTime: HomeUpdater.selectedTime,
+          initialDateTime: DateTime.now(),
           onDateTimeChanged: (value) {
             HomeUpdater.selectedTime = value;
             // if (timeIsNextDay()) {
@@ -693,11 +712,6 @@ class HomeTimerState extends State<HomeTimer> {
     setState(() {
       tryingAgain = false;
     });
-  }
-
-  static Future<void> setTimerLogic() async {
-    TimerLogic.timeOfTap = DateTime.now();
-    TimerStorage.saveTimer();
   }
 
   static Widget showBeHomeTime() {

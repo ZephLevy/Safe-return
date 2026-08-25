@@ -87,7 +87,7 @@ class _LocationErrorState extends State<LocationError> {
                 child: SafeArea(
                   top: false,
                   child: SizedBox(
-                    height: 40,
+                    height: 50,
                     child: ShrinkTapContainer(
                       onTap: () async {
                         print("reconnecting");

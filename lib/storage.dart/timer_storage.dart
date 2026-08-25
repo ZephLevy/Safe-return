@@ -8,36 +8,28 @@ class TimerStorage {
     await asyncPrefs.setString(
         'selectedTime', HomeUpdater.selectedTime.toIso8601String());
 
-    await asyncPrefs.setString(
-        'timeOfTap', TimerLogic.timeOfTap?.toIso8601String() ?? "");
+    if (TimerLogic.timeOfTap != null) {
+      await asyncPrefs.setString(
+          'timeOfTap', TimerLogic.timeOfTap!.toIso8601String());
+    }
 
     await asyncPrefs.setBool('showTimer', HomeUpdater.showTimer);
-    await asyncPrefs.setBool('startSelected', HomeUpdater.startSelected);
     await asyncPrefs.setBool('isTomorrow', TimerLogic.plusDay);
     // codeAttempts = 3; //TODO idk when to save these i'll handle these later
   }
 
   static Future<void> loadTimer() async {
-    if (HomeUpdater.showTimer) {
-      final asyncPrefs = SharedPreferencesAsync();
+    final asyncPrefs = SharedPreferencesAsync();
 
-      String stringTimeOfTap = await asyncPrefs.getString('timeOfTap') ?? "";
+    TimerLogic.timeOfTap =
+        DateTime.tryParse(await asyncPrefs.getString('timeOfTap') ?? "");
 
-      TimerLogic.timeOfTap = DateTime.tryParse(stringTimeOfTap);
+    HomeUpdater.showTimer = await asyncPrefs.getBool('showTimer') ?? false;
 
-      HomeUpdater.showTimer = await asyncPrefs.getBool('showTimer') ?? false;
+    TimerLogic.plusDay = await asyncPrefs.getBool('isTomorrow') ?? false;
 
-      HomeUpdater.startSelected =
-          await asyncPrefs.getBool('startSelected') ?? false;
-
-      TimerLogic.plusDay = await asyncPrefs.getBool('isTomorrow') ?? false;
-
-      if (HomeUpdater.showTimer) {
-        String? stringSelectedTime = await asyncPrefs.getString('selectedTime');
-        if (stringSelectedTime != null) {
-          HomeUpdater.selectedTime = DateTime.parse(stringSelectedTime);
-        }
-      }
-    }
+    HomeUpdater.selectedTime =
+        DateTime.tryParse(await asyncPrefs.getString('selectedTime') ?? "") ??
+            DateTime.now();
   }
 }

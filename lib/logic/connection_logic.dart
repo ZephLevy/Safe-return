@@ -12,12 +12,9 @@ class IsOnlineNotifier extends ValueNotifier<bool> {
     //returns a list of which connectivity types device is connected to (e.g. could return: [Connectivity.wifi, Connectivity.mobile])
     final initial = await Connectivity().checkConnectivity();
     value = _hasAConnection(initial);
-    print("inital connection: $value, $initial");
 
     _subscription = Connectivity().onConnectivityChanged.listen((results) {
       value = _hasAConnection(results);
-      print("results: $results");
-      print("value: $value");
     });
   }
 

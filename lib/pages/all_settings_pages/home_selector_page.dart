@@ -8,6 +8,7 @@ import 'package:safe_return/logic/internet_error.dart';
 import 'package:safe_return/logic/location_logic/get_location.dart';
 import 'package:safe_return/logic/location_logic/location_error.dart';
 import 'package:safe_return/pages/main_pages/map_page.dart';
+import 'package:safe_return/storage.dart/location_storage.dart';
 
 class MapLoadNotifier extends ValueNotifier<bool> {
   MapLoadNotifier() : super(false); // false = no error yet
@@ -416,6 +417,7 @@ class _HomeSelectorState extends State<HomeSelector> {
                   color: Colors.lightBlue,
                   onTap: () async {
                     MapsPageState.homePosition = currentPosition;
+                    LocationStorage.save(homePosition: currentPosition);
                     setState(() {
                       addingStep += 1;
                     });
